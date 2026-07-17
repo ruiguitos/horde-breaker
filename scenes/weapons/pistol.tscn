@@ -29,7 +29,7 @@ height = 0.2
 
 [node name="Pistol" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_weapon_script")
-damage = 18.0
+damage = 35.0
 fire_rate = 3.0
 maximum_range = 75.0
 magazine_size = 12

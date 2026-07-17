@@ -40,6 +40,7 @@ radius = 1.4
 collision_layer = 0
 collision_mask = 3
 script = ExtResource("1_zombie_script")
+maximum_health = 100.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("Shape_zombie")

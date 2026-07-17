@@ -29,6 +29,7 @@ height = 0.26
 
 [node name="AssaultRifle" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_weapon_script")
+damage = 30.0
 starting_reserve_ammunition = 90
 maximum_reserve_ammunition = 180
 

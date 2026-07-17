@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: feedback visual de dano pós-Milestone 14 concluído.
+Fase: primeiro balanceamento conjunto de vida e dano pós-Milestone 14 concluído.
 
 Última atualização: 2026-07-17.
 
@@ -177,17 +177,21 @@ Fase: feedback visual de dano pós-Milestone 14 concluído.
 - [x] Impactos no corpo apresentados a claro e headshots apresentados a dourado, sem alterar os multiplicadores existentes.
 - [x] Pellets da Shotgun agregados por inimigo para mostrar apenas um total por disparo.
 - [x] Worn Sword configurada para apresentar um número por inimigo atingido pelo mesmo golpe.
+- [x] Vida base do Normal Zombie aumentada de 50 para 100 e vida do Runner aumentada de 30 para 60.
+- [x] Assault Rifle, Pistol, Shotgun e Worn Sword balanceadas provisoriamente para 30, 35, 12 por pellet e 50 de dano base.
+- [x] Dano das quatro armas configurado explicitamente nas respetivas cenas, sem depender dos valores genéricos dos scripts.
+- [x] Matriz corpo/cabeça documentada com multiplicador `2 ×` preservado e valores finais visíveis no ponto atingido.
 
 ## Milestone atual
 
-**Feedback visual de dano pós-Milestone 14 (concluído)**
+**Primeiro balanceamento de vida e dano pós-Milestone 14 (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual dos números de dano com Recruit, Renegade e Medic e afinar
-tamanho, duração ou posição se necessário. Antes de criar sistemas de longo
-prazo, decidir se o core loop continua baseado em rondas ou evolui para survival
-contínuo com construção de acampamento.
+Fazer playtest manual do novo tempo para eliminar Normal Zombies e Runners com
+Recruit, Renegade e Medic, afinando os valores apenas depois de testar várias
+distâncias. Depois, definir o primeiro vertical slice do modo survival contínuo
+com ataques ao acampamento antes de iniciar sistemas de construção persistente.
 
 ## Validação
 
@@ -297,9 +301,13 @@ contínuo com construção de acampamento.
 - Arena de teste executada durante 60 frames em modo headless com o HUD revisto e código de saída 0.
 - Capturas OpenGL a 1152 × 648 confirmaram menu principal, seleção, HUD, pausa, derrota e vitória sem texto cortado ou painéis sobrepostos.
 - Teste automatizado confirmou números `10` no corpo e `20` na cabeça com dano base 10, incluindo a cor dourada exclusiva do headshot.
-- Teste automatizado confirmou que oito pellets de 9 de dano da Shotgun produzem um único número agregado de `72` no mesmo inimigo.
-- Teste automatizado confirmou um número `35` para o golpe de corpo da Worn Sword e remoção automática de todos os indicadores após 0,65 segundos.
+- Teste automatizado confirmou que os oito pellets da Shotgun produzem um único número agregado no mesmo inimigo.
+- Teste automatizado confirmou um único número por alvo atingido pela Worn Sword e remoção automática de todos os indicadores após 0,65 segundos.
 - Captura OpenGL a 1152 × 648 confirmou o número de headshot pequeno, legível e sem interferir com o HUD.
+- Teste automatizado carregou as cenas reais e confirmou 100/60 de vida no Normal Zombie/Runner e multiplicador de cabeça `2 ×`.
+- Teste automatizado confirmou dano corpo/cabeça de `30/60` na Assault Rifle, `35/70` na Pistol, `12/24` por pellet na Shotgun e `50/100` na Worn Sword.
+- Teste integrado com raycasts reais confirmou números `30/60` da Assault Rifle no corpo/cabeça, `35` da Pistol, `96` para oito pellets da Shotgun e `50` da Worn Sword.
+- Arena executada durante 60 frames em modo headless após o balanceamento sem erros de carregamento ou execução.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes

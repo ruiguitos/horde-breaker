@@ -126,6 +126,15 @@ Loadout inicial:
 - Nas armas melee, apenas o inimigo cuja cabeça esteja sob o centro da mira recebe o multiplicador; os restantes alvos do mesmo golpe recebem dano de corpo.
 - O multiplicador é configurável por hitbox e deve ser afinado através de playtests.
 
+Valores provisórios após o primeiro balanceamento conjunto de vida e dano:
+
+| Arma | Corpo | Cabeça | Observação |
+|---|---:|---:|---|
+| Assault Rifle | 30 | 60 | Dano por bala; fogo automático. |
+| Pistol | 35 | 70 | Dano por bala; fogo semiautomático. |
+| Shotgun | 12 por pellet | 24 por pellet | Oito pellets; máximo teórico de 96 no corpo. |
+| Worn Sword | 50 | 100 | Pode atingir vários inimigos no mesmo golpe. |
+
 ## Progressão
 
 ### Character XP
@@ -193,6 +202,7 @@ O Scrap é reiniciado no fim da partida.
 ### Normal Zombie
 
 - lento;
+- 100 pontos de vida;
 - vida e dano médios;
 - persegue o jogador;
 - inimigo base.
@@ -200,6 +210,7 @@ O Scrap é reiniciado no fim da partida.
 ### Runner
 
 - rápido;
+- 60 pontos de vida;
 - pouca vida;
 - força o jogador a reposicionar-se.
 

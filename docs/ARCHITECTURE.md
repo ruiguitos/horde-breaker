@@ -90,6 +90,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - O segundo raycast impede que a arma dispare através de uma parede entre o cano e o alvo.
 - O raycast deteta a layer 1 (`World`) e as `DamageHitbox` da layer 3.
 - `BodyHitbox` usa multiplicador `1.0` e `HeadHitbox` usa provisoriamente `2.0`; ambas delegam o dano no zombie que implementa `take_damage(amount)`.
+- `DamageNumber3D` apresenta o dano realmente aplicado no ponto atingido; impactos no corpo usam texto claro e headshots usam texto dourado.
 - A arma orienta-se para o ponto visado e o tracer parte do cano até ao impacto real.
 - Cada arma de fogo mantém carregador e reserva próprios, emite alterações dos dois valores e transfere apenas a munição disponível durante `reload`.
 - Assault Rifle, Pistol e Shotgun começam respetivamente com reservas de 90, 48 e 32 munições.
@@ -100,7 +101,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - `ShoulderOffset` desloca a câmara 0,9 m para a direita para o jogador não tapar a mira; o raycast continua a partir do centro ótico da câmara.
 - O botão direito do rato aproxima a câmara para uma mira sobre o ombro, reduzindo suavemente o FOV e o comprimento do `SpringArm3D`.
 - Manter `C` premido coloca temporariamente a câmara em frente da personagem e libertar a tecla repõe a órbita anterior.
-- A Worn Sword consulta um volume frontal na layer 3, aplica 35 de dano base a cada inimigo válido e usa cooldown de 0,6 segundos.
+- A Worn Sword consulta um volume frontal na layer 3, aplica 50 de dano base a cada inimigo válido e usa cooldown de 0,6 segundos.
 - Um raycast curto a partir do centro da câmara identifica se a cabeça do alvo principal está sob a mira e aplica também à espada o multiplicador da `HeadHitbox`.
 - Corpo e cabeça são deduplicados por zombie para que o mesmo golpe nunca aplique dano duas vezes ao mesmo inimigo.
 - O volume frontal é uma aproximação retangular simples de um golpe em arco e usa uma consulta direta ao servidor de física no instante do ataque.
