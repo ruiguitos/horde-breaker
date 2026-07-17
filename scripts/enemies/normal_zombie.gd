@@ -13,6 +13,7 @@ const TARGET_REPATH_DISTANCE := 0.25
 @export_range(0.5, 5.0, 0.1) var attack_range: float = 1.4
 @export_range(0.1, 10.0, 0.1) var attack_cooldown: float = 1.0
 @export_range(0.1, 30.0, 0.1) var rotation_speed: float = 8.0
+@export_range(0, 1000, 1) var xp_reward: int = 5
 
 @onready var navigation_agent: NavigationAgent3D = %NavigationAgent3D
 @onready var attack_area: Area3D = %AttackArea

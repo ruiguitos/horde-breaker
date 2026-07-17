@@ -27,7 +27,7 @@ material = SubResource("Material_flash")
 radius = 0.13
 height = 0.26
 
-[node name="AssaultRifle" type="Node3D"]
+[node name="AssaultRifle" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_weapon_script")
 
 [node name="Body" type="MeshInstance3D" parent="."]
@@ -50,4 +50,9 @@ mesh = SubResource("Mesh_flash")
 [node name="MuzzleFlashTimer" type="Timer" parent="."]
 unique_name_in_owner = true
 wait_time = 0.05
+one_shot = true
+
+[node name="ReloadTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 1.5
 one_shot = true

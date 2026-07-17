@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="1_normal_zombie"]
+
+[sub_resource type="StandardMaterial3D" id="Material_runner"]
+albedo_color = Color(0.78, 0.32, 0.12, 1)
+roughness = 0.8
+
+[node name="RunnerZombie" instance=ExtResource("1_normal_zombie")]
+maximum_health = 30.0
+move_speed = 4.5
+attack_damage = 7.0
+attack_cooldown = 0.8
+xp_reward = 8
+
+[node name="Visual" parent="VisualRoot" index="0"]
+material_override = SubResource("Material_runner")
+
+[editable path="VisualRoot"]

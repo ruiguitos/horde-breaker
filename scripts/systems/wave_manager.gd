@@ -1,0 +1,128 @@
+extends Node
+
+signal wave_started(wave_number: int)
+signal enemy_count_changed(remaining_enemies: int)
+signal wave_completed(wave_number: int)
+signal intermission_started(next_wave: int, duration: float)
+signal enemy_defeated(xp_reward: int)
+signal all_waves_completed
+
+@export var normal_zombie_scene: PackedScene
+@export var runner_zombie_scene: PackedScene
+@export var waves: Array[WaveData] = []
+@export_range(0.0, 5.0, 0.05) var spawn_interval: float = 0.2
+@export_range(0.0, 30.0, 0.5) var inter_wave_delay: float = 3.0
+
+@onready var enemy_spawns: Node3D = %EnemySpawns
+@onready var enemies: Node3D = %Enemies
+
+var current_wave: int = 0
+var alive_enemy_count: int = 0
+var _is_spawning: bool = false
+var _is_transitioning: bool = false
+
+
+func _ready() -> void:
+	call_deferred("_start_next_wave")
+
+
+func _start_next_wave() -> void:
+	if waves.is_empty():
+		push_error("WaveManager requires at least one WaveData resource.")
+		return
+	if current_wave >= waves.size():
+		all_waves_completed.emit()
+		return
+
+	var wave_data := waves[current_wave]
+	if wave_data == null:
+		push_error("WaveManager received an empty WaveData entry.")
+		return
+	var enemy_scenes := _build_enemy_scene_list(wave_data)
+	if enemy_scenes.is_empty():
+		push_error("WaveManager waves must contain at least one enemy.")
+		return
+
+	var spawn_points := enemy_spawns.get_children()
+	if spawn_points.is_empty():
+		push_error("WaveManager requires at least one enemy spawn point.")
+		return
+
+	current_wave += 1
+	alive_enemy_count = enemy_scenes.size()
+	_is_spawning = true
+	_is_transitioning = false
+	wave_started.emit(current_wave)
+	enemy_count_changed.emit(alive_enemy_count)
+
+	for enemy_index in range(enemy_scenes.size()):
+		var spawn_point := spawn_points[enemy_index % spawn_points.size()] as Marker3D
+		if spawn_point == null:
+			push_error("WaveManager enemy spawn children must be Marker3D nodes.")
+			_register_failed_spawn()
+			continue
+		if not _spawn_enemy(enemy_scenes[enemy_index], spawn_point):
+			_register_failed_spawn()
+		if spawn_interval > 0.0 and enemy_index < enemy_scenes.size() - 1:
+			await get_tree().create_timer(spawn_interval).timeout
+
+	_is_spawning = false
+	if alive_enemy_count == 0:
+		_complete_current_wave()
+
+
+func _build_enemy_scene_list(wave_data: WaveData) -> Array[PackedScene]:
+	var enemy_scenes: Array[PackedScene] = []
+	if normal_zombie_scene == null or runner_zombie_scene == null:
+		push_error("WaveManager requires Normal Zombie and Runner scenes.")
+		return enemy_scenes
+	for _enemy_index in range(wave_data.normal_zombie_count):
+		enemy_scenes.append(normal_zombie_scene)
+	for _enemy_index in range(wave_data.runner_zombie_count):
+		enemy_scenes.append(runner_zombie_scene)
+	return enemy_scenes
+
+
+func _spawn_enemy(enemy_scene: PackedScene, spawn_point: Marker3D) -> bool:
+	var enemy := enemy_scene.instantiate() as Node3D
+	if enemy == null:
+		push_error("WaveManager enemy scenes must have a Node3D root.")
+		return false
+	if not enemy.has_signal(&"died"):
+		push_error("WaveManager enemies must expose a died signal.")
+		enemy.queue_free()
+		return false
+
+	enemies.add_child(enemy)
+	enemy.global_position = spawn_point.global_position
+	enemy.connect(&"died", _on_enemy_died)
+	return true
+
+
+func _register_failed_spawn() -> void:
+	alive_enemy_count = maxi(alive_enemy_count - 1, 0)
+	enemy_count_changed.emit(alive_enemy_count)
+
+
+func _on_enemy_died(enemy: Node) -> void:
+	var xp_reward := int(enemy.get("xp_reward")) if enemy != null else 0
+	enemy_defeated.emit(maxi(xp_reward, 0))
+	alive_enemy_count = maxi(alive_enemy_count - 1, 0)
+	enemy_count_changed.emit(alive_enemy_count)
+	if alive_enemy_count == 0 and not _is_spawning:
+		_complete_current_wave()
+
+
+func _complete_current_wave() -> void:
+	if _is_transitioning:
+		return
+	_is_transitioning = true
+	wave_completed.emit(current_wave)
+	if current_wave >= waves.size():
+		all_waves_completed.emit()
+		return
+
+	intermission_started.emit(current_wave + 1, inter_wave_delay)
+	if inter_wave_delay > 0.0:
+		await get_tree().create_timer(inter_wave_delay).timeout
+	_start_next_wave()

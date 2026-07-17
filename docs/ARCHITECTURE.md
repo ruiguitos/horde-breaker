@@ -9,6 +9,13 @@
 - Manter cenas pequenas e reutilizáveis.
 - Não otimizar prematuramente.
 
+## Sistemas globais e locais
+
+- `SaveManager` é o único Autoload atual e persiste progresso com `ConfigFile`.
+- `GameManager` permanece futuro até existirem menus e mudanças de cena globais.
+- `WaveManager` controla localmente rondas, spawns e inimigos vivos.
+- `CharacterProgression` atribui recompensas da sessão ao Recruit através do `SaveManager`.
+
 ## Cenas planeadas
 
 ```text
@@ -71,7 +78,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - O raycast deteta a layer 1 (`World`) e a layer 3 (`Enemies`).
 - Um alvo que implemente `take_damage(amount)` recebe o dano configurado na arma.
 - O clarão do cano e um tracer temporário fornecem feedback visual.
-- Munição e recarga ficam fora do Milestone 4.
+- A Assault Rifle usa um carregador local, emite alterações de munição e recarrega através da ação `reload`.
 
 ## Cena de inimigo provisória
 
@@ -117,6 +124,20 @@ arena tiver obstáculos ou formas mais complexas.
 - O painel local de game over escuta o sinal `died`, liberta o rato e pausa a árvore.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
 - Este fluxo permanece local à arena; ainda não requer um `GameManager` global.
+
+## Ronda provisória
+
+- O `WaveManager` local lê uma lista tipada de recursos `WaveData` e cria os inimigos nos marcadores da arena.
+- O gestor mantém a contagem de inimigos vivos e recebe o sinal `died` de cada instância.
+- `wave_completed` inicia um intervalo configurável e `all_waves_completed` ativa a vitória após a última ronda.
+- O painel de vitória pausa a árvore e permite reiniciar a cena atual.
+- O Runner herda a cena do Normal Zombie e altera apenas atributos e material provisório.
+
+## HUD provisório
+
+- O HUD local descobre jogador, arma e `WaveManager` através de grupos estáveis.
+- Sinais atualizam vida, munição, ronda e inimigos restantes sem polling por frame.
+- A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
 
 ## Layers de física propostas
 
@@ -185,7 +206,14 @@ Campos possíveis:
 - xp_reward;
 - scrap_reward.
 
-## Save futuro
+### WaveData
+
+Campos atuais:
+
+- normal_zombie_count;
+- runner_zombie_count.
+
+## Save permanente
 
 Local:
 
@@ -193,7 +221,7 @@ Local:
 user://horde_breaker_save.cfg
 ```
 
-Estrutura conceptual:
+Estrutura atual:
 
 ```ini
 [profile]
@@ -201,22 +229,12 @@ credits=0
 selected_character="recruit"
 
 [recruit]
-unlocked=true
 level=1
 xp=0
 selected_weapon="assault_rifle"
 purchased_weapons=["assault_rifle"]
-
-[renegade]
-unlocked=false
-level=1
-xp=0
-selected_weapon="worn_sword"
-purchased_weapons=["worn_sword"]
-
-[records]
-highest_wave=0
-total_enemies_defeated=0
 ```
 
-O SaveManager só será criado na fase de progressão.
+O `SaveManager` cria valores em falta, guarda XP imediatamente e persiste Credits,
+nível, XP, armas compradas e arma selecionada. A estrutura será expandida quando
+o Renegade e os menus forem implementados.

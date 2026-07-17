@@ -1,6 +1,8 @@
 extends Node3D
 
 signal shot_fired(hit_position: Vector3, hit_collider: Object)
+signal ammunition_changed(current_ammunition: int, magazine_size: int)
+signal reload_started(duration: float)
 
 const HIT_COLLISION_MASK: int = (1 << 0) | (1 << 2)
 const MUZZLE_FLASH_DURATION := 0.05
@@ -10,17 +12,24 @@ const TRACER_THICKNESS := 0.025
 @export_range(0.1, 1000.0, 0.1) var damage: float = 25.0
 @export_range(0.1, 30.0, 0.1) var fire_rate: float = 6.0
 @export_range(1.0, 500.0, 1.0) var maximum_range: float = 100.0
+@export_range(1, 200, 1) var magazine_size: int = 30
+@export_range(0.1, 10.0, 0.1) var reload_duration: float = 1.5
 
 @onready var muzzle: Marker3D = %Muzzle
 @onready var muzzle_flash: MeshInstance3D = %MuzzleFlash
 @onready var muzzle_flash_timer: Timer = %MuzzleFlashTimer
+@onready var reload_timer: Timer = %ReloadTimer
 
+var current_ammunition: int
 var _cooldown_remaining: float = 0.0
 var _tracer_material: StandardMaterial3D
 
 
 func _ready() -> void:
 	muzzle_flash_timer.timeout.connect(_hide_muzzle_flash)
+	reload_timer.timeout.connect(_finish_reload)
+	reload_timer.wait_time = reload_duration
+	current_ammunition = magazine_size
 	_tracer_material = StandardMaterial3D.new()
 	_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_tracer_material.albedo_color = Color(1.0, 0.75, 0.15, 1.0)
@@ -31,13 +40,33 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
+	if Input.is_action_pressed("reload"):
+		_start_reload()
 	if (
 		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and Input.is_action_pressed("attack")
 		and _cooldown_remaining <= 0.0
+		and reload_timer.is_stopped()
 	):
+		if current_ammunition <= 0:
+			_start_reload()
+			return
 		_fire()
+		current_ammunition -= 1
+		ammunition_changed.emit(current_ammunition, magazine_size)
 		_cooldown_remaining = 1.0 / fire_rate
+
+
+func _start_reload() -> void:
+	if current_ammunition >= magazine_size or not reload_timer.is_stopped():
+		return
+	reload_timer.start(reload_duration)
+	reload_started.emit(reload_duration)
+
+
+func _finish_reload() -> void:
+	current_ammunition = magazine_size
+	ammunition_changed.emit(current_ammunition, magazine_size)
 
 
 func _fire() -> void:

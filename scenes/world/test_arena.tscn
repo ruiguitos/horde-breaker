@@ -1,9 +1,18 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
+[ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="5_wave_manager_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/wave_complete_panel.tscn" id="6_wave_complete"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="8_wave_data_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
+[ext_resource type="Resource" path="res://data/waves/wave_1.tres" id="10_wave_1"]
+[ext_resource type="Resource" path="res://data/waves/wave_2.tres" id="11_wave_2"]
+[ext_resource type="Resource" path="res://data/waves/wave_3.tres" id="12_wave_3"]
+[ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -102,13 +111,48 @@ position = Vector3(0, 1, 0)
 [node name="Player" parent="PlayerSpawn" instance=ExtResource("1_player")]
 
 [node name="EnemySpawns" type="Node3D" parent="."]
+unique_name_in_owner = true
 
-[node name="EnemySpawn" type="Marker3D" parent="EnemySpawns"]
+[node name="NorthSpawn" type="Marker3D" parent="EnemySpawns"]
 position = Vector3(0, 1, -8)
 
-[node name="NormalZombie" parent="EnemySpawns/EnemySpawn" instance=ExtResource("3_zombie")]
+[node name="EastSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(8, 1, 0)
+
+[node name="WestSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(-8, 1, 0)
+
+[node name="SouthEastSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(5.5, 1, 5.5)
+
+[node name="SouthWestSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(-5.5, 1, 5.5)
+
+[node name="Gameplay" type="Node" parent="."]
+
+[node name="Enemies" type="Node3D" parent="Gameplay"]
+unique_name_in_owner = true
+
+[node name="WaveManager" type="Node" parent="Gameplay" groups=["wave_manager"]]
+script = ExtResource("5_wave_manager_script")
+normal_zombie_scene = ExtResource("3_zombie")
+runner_zombie_scene = ExtResource("9_runner_zombie")
+waves = Array[ExtResource("8_wave_data_script")]([ExtResource("10_wave_1"), ExtResource("11_wave_2"), ExtResource("12_wave_3")])
+
+[node name="CharacterProgression" type="Node" parent="Gameplay"]
+script = ExtResource("13_character_progression")
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="GameHUD" parent="HUDLayer" instance=ExtResource("7_game_hud")]
 
 [node name="GameOverLayer" type="CanvasLayer" parent="."]
 layer = 10
 
 [node name="GameOverPanel" parent="GameOverLayer" instance=ExtResource("4_game_over")]
+
+[node name="WaveCompleteLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="WaveCompletePanel" parent="WaveCompleteLayer" instance=ExtResource("6_wave_complete")]

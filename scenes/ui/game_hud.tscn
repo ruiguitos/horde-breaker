@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="1_hud_script"]
+
+[node name="GameHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud_script")
+
+[node name="HealthPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 316.0
+offset_bottom = 104.0
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HealthPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="HealthPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="HealthLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Vida: 100 / 100"
+mouse_filter = 2
+
+[node name="HealthBar" type="ProgressBar" parent="HealthPanel/MarginContainer/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+mouse_filter = 2
+
+[node name="AmmunitionLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Munição: 30 / 30"
+mouse_filter = 2
+
+[node name="WavePanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 92.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="WavePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="WavePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="WaveLabel" type="Label" parent="WavePanel/MarginContainer/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ronda: 1"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="EnemiesLabel" type="Label" parent="WavePanel/MarginContainer/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Inimigos: 5"
+horizontal_alignment = 2
+mouse_filter = 2

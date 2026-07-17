@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 6 — Health and Game Over concluído.
+Fase: Milestone 10 — Permanent Progression concluído.
 
 Última atualização: 2026-07-17.
 
@@ -64,14 +64,43 @@ Fase: Milestone 6 — Health and Game Over concluído.
 - [x] Painel de game over criado com fundo escurecido e botão de reinício.
 - [x] Game over configurado para libertar o rato e pausar a árvore.
 - [x] Reinício configurado para remover a pausa e recarregar a cena atual.
+- [x] Cinco pontos de spawn de inimigos distribuídos pela arena.
+- [x] `WaveManager` local criado para instanciar e acompanhar a primeira ronda.
+- [x] Primeira ronda configurada com cinco Normal Zombies.
+- [x] Contagem de inimigos vivos atualizada através do sinal `died`.
+- [x] Painel de vitória apresentado quando a contagem chega a zero.
+- [x] Reinício da vitória configurado para criar novamente uma ronda completa.
+- [x] HUD criado com vida, munição, ronda e inimigos restantes.
+- [x] Barra de vida ligada ao sinal `health_changed` do jogador.
+- [x] Assault Rifle configurada com carregador de 30 munições.
+- [x] Ação `reload` configurada para a tecla `R`.
+- [x] Recarga de 1,5 segundos implementada com feedback no HUD.
+- [x] Contadores de ronda e inimigos ligados aos sinais do `WaveManager`.
+- [x] `WaveData` criado como `Resource` tipado para configurar composições de rondas.
+- [x] Três rondas configuradas: `5 Normal`, `10 Normal` e `15 Normal + 2 Runners`.
+- [x] Spawn espaçado em 0,2 segundos para reduzir sobreposição nos marcadores.
+- [x] Intervalo de três segundos implementado entre rondas.
+- [x] HUD configurado para indicar a próxima ronda durante o intervalo.
+- [x] Runner provisório criado por herança com 30 de vida, velocidade 4,5 e material laranja.
+- [x] Vitória adiada até à conclusão das três rondas.
+- [x] `CharacterData` e `WeaponData` criados como recursos tipados.
+- [x] Dados estáticos do Recruit, Assault Rifle e Shotgun adicionados.
+- [x] `SaveManager` configurado como Autoload com `ConfigFile` em `user://horde_breaker_save.cfg`.
+- [x] Save inicial configurado com Recruit nível 1, 0 XP, 0 Credits e Assault Rifle comprada.
+- [x] Fórmula de XP e progressão até nível 10 implementadas.
+- [x] Normal Zombie e Runner configurados para atribuir 5 e 8 XP.
+- [x] Bónus de XP por ronda configurado como `20 × ronda`.
+- [x] Vitória configurada para atribuir 100 Credits permanentes.
+- [x] Requisitos, compra e seleção permanente de armas implementados nos dados.
+- [x] Shotgun configurada para Recruit nível 5 e custo de 750 Credits, sem criar ainda a arma jogável.
 
 ## Milestone atual
 
-**Milestone 6 — Health and Game Over (concluído)**
+**Milestone 10 — Permanent Progression (concluído)**
 
 ## Próxima tarefa
 
-Preparar uma tarefa específica para o **Milestone 7 — Wave 1**.
+Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Selection**.
 
 ## Validação
 
@@ -104,6 +133,25 @@ Preparar uma tarefa específica para o **Milestone 7 — Wave 1**.
 - Teste automatizado confirmou apresentação do painel, pausa da árvore e libertação do rato.
 - Teste automatizado acionou o botão de reinício e confirmou uma nova arena sem pausa, painel oculto e jogador novamente com 100 pontos de vida.
 - Inspeção visual confirmou o fundo escurecido, a mensagem de derrota e o botão de reinício centrados.
+- Teste automatizado confirmou a criação de exatamente cinco Normal Zombies em cinco pontos de spawn.
+- Teste automatizado confirmou a sequência de inimigos vivos `[4, 3, 2, 1, 0]`.
+- Teste automatizado confirmou uma única conclusão de ronda e apresentação do painel de vitória apenas aos zero inimigos.
+- Teste automatizado confirmou que reiniciar a vitória repõe os cinco inimigos.
+- Teste automatizado confirmou os valores iniciais do HUD: vida `100/100`, munição `30/30`, ronda 1 e cinco inimigos.
+- Teste automatizado confirmou atualização da vida para `90/100` após dano.
+- Teste automatizado confirmou consumo de munição `30 → 29`, estado de recarga e reposição `29 → 30` após 1,5 segundos.
+- Inspeção visual confirmou os painéis do HUD legíveis nos cantos superiores sem ocultar o centro da arena.
+- Teste automatizado percorreu as composições de 5, 10 e 17 inimigos pela ordem prevista.
+- Teste automatizado confirmou dois intervalos e vitória apenas após a terceira ronda.
+- Teste automatizado confirmou exatamente dois Runners na terceira ronda através da velocidade configurada.
+- Inspeção visual confirmou que o Runner usa material laranja e se distingue dos Normal Zombies verdes.
+- Importação confirmou o registo das classes `CharacterData`, `WeaponData` e `WaveData` sem erros.
+- Teste com Autoload real e save isolado confirmou os valores iniciais do Recruit e da Assault Rifle.
+- Teste automatizado confirmou progressão de nível 1 para nível 5 com 700 XP.
+- Teste automatizado confirmou que a Shotgun permanece bloqueada sem requisitos e pode ser comprada por 750 Credits no nível 5.
+- Teste automatizado confirmou persistência da compra e seleção da Shotgun após recarregar o `ConfigFile`.
+- Teste integrado das três rondas confirmou 286 XP de sessão, nível 3 com 36 XP restante e 100 Credits.
+- Teste automatizado confirmou persistência das recompensas após novo carregamento do save.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -113,6 +161,7 @@ Preparar uma tarefa específica para o **Milestone 7 — Wave 1**.
 
 ## Problemas conhecidos
 
-- Existe apenas um zombie de teste; a ronda com cinco zombies fica para o Milestone 7.
-- A vida já funciona, mas a respetiva apresentação permanente no HUD fica para o Milestone 8.
-- Munição, recarga e mira ficam para etapas posteriores.
+- A mira fica para uma etapa posterior.
+- O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
+- A progressão ainda não possui menu; compra, seleção visual de personagem/arma e saldo entram no Milestone 11.
+- A Shotgun existe apenas como `WeaponData`; a arma jogável ainda não foi implementada.
