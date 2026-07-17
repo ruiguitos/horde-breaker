@@ -1,0 +1,67 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/normal_zombie.gd" id="1_zombie_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_zombie"]
+albedo_color = Color(0.32, 0.58, 0.22, 1)
+roughness = 0.9
+
+[sub_resource type="CapsuleMesh" id="Mesh_zombie"]
+material = SubResource("Material_zombie")
+radius = 0.5
+height = 2.0
+
+[sub_resource type="CapsuleShape3D" id="Shape_zombie"]
+radius = 0.5
+height = 2.0
+
+[sub_resource type="StandardMaterial3D" id="Material_facing"]
+albedo_color = Color(0.85, 0.95, 0.75, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_facing"]
+material = SubResource("Material_facing")
+size = Vector3(0.18, 0.18, 0.35)
+
+[sub_resource type="SphereShape3D" id="Shape_attack"]
+radius = 1.4
+
+[node name="NormalZombie" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_zombie_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_zombie")
+
+[node name="VisualRoot" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Visual" type="MeshInstance3D" parent="VisualRoot"]
+mesh = SubResource("Mesh_zombie")
+
+[node name="FacingMarker" type="MeshInstance3D" parent="VisualRoot"]
+position = Vector3(0, 0, -0.55)
+mesh = SubResource("Mesh_facing")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+unique_name_in_owner = true
+path_desired_distance = 1.1
+target_desired_distance = 1.1
+radius = 0.5
+height = 2.0
+
+[node name="AttackArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="AttackCollision" type="CollisionShape3D" parent="AttackArea"]
+unique_name_in_owner = true
+shape = SubResource("Shape_attack")
+
+[node name="AttackCooldownTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 1.0
+one_shot = true

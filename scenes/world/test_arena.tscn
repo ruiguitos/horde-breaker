@@ -1,0 +1,114 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
+
+[sub_resource type="Environment" id="Environment_test_arena"]
+background_mode = 1
+background_color = Color(0.06, 0.08, 0.12, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.5, 0.6, 1)
+ambient_light_energy = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.28, 0.3, 0.33, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+material = SubResource("Material_floor")
+size = Vector3(24, 1, 24)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.42, 0.44, 0.48, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_wall"]
+material = SubResource("Material_wall")
+size = Vector3(25, 4, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall"]
+size = Vector3(25, 4, 1)
+
+[node name="TestArena" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_test_arena")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.872665, -0.523599, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+shadow_enabled = true
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+script = ExtResource("2_navigation_script")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("Mesh_floor")
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("Shape_floor")
+
+[node name="Walls" type="Node3D" parent="."]
+
+[node name="NorthWall" type="StaticBody3D" parent="Walls"]
+position = Vector3(0, 2, -12.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall"]
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Walls/NorthWall"]
+shape = SubResource("Shape_wall")
+
+[node name="SouthWall" type="StaticBody3D" parent="Walls"]
+position = Vector3(0, 2, 12.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall"]
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Walls/SouthWall"]
+shape = SubResource("Shape_wall")
+
+[node name="EastWall" type="StaticBody3D" parent="Walls"]
+position = Vector3(12.5, 2, 0)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall"]
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Walls/EastWall"]
+shape = SubResource("Shape_wall")
+
+[node name="WestWall" type="StaticBody3D" parent="Walls"]
+position = Vector3(-12.5, 2, 0)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall"]
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Walls/WestWall"]
+shape = SubResource("Shape_wall")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+position = Vector3(0, 1, 0)
+
+[node name="Player" parent="PlayerSpawn" instance=ExtResource("1_player")]
+
+[node name="EnemySpawns" type="Node3D" parent="."]
+
+[node name="EnemySpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(0, 1, -8)
+
+[node name="NormalZombie" parent="EnemySpawns/EnemySpawn" instance=ExtResource("3_zombie")]
+
+[node name="GameOverLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="GameOverPanel" parent="GameOverLayer" instance=ExtResource("4_game_over")]

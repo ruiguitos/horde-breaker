@@ -1,0 +1,69 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/player.gd" id="1_player_script"]
+[ext_resource type="Script" path="res://scripts/characters/third_person_camera.gd" id="2_camera_script"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/assault_rifle.tscn" id="3_weapon_scene"]
+
+[sub_resource type="StandardMaterial3D" id="Material_player"]
+albedo_color = Color(0.12, 0.48, 0.9, 1)
+roughness = 0.75
+
+[sub_resource type="CapsuleMesh" id="Mesh_player"]
+material = SubResource("Material_player")
+radius = 0.5
+height = 2.0
+
+[sub_resource type="CapsuleShape3D" id="Shape_player"]
+radius = 0.5
+height = 2.0
+
+[sub_resource type="StandardMaterial3D" id="Material_facing"]
+albedo_color = Color(0.9, 0.95, 1, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="Mesh_facing"]
+material = SubResource("Material_facing")
+size = Vector3(0.18, 0.18, 0.35)
+
+[sub_resource type="SphereShape3D" id="Shape_camera_collision"]
+radius = 0.25
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_player")
+
+[node name="VisualRoot" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Visual" type="MeshInstance3D" parent="VisualRoot"]
+mesh = SubResource("Mesh_player")
+
+[node name="FacingMarker" type="MeshInstance3D" parent="VisualRoot"]
+position = Vector3(0, 0, -0.55)
+mesh = SubResource("Mesh_facing")
+
+[node name="WeaponPivot" type="Marker3D" parent="VisualRoot"]
+position = Vector3(0.7, 0.2, -0.15)
+
+[node name="AssaultRifle" parent="VisualRoot/WeaponPivot" instance=ExtResource("3_weapon_scene")]
+
+[node name="CameraPivot" type="Node3D" parent="."]
+position = Vector3(0, 0.75, 0)
+script = ExtResource("2_camera_script")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+unique_name_in_owner = true
+rotation = Vector3(-0.261799, 0, 0)
+spring_length = 5.0
+margin = 0.2
+collision_mask = 1
+shape = SubResource("Shape_camera_collision")
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+unique_name_in_owner = true
+current = true
+fov = 70.0

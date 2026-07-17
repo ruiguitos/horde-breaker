@@ -1,0 +1,34 @@
+extends Control
+
+const PLAYER_GROUP := &"player"
+
+@onready var restart_button: Button = %RestartButton
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	hide()
+	restart_button.pressed.connect(_restart_current_scene)
+
+	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
+	if player == null:
+		push_error("GameOverPanel requires a node in the player group.")
+		return
+	if not player.has_signal(&"died"):
+		push_error("GameOverPanel requires the player to expose a died signal.")
+		return
+	player.connect(&"died", _show_game_over)
+
+
+func _show_game_over() -> void:
+	show()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	restart_button.grab_focus()
+	get_tree().paused = true
+
+
+func _restart_current_scene() -> void:
+	get_tree().paused = false
+	var reload_error := get_tree().reload_current_scene()
+	if reload_error != OK:
+		push_error("GameOverPanel could not reload the current scene.")
