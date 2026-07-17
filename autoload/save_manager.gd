@@ -2,12 +2,18 @@ extends Node
 
 signal credits_changed(credits: int)
 signal character_progress_changed(character_id: StringName, level: int, xp: int)
+signal character_purchased(character_id: StringName)
+signal selected_character_changed(character_id: StringName)
 signal weapon_purchased(character_id: StringName, weapon_id: StringName)
+signal selected_weapon_changed(character_id: StringName, weapon_id: StringName)
 
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
+const RENEGADE_ID := &"renegade"
 const ASSAULT_RIFLE_ID := &"assault_rifle"
+const WORN_SWORD_ID := &"worn_sword"
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
+const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
 
 var storage_path: String = DEFAULT_SAVE_PATH
 var _config := ConfigFile.new()
@@ -41,6 +47,7 @@ func reset_progress() -> void:
 	character_progress_changed.emit(
 		RECRUIT_ID, get_character_level(RECRUIT_ID), get_character_xp(RECRUIT_ID)
 	)
+	selected_character_changed.emit(get_selected_character())
 
 
 func save_progress() -> bool:
@@ -62,6 +69,48 @@ func add_credits(amount: int) -> void:
 	_config.set_value("profile", "credits", updated_credits)
 	save_progress()
 	credits_changed.emit(updated_credits)
+
+
+func get_selected_character() -> StringName:
+	return StringName(
+		_config.get_value("profile", "selected_character", String(RECRUIT_ID))
+	)
+
+
+func is_character_unlocked(character_id: StringName) -> bool:
+	return bool(_config.get_value(String(character_id), "unlocked", false))
+
+
+func can_purchase_character(character_data: CharacterData) -> bool:
+	if character_data == null:
+		return false
+	return (
+		not is_character_unlocked(character_data.character_id)
+		and get_credits() >= character_data.unlock_cost
+	)
+
+
+func purchase_character(character_data: CharacterData) -> bool:
+	if not can_purchase_character(character_data):
+		return false
+
+	_config.set_value(String(character_data.character_id), "unlocked", true)
+	_config.set_value("profile", "credits", get_credits() - character_data.unlock_cost)
+	if not save_progress():
+		return false
+	credits_changed.emit(get_credits())
+	character_purchased.emit(character_data.character_id)
+	return true
+
+
+func select_character(character_id: StringName) -> bool:
+	if not is_character_unlocked(character_id):
+		return false
+	_config.set_value("profile", "selected_character", String(character_id))
+	if not save_progress():
+		return false
+	selected_character_changed.emit(character_id)
+	return true
 
 
 func get_character_level(character_id: StringName) -> int:
@@ -152,8 +201,11 @@ func purchase_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 
 
 func get_selected_weapon(character_id: StringName) -> StringName:
+	var fallback_weapon := (
+		WORN_SWORD_ID if character_id == RENEGADE_ID else ASSAULT_RIFLE_ID
+	)
 	return StringName(
-		_config.get_value(String(character_id), "selected_weapon", ASSAULT_RIFLE_ID)
+		_config.get_value(String(character_id), "selected_weapon", String(fallback_weapon))
 	)
 
 
@@ -161,18 +213,24 @@ func select_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 	if (
 		weapon_data == null
 		or weapon_data.required_character_id != character_id
+		or not weapon_data.is_playable
 		or not is_weapon_purchased(character_id, weapon_data.weapon_id)
 	):
 		return false
 	_config.set_value(
 		String(character_id), "selected_weapon", String(weapon_data.weapon_id)
 	)
-	return save_progress()
+	if not save_progress():
+		return false
+	selected_weapon_changed.emit(character_id, weapon_data.weapon_id)
+	return true
 
 
 func _get_maximum_level(character_id: StringName) -> int:
 	if character_id == RECRUIT_ID:
 		return RECRUIT_DATA.maximum_level
+	if character_id == RENEGADE_ID:
+		return RENEGADE_DATA.maximum_level
 	return 10
 
 
@@ -183,6 +241,7 @@ func _ensure_defaults() -> bool:
 		_set_default("profile", "selected_character", String(RECRUIT_ID))
 		or defaults_added
 	)
+	defaults_added = _set_default(String(RECRUIT_ID), "unlocked", true) or defaults_added
 	defaults_added = _set_default(String(RECRUIT_ID), "level", 1) or defaults_added
 	defaults_added = _set_default(String(RECRUIT_ID), "xp", 0) or defaults_added
 	defaults_added = (
@@ -196,6 +255,23 @@ func _ensure_defaults() -> bool:
 	defaults_added = (
 		_set_default(
 			String(RECRUIT_ID), "selected_weapon", String(ASSAULT_RIFLE_ID)
+		)
+		or defaults_added
+	)
+	defaults_added = _set_default(String(RENEGADE_ID), "unlocked", false) or defaults_added
+	defaults_added = _set_default(String(RENEGADE_ID), "level", 1) or defaults_added
+	defaults_added = _set_default(String(RENEGADE_ID), "xp", 0) or defaults_added
+	defaults_added = (
+		_set_default(
+			String(RENEGADE_ID),
+			"purchased_weapons",
+			PackedStringArray([String(WORN_SWORD_ID)])
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_set_default(
+			String(RENEGADE_ID), "selected_weapon", String(WORN_SWORD_ID)
 		)
 		or defaults_added
 	)

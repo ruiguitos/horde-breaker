@@ -3,12 +3,14 @@ extends Control
 const PLAYER_GROUP := &"player"
 
 @onready var restart_button: Button = %RestartButton
+@onready var main_menu_button: Button = %MainMenuButton
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	hide()
 	restart_button.pressed.connect(_restart_current_scene)
+	main_menu_button.pressed.connect(GameManager.open_main_menu)
 
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
 	if player == null:

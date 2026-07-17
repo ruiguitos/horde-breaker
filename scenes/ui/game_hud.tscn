@@ -13,6 +13,7 @@ mouse_filter = 2
 script = ExtResource("1_hud_script")
 
 [node name="AimPoint" type="Control" parent="."]
+unique_name_in_owner = true
 z_index = 5
 layout_mode = 1
 anchors_preset = 8

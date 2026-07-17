@@ -9,3 +9,4 @@ display_name = "Assault Rifle"
 required_character_id = &"recruit"
 required_level = 1
 credit_cost = 0
+is_playable = true

@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 10 — Permanent Progression concluído.
+Fase: Milestone 11 — Menu and Character Selection concluído.
 
 Última atualização: 2026-07-17.
 
@@ -38,6 +38,7 @@ Fase: Milestone 10 — Permanent Progression concluído.
 - [x] Rotação horizontal da câmara controlada pelo rato.
 - [x] Rotação vertical limitada entre -50 e 30 graus.
 - [x] `SpringArm3D` configurado para colidir apenas com a layer 1 (`World`).
+- [x] Câmara deslocada 0,9 m sobre o ombro direito para o jogador não ficar sobreposto à mira.
 - [x] Ação `pause` configurada para `Esc`, alternando captura e libertação do rato.
 - [x] Movimento do jogador convertido de relativo ao mundo para relativo à câmara.
 - [x] Rotação separada no `VisualRoot` para não interferir com a órbita da câmara.
@@ -97,14 +98,24 @@ Fase: Milestone 10 — Permanent Progression concluído.
 - [x] Vitória configurada para atribuir 100 Credits permanentes.
 - [x] Requisitos, compra e seleção permanente de armas implementados nos dados.
 - [x] Shotgun configurada para Recruit nível 5 e custo de 750 Credits, sem criar ainda a arma jogável.
+- [x] `GameManager` configurado como Autoload para transições entre menus e arena.
+- [x] Menu principal criado com Credits, personagem, arma, nível, XP e início de partida.
+- [x] Ecrã de personagem e armas criado para Recruit e Renegade.
+- [x] Desbloqueio do Renegade configurado por 500 Credits e persistido no save.
+- [x] Renegade provisório criado por herança, com material distinto e sem antecipar o combate corpo a corpo.
+- [x] Worn Sword adicionada como arma inicial estática do Renegade.
+- [x] `PlayerSpawn` alterado para instanciar a personagem selecionada.
+- [x] XP da sessão atribuído à personagem atualmente selecionada.
+- [x] Armas ainda não jogáveis impedidas de serem equipadas através de `WeaponData.is_playable`.
+- [x] Painéis de vitória e derrota atualizados com regresso ao menu principal.
 
 ## Milestone atual
 
-**Milestone 10 — Permanent Progression (concluído)**
+**Milestone 11 — Menu and Character Selection (concluído)**
 
 ## Próxima tarefa
 
-Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Selection**.
+Preparar o **Milestone 12 — Mixamo**, mantendo as mecânicas atuais durante a substituição visual.
 
 ## Validação
 
@@ -120,7 +131,8 @@ Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Sel
 - Teste automatizado confirmou rotação horizontal, limites verticais e captura/libertação do rato.
 - Teste automatizado confirmou movimento relativo à câmara e orientação correta do visual.
 - Teste automatizado confirmou que o `SpringArm3D` encurta de 5 para `2.83203125` junto a uma parede.
-- Inspeção visual confirmou o enquadramento padrão atrás do jogador.
+- Teste automatizado confirmou o jogador 12,9% à esquerda do centro com a câmara sobre o ombro.
+- Teste automatizado confirmou que o disparo mantém erro de projeção de `0 px` e aplica 25 de dano após o deslocamento da câmara.
 - Cena e script da Assault Rifle importados sem erros.
 - Teste automatizado confirmou 6 disparos por segundo com cadência configurada para 6.
 - Alvo temporário na layer `Enemies` recebeu 25 de dano por tiro e 150 de dano total.
@@ -153,13 +165,18 @@ Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Sel
 - Teste com Autoload real e save isolado confirmou os valores iniciais do Recruit e da Assault Rifle.
 - Teste automatizado confirmou progressão de nível 1 para nível 5 com 700 XP.
 - Teste automatizado confirmou que a Shotgun permanece bloqueada sem requisitos e pode ser comprada por 750 Credits no nível 5.
-- Teste automatizado confirmou persistência da compra e seleção da Shotgun após recarregar o `ConfigFile`.
+- Teste automatizado confirmou persistência da compra da Shotgun e bloqueio da seleção enquanto a arma não for jogável.
 - Teste integrado das três rondas confirmou 286 XP de sessão, nível 3 com 36 XP restante e 100 Credits.
 - Teste automatizado confirmou persistência das recompensas após novo carregamento do save.
 - Teste automatizado rodou a câmara 90 graus e confirmou alinhamento do jogador e da arma com a mira.
 - Teste automatizado confirmou impacto exatamente no centro do ecrã, com erro de projeção de `0 px`.
 - Alvo colocado sob a mira recebeu 25 de dano, a munição passou de 30 para 29 e o tracer nasceu no cano.
 - Inspeção visual confirmou o ponto de mira centrado e legível sobre a arena.
+- Cena principal de menu executada em modo headless durante dois frames com código de saída 0.
+- Teste com save isolado confirmou Recruit inicial, progressão até nível 5, compra da Shotgun e saldo correto.
+- Teste automatizado confirmou desbloqueio do Renegade por 500 Credits e persistência da seleção.
+- Teste automatizado instanciou a arena com Recruit e Renegade e confirmou personagem, arma e visibilidade da mira esperadas.
+- Menus renderizados com OpenGL a 1152 × 648 sem texto cortado, sobreposição ou botões fora do ecrã.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -170,5 +187,6 @@ Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Sel
 ## Problemas conhecidos
 
 - O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
-- A progressão ainda não possui menu; compra, seleção visual de personagem/arma e saldo entram no Milestone 11.
 - A Shotgun existe apenas como `WeaponData`; a arma jogável ainda não foi implementada.
+- O Renegade pode ser selecionado e movimentado, mas o ataque com Worn Sword só entra no Milestone 13.
+- Modelos e animações Mixamo continuam pendentes para o Milestone 12.

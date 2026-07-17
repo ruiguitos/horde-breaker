@@ -54,7 +54,7 @@ horizontal_alignment = 1
 
 [node name="Message" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
 layout_mode = 2
-text = "O Recruit foi derrotado."
+text = "A personagem foi derrotada."
 horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
@@ -62,3 +62,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Reiniciar"
+
+[node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Menu principal"

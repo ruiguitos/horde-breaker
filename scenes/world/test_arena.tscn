@@ -1,6 +1,6 @@
 [gd_scene load_steps=21 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
@@ -107,8 +107,7 @@ shape = SubResource("Shape_wall")
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
 position = Vector3(0, 1, 0)
-
-[node name="Player" parent="PlayerSpawn" instance=ExtResource("1_player")]
+script = ExtResource("1_player_spawner")
 
 [node name="EnemySpawns" type="Node3D" parent="."]
 unique_name_in_owner = true

@@ -11,10 +11,10 @@
 
 ## Sistemas globais e locais
 
-- `SaveManager` é o único Autoload atual e persiste progresso com `ConfigFile`.
-- `GameManager` permanece futuro até existirem menus e mudanças de cena globais.
+- `SaveManager` persiste progresso, desbloqueios e seleções com `ConfigFile`.
+- `GameManager` centraliza as mudanças entre menu principal, seleção e arena.
 - `WaveManager` controla localmente rondas, spawns e inimigos vivos.
-- `CharacterProgression` atribui recompensas da sessão ao Recruit através do `SaveManager`.
+- `CharacterProgression` atribui recompensas à personagem selecionada através do `SaveManager`.
 
 ## Cenas planeadas
 
@@ -56,11 +56,13 @@ Estrutura prevista:
 ```text
 Player (CharacterBody3D)
   CollisionShape3D
-  Visual (MeshInstance3D)
+  VisualRoot (Node3D)
+    Visual (MeshInstance3D)
+    WeaponPivot (Marker3D)
   CameraPivot (Node3D)
-    SpringArm3D
-      Camera3D
-  WeaponPivot (Marker3D ou Node3D)
+    ShoulderOffset (Node3D)
+      SpringArm3D
+        Camera3D
 ```
 
 O script do jogador deve tratar inicialmente:
@@ -81,6 +83,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - Um alvo que implemente `take_damage(amount)` recebe o dano configurado na arma.
 - A arma orienta-se para o ponto visado e o tracer parte do cano até ao impacto real.
 - A Assault Rifle usa um carregador local, emite alterações de munição e recarrega através da ação `reload`.
+- `ShoulderOffset` desloca a câmara 0,9 m para a direita para o jogador não tapar a mira; o raycast continua a partir do centro ótico da câmara.
 
 ## Cena de inimigo provisória
 
@@ -120,12 +123,16 @@ A arena de teste cria uma navmesh retangular em runtime através de
 protótipo e deverá ser substituída por uma navmesh feita no editor quando a
 arena tiver obstáculos ou formas mais complexas.
 
+`PlayerSpawn` usa `player_spawner.gd` para instanciar a cena indicada pelo
+`CharacterData` da personagem selecionada. O Recruit continua totalmente jogável;
+o Renegade usa uma cápsula provisória distinta e ainda não possui ataque.
+
 ## Game over provisório
 
 - O jogador mantém a sua vida em execução e emite `health_changed` e `died`.
 - O painel local de game over escuta o sinal `died`, liberta o rato e pausa a árvore.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
-- Este fluxo permanece local à arena; ainda não requer um `GameManager` global.
+- Os painéis de derrota e vitória também permitem regressar ao menu através do `GameManager`.
 
 ## Ronda provisória
 
@@ -137,9 +144,18 @@ arena tiver obstáculos ou formas mais complexas.
 
 ## HUD provisório
 
-- O HUD local descobre jogador, arma e `WaveManager` através de grupos estáveis.
+- O HUD local descobre jogador, arma opcional e `WaveManager` através de grupos estáveis.
 - Sinais atualizam vida, munição, ronda e inimigos restantes sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
+- Quando o Renegade está selecionado, a mira é ocultada e o HUD identifica a Worn Sword como combate futuro.
+
+## Menus e seleção
+
+- `main_menu.tscn` apresenta Credits, personagem, arma e progresso atual.
+- `character_selection.tscn` permite desbloquear e selecionar o Recruit ou o Renegade.
+- A compra de personagens e armas passa sempre pelo `SaveManager`.
+- `WeaponData.is_playable` impede equipar uma arma que ainda só exista como dado estático.
+- A cena principal é o menu; `GameManager` abre a seleção, inicia a arena ou regressa ao menu.
 
 ## Layers de física propostas
 
@@ -166,34 +182,30 @@ signal xp_gained(amount: int)
 signal level_up(new_level: int)
 ```
 
-## Dados futuros
+## Dados
 
 ### CharacterData
 
-Campos possíveis:
+Campos atuais:
 
 - id;
 - display_name;
-- scene;
+- character_scene;
 - unlock_cost;
+- maximum_level;
 - base_health;
-- move_speed;
 - starting_weapon_id.
 
 ### WeaponData
 
-Campos possíveis:
+Campos atuais:
 
 - id;
 - display_name;
-- weapon_type;
 - required_character_id;
 - required_level;
 - credit_cost;
-- damage;
-- fire_rate;
-- magazine_size;
-- reload_time.
+- is_playable.
 
 ### EnemyData
 
@@ -231,12 +243,20 @@ credits=0
 selected_character="recruit"
 
 [recruit]
+unlocked=true
 level=1
 xp=0
 selected_weapon="assault_rifle"
 purchased_weapons=["assault_rifle"]
+
+[renegade]
+unlocked=false
+level=1
+xp=0
+selected_weapon="worn_sword"
+purchased_weapons=["worn_sword"]
 ```
 
 O `SaveManager` cria valores em falta, guarda XP imediatamente e persiste Credits,
-nível, XP, armas compradas e arma selecionada. A estrutura será expandida quando
-o Renegade e os menus forem implementados.
+nível, XP, personagens desbloqueadas, armas compradas e seleções. Saves anteriores
+são migrados pela adição dos valores em falta, sem apagar progresso existente.

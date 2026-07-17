@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/characters/renegade_placeholder.gd" id="2_renegade_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_renegade"]
+albedo_color = Color(0.72, 0.2, 0.12, 1)
+roughness = 0.78
+
+[node name="Renegade" instance=ExtResource("1_player")]
+script = ExtResource("2_renegade_script")
+
+[node name="Visual" parent="VisualRoot" index="0"]
+material_override = SubResource("Material_renegade")
+
+[editable path="VisualRoot"]

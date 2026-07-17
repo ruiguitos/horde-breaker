@@ -55,7 +55,10 @@ position = Vector3(0.7, 0.2, -0.15)
 position = Vector3(0, 0.75, 0)
 script = ExtResource("2_camera_script")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="ShoulderOffset" type="Node3D" parent="CameraPivot"]
+position = Vector3(0.9, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot/ShoulderOffset"]
 unique_name_in_owner = true
 rotation = Vector3(-0.261799, 0, 0)
 spring_length = 5.0
@@ -63,7 +66,7 @@ margin = 0.2
 collision_mask = 1
 shape = SubResource("Shape_camera_collision")
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/ShoulderOffset/SpringArm3D"]
 unique_name_in_owner = true
 current = true
 fov = 70.0

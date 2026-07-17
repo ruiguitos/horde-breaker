@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_weapon_data")
-weapon_id = &"shotgun"
-display_name = "Shotgun"
-required_character_id = &"recruit"
-required_level = 5
-credit_cost = 750
+weapon_id = &"worn_sword"
+display_name = "Worn Sword"
+required_character_id = &"renegade"
+required_level = 1
+credit_cost = 0
 is_playable = false
