@@ -6,12 +6,14 @@ signal wave_completed(wave_number: int)
 signal intermission_started(next_wave: int, duration: float)
 signal enemy_defeated(xp_reward: int)
 signal all_waves_completed
+signal cycle_completed(cycle_number: int)
 
 @export var normal_zombie_scene: PackedScene
 @export var runner_zombie_scene: PackedScene
 @export var waves: Array[WaveData] = []
 @export_range(0.0, 5.0, 0.05) var spawn_interval: float = 0.2
 @export_range(0.0, 30.0, 0.5) var inter_wave_delay: float = 3.0
+@export_range(0, 50, 1) var normal_zombies_per_cycle: int = 2
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
 @onready var enemies: Node3D = %Enemies
@@ -30,15 +32,14 @@ func _start_next_wave() -> void:
 	if waves.is_empty():
 		push_error("WaveManager requires at least one WaveData resource.")
 		return
-	if current_wave >= waves.size():
-		all_waves_completed.emit()
-		return
 
-	var wave_data := waves[current_wave]
+	var wave_index := current_wave % waves.size()
+	var completed_cycles := current_wave / waves.size()
+	var wave_data := waves[wave_index]
 	if wave_data == null:
 		push_error("WaveManager received an empty WaveData entry.")
 		return
-	var enemy_scenes := _build_enemy_scene_list(wave_data)
+	var enemy_scenes := _build_enemy_scene_list(wave_data, completed_cycles)
 	if enemy_scenes.is_empty():
 		push_error("WaveManager waves must contain at least one enemy.")
 		return
@@ -71,12 +72,18 @@ func _start_next_wave() -> void:
 		_complete_current_wave()
 
 
-func _build_enemy_scene_list(wave_data: WaveData) -> Array[PackedScene]:
+func _build_enemy_scene_list(
+	wave_data: WaveData, completed_cycles: int
+) -> Array[PackedScene]:
 	var enemy_scenes: Array[PackedScene] = []
 	if normal_zombie_scene == null or runner_zombie_scene == null:
 		push_error("WaveManager requires Normal Zombie and Runner scenes.")
 		return enemy_scenes
-	for _enemy_index in range(wave_data.normal_zombie_count):
+	var normal_zombie_count := (
+		wave_data.normal_zombie_count
+		+ completed_cycles * normal_zombies_per_cycle
+	)
+	for _enemy_index in range(normal_zombie_count):
 		enemy_scenes.append(normal_zombie_scene)
 	for _enemy_index in range(wave_data.runner_zombie_count):
 		enemy_scenes.append(runner_zombie_scene)
@@ -118,9 +125,8 @@ func _complete_current_wave() -> void:
 		return
 	_is_transitioning = true
 	wave_completed.emit(current_wave)
-	if current_wave >= waves.size():
-		all_waves_completed.emit()
-		return
+	if current_wave % waves.size() == 0:
+		cycle_completed.emit(current_wave / waves.size())
 
 	intermission_started.emit(current_wave + 1, inter_wave_delay)
 	if inter_wave_delay > 0.0:

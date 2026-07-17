@@ -3,7 +3,7 @@ extends Node
 signal session_progress_changed(session_xp: int, session_credits: int)
 
 @export_range(0, 1000, 1) var wave_xp_multiplier: int = 20
-@export_range(0, 10000, 1) var victory_credit_reward: int = 100
+@export_range(0, 10000, 1) var cycle_credit_reward: int = 100
 
 var session_xp: int = 0
 var session_credits: int = 0
@@ -18,7 +18,7 @@ func _ready() -> void:
 		return
 	wave_manager.connect(&"enemy_defeated", _on_enemy_defeated)
 	wave_manager.connect(&"wave_completed", _on_wave_completed)
-	wave_manager.connect(&"all_waves_completed", _on_all_waves_completed)
+	wave_manager.connect(&"cycle_completed", _on_cycle_completed)
 
 
 func _on_enemy_defeated(xp_reward: int) -> void:
@@ -36,7 +36,7 @@ func _on_wave_completed(wave_number: int) -> void:
 	session_progress_changed.emit(session_xp, session_credits)
 
 
-func _on_all_waves_completed() -> void:
-	session_credits += victory_credit_reward
-	SaveManager.add_credits(victory_credit_reward)
+func _on_cycle_completed(_cycle_number: int) -> void:
+	session_credits += cycle_credit_reward
+	SaveManager.add_credits(cycle_credit_reward)
 	session_progress_changed.emit(session_xp, session_credits)

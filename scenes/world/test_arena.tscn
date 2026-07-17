@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
 [ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="5_wave_manager_script"]
-[ext_resource type="PackedScene" path="res://scenes/ui/wave_complete_panel.tscn" id="6_wave_complete"]
+[ext_resource type="PackedScene" path="res://scenes/world/camp_core.tscn" id="6_camp_core"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="8_wave_data_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
@@ -172,6 +172,9 @@ shape = SubResource("Shape_east_obstacle")
 position = Vector3(0, 1, 8)
 script = ExtResource("1_player_spawner")
 
+[node name="CampCore" parent="." instance=ExtResource("6_camp_core")]
+position = Vector3(-3.5, 0, 5.5)
+
 [node name="Pickups" type="Node3D" parent="."]
 
 [node name="AmmoPickup" parent="Pickups" instance=ExtResource("15_ammo_pickup")]
@@ -221,11 +224,6 @@ layer = 5
 layer = 10
 
 [node name="GameOverPanel" parent="GameOverLayer" instance=ExtResource("4_game_over")]
-
-[node name="WaveCompleteLayer" type="CanvasLayer" parent="."]
-layer = 10
-
-[node name="WaveCompletePanel" parent="WaveCompleteLayer" instance=ExtResource("6_wave_complete")]
 
 [node name="PauseLayer" type="CanvasLayer" parent="."]
 layer = 20

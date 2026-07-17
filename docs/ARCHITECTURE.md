@@ -13,7 +13,7 @@
 
 - `SaveManager` persiste progresso, desbloqueios e seleções com `ConfigFile`.
 - `GameManager` centraliza as mudanças entre menu principal, seleção e arena.
-- `WaveManager` controla localmente rondas, spawns e inimigos vivos.
+- `WaveManager` controla localmente ataques contínuos, spawns, ciclos e inimigos vivos.
 - `CharacterProgression` atribui recompensas à personagem selecionada através do `SaveManager`.
 - `WeaponController` cria os dois slots da classe, ativa apenas uma arma e trata a troca com `1`/`2`.
 
@@ -23,6 +23,7 @@
 scenes/
   world/
     test_arena.tscn
+    camp_core.tscn
     arena.tscn
     spawn_point.tscn
   characters/
@@ -182,12 +183,16 @@ no editor quando a geometria deixar de ser composta por caixas alinhadas aos eix
 loadout antes de adicionar o jogador à árvore. Recruit, Renegade e Medic continuam
 a usar cápsulas provisórias com materiais distintos.
 
-## Game over provisório
+## Survival e game over provisório
 
 - O jogador mantém a sua vida em execução e emite `health_changed` e `died`.
-- O painel local de game over escuta o sinal `died`, liberta o rato e pausa a árvore.
+- `CampCore` é um `StaticBody3D` com 500 pontos de vida, sinais `health_changed` e `destroyed` e um volume físico legível na arena.
+- Jogador e núcleo pertencem ao grupo `enemy_target`; cada zombie escolhe por distância o alvo vivo mais próximo.
+- O núcleo recebe `take_enemy_damage` dos zombies; continua a bloquear tiros como geometria de mundo, mas não aceita dano das armas do jogador.
+- Ao morrer, o jogador sai do grupo de alvos; ao chegar a zero, o núcleo faz o mesmo e emite `destroyed`.
+- O painel local de game over escuta `died` e `destroyed`, apresenta a causa, liberta o rato e pausa a árvore.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
-- Os painéis de derrota e vitória também permitem regressar ao menu através do `GameManager`.
+- O painel de derrota também permite regressar ao menu através do `GameManager`.
 
 ## Pausa
 
@@ -196,18 +201,19 @@ a usar cápsulas provisórias com materiais distintos.
 - Os botões permitem continuar, regressar ao menu principal ou sair.
 - O painel não abre sobre os estados de vitória ou derrota, que já pausam a árvore.
 
-## Ronda provisória
+## Ataques contínuos provisórios
 
 - O `WaveManager` local lê uma lista tipada de recursos `WaveData` e cria os inimigos nos marcadores da arena.
 - O gestor mantém a contagem de inimigos vivos e recebe o sinal `died` de cada instância.
-- `wave_completed` inicia um intervalo configurável e `all_waves_completed` ativa a vitória após a última ronda.
-- O painel de vitória pausa a árvore e permite reiniciar a cena atual.
+- `wave_completed` inicia um intervalo configurável e o índice seguinte reutiliza ciclicamente os três `WaveData` existentes.
+- Cada ciclo acrescenta dois Normal Zombies a todas as composições e emite `cycle_completed` após o terceiro ataque.
+- `CharacterProgression` atribui 100 Credits em cada `cycle_completed`; já não existe vitória automática após três ataques.
 - O Runner herda a cena do Normal Zombie e altera apenas atributos e material provisório.
 
 ## HUD provisório
 
-- O HUD local descobre jogador, arma opcional e `WaveManager` através de grupos estáveis.
-- Sinais atualizam vida, munição, ronda e inimigos restantes sem polling por frame.
+- O HUD local descobre jogador, núcleo, arma opcional e `WaveManager` através de grupos estáveis.
+- Sinais atualizam vida do jogador, vida do núcleo, munição, ataque e inimigos restantes sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
 - O HUD mostra a arma ativa, os dois slots e as teclas `1`/`2`.
 - A mira é apresentada com armas de fogo e com a Worn Sword, permitindo apontar ataques melee à cabeça.
@@ -226,7 +232,7 @@ a usar cápsulas provisórias com materiais distintos.
 | Layer | Utilização |
 |---:|---|
 | 1 | World |
-| 2 | Player |
+| 2 | Player e alvos atacáveis do acampamento |
 | 3 | Enemy damage hitboxes |
 | 4 | Pickups |
 | 5 | Enemy attacks (futuro) |
@@ -242,6 +248,8 @@ signal died
 signal enemy_died(enemy: Node)
 signal wave_started(wave_number: int)
 signal wave_completed(wave_number: int)
+signal cycle_completed(cycle_number: int)
+signal destroyed
 signal xp_gained(amount: int)
 signal level_up(new_level: int)
 ```

@@ -1,6 +1,7 @@
 extends Control
 
 const PLAYER_GROUP := &"player"
+const CAMP_CORE_GROUP := &"camp_core"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
 const WAVE_MANAGER_GROUP := &"wave_manager"
 const HEALTH_GOOD_COLOR := Color(0.74, 0.91, 0.79, 1.0)
@@ -9,6 +10,8 @@ const HEALTH_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
 
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_label: Label = %HealthLabel
+@onready var camp_health_bar: ProgressBar = %CampHealthBar
+@onready var camp_health_label: Label = %CampHealthLabel
 @onready var weapon_label: Label = %WeaponLabel
 @onready var ammunition_label: Label = %AmmunitionLabel
 @onready var wave_label: Label = %WaveLabel
@@ -21,13 +24,22 @@ var _weapon_controller: Node
 
 func _ready() -> void:
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
+	var camp_core := get_tree().get_first_node_in_group(CAMP_CORE_GROUP)
 	_weapon_controller = get_tree().get_first_node_in_group(WEAPON_CONTROLLER_GROUP)
 	var wave_manager := get_tree().get_first_node_in_group(WAVE_MANAGER_GROUP)
-	if player == null or _weapon_controller == null or wave_manager == null:
-		push_error("GameHUD requires player, weapon_controller and wave_manager groups.")
+	if (
+		player == null
+		or camp_core == null
+		or _weapon_controller == null
+		or wave_manager == null
+	):
+		push_error(
+			"GameHUD requires player, camp_core, weapon_controller and wave_manager groups."
+		)
 		return
 
 	player.connect(&"health_changed", _update_health)
+	camp_core.connect(&"health_changed", _update_camp_health)
 	wave_manager.connect(&"wave_started", _update_wave)
 	wave_manager.connect(&"enemy_count_changed", _update_enemy_count)
 	wave_manager.connect(&"intermission_started", _show_intermission)
@@ -35,6 +47,10 @@ func _ready() -> void:
 
 	_update_health(
 		float(player.get("current_health")), float(player.get("maximum_health"))
+	)
+	_update_camp_health(
+		float(camp_core.get("current_health")),
+		float(camp_core.get("maximum_health"))
 	)
 	_show_weapon(
 		_weapon_controller.call("get_active_weapon"),
@@ -55,6 +71,21 @@ func _update_health(current_health: float, maximum_health: float) -> void:
 	elif health_ratio <= 0.5:
 		health_color = HEALTH_WARNING_COLOR
 	health_label.add_theme_color_override(&"font_color", health_color)
+
+
+func _update_camp_health(current_health: float, maximum_health: float) -> void:
+	camp_health_bar.max_value = maximum_health
+	camp_health_bar.value = current_health
+	camp_health_label.text = "%d / %d" % [
+		roundi(current_health), roundi(maximum_health)
+	]
+	var health_ratio := current_health / maximum_health if maximum_health > 0.0 else 0.0
+	var health_color := HEALTH_GOOD_COLOR
+	if health_ratio <= 0.25:
+		health_color = HEALTH_DANGER_COLOR
+	elif health_ratio <= 0.5:
+		health_color = HEALTH_WARNING_COLOR
+	camp_health_label.add_theme_color_override(&"font_color", health_color)
 
 
 func _update_ammunition(

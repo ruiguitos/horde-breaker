@@ -198,3 +198,27 @@ Critérios:
 - apenas a arma ativa processa input;
 - saves antigos recebem os novos campos sem perder progresso;
 - as vantagens das três classes podem ser medidas em teste.
+
+## Milestone 15 — Survival Foundation
+
+Estado: primeiro vertical slice funcional concluído.
+
+Objetivo:
+
+- substituir a vitória após três rondas por ataques contínuos;
+- repetir as composições existentes com aumento progressivo da quantidade;
+- adicionar um núcleo do acampamento com vida própria;
+- permitir aos zombies atacar o jogador ou o núcleo;
+- terminar a partida quando o jogador ou o núcleo forem destruídos;
+- apresentar a vida do núcleo no HUD.
+
+## Milestone 16 — Camp Resources and Repair
+
+Estado: planeado.
+
+Objetivo:
+
+- introduzir Scrap obtido durante a partida;
+- permitir reparar o núcleo entre ataques;
+- apresentar decisões simples de gastar ou guardar recursos;
+- preparar uma primeira fortificação colocável sem iniciar ainda construção livre.

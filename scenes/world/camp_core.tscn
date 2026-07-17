@@ -1,0 +1,82 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/camp_core.gd" id="1_core_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_base"]
+albedo_color = Color(0.13, 0.17, 0.2, 1)
+metallic = 0.65
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="Mesh_base"]
+material = SubResource("Material_base")
+size = Vector3(2.2, 0.35, 2.2)
+
+[sub_resource type="StandardMaterial3D" id="Material_core"]
+albedo_color = Color(0.18, 0.22, 0.24, 1)
+emission_enabled = true
+emission = Color(0.92, 0.34, 0.08, 1)
+emission_energy_multiplier = 2.5
+metallic = 0.4
+roughness = 0.25
+
+[sub_resource type="CylinderMesh" id="Mesh_core"]
+material = SubResource("Material_core")
+top_radius = 0.45
+bottom_radius = 0.62
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="Material_ring"]
+albedo_color = Color(0.94, 0.48, 0.12, 1)
+emission_enabled = true
+emission = Color(0.94, 0.32, 0.06, 1)
+emission_energy_multiplier = 1.8
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+material = SubResource("Material_ring")
+inner_radius = 0.48
+outer_radius = 0.63
+rings = 12
+ring_segments = 20
+
+[sub_resource type="BoxShape3D" id="Shape_core"]
+size = Vector3(2.2, 1.8, 2.2)
+
+[node name="CampCore" type="StaticBody3D" groups=["camp_core", "enemy_target"]]
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("1_core_script")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.175, 0)
+mesh = SubResource("Mesh_base")
+
+[node name="Core" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, 0)
+mesh = SubResource("Mesh_core")
+
+[node name="EnergyRing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("Mesh_ring")
+
+[node name="CoreLight" type="OmniLight3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.25, 0)
+light_color = Color(1, 0.36, 0.08, 1)
+light_energy = 2.2
+omni_range = 4.5
+shadow_enabled = true
+
+[node name="HealthLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 2.35, 0)
+modulate = Color(1, 0.78, 0.52, 1)
+outline_modulate = Color(0.04, 0.03, 0.02, 1)
+text = "CAMP CORE\n500 / 500"
+font_size = 30
+outline_size = 8
+billboard = 1
+no_depth_test = true
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("Shape_core")

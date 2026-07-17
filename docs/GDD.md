@@ -27,12 +27,13 @@ A experiência deve ser:
 ```text
 Selecionar personagem e arma
 -> entrar na arena
--> sobreviver à ronda
+-> defender o núcleo do acampamento durante um ataque
 -> eliminar inimigos
 -> receber Scrap, Credits e XP
 -> escolher melhorias
--> iniciar ronda mais difícil
--> terminar a partida
+-> iniciar ataque mais difícil
+-> sobreviver enquanto o operacional e o núcleo resistirem
+-> terminar a partida por queda do operacional ou destruição do núcleo
 -> guardar progressão permanente
 ```
 
@@ -165,8 +166,7 @@ Valores provisórios de XP:
 | Spitter | 12 |
 | Brute | 15 |
 | Boss | 100 |
-| Completar ronda | 20 × ronda |
-| Completar partida | 100 |
+| Completar ataque | 20 × ataque |
 
 O XP obtido é mantido mesmo quando o jogador perde.
 
@@ -179,6 +179,8 @@ Serve para:
 - desbloquear personagens;
 - comprar armas cujo nível mínimo já foi atingido;
 - futuramente comprar cosméticos ou arenas.
+
+Completar cada ciclo de três ataques atribui provisoriamente 100 Credits.
 
 ### Scrap
 
@@ -204,7 +206,7 @@ O Scrap é reiniciado no fim da partida.
 - lento;
 - 100 pontos de vida;
 - vida e dano médios;
-- persegue o jogador;
+- persegue o alvo vivo mais próximo entre jogador e núcleo do acampamento;
 - inimigo base.
 
 ### Runner
@@ -236,17 +238,25 @@ Planeado para uma fase posterior.
 - invoca inimigos;
 - recompensa elevada.
 
-## Rondas provisórias
+## Núcleo do acampamento
 
-| Ronda | Composição |
+- É o primeiro objetivo defensável do modo survival.
+- Começa provisoriamente com 500 pontos de vida.
+- Os zombies podem escolhê-lo como alvo e causar-lhe dano.
+- A partida termina se o núcleo for destruído, mesmo que o jogador continue vivo.
+- Reparação, melhorias, construção livre e persistência da base ficam para etapas posteriores.
+
+## Ataques provisórios
+
+| Ataque do ciclo | Composição base |
 |---:|---|
 | 1 | 5 Normal Zombies |
 | 2 | 10 Normal Zombies |
 | 3 | 15 Normal Zombies + 2 Runners |
-| 4 | 15 Normal Zombies + 5 Runners + 1 Brute |
-| 5 | Zombies + Boss |
 
-Estes valores são provisórios e devem ser ajustados após playtests.
+O ciclo repete-se continuamente e cada ciclo completo acrescenta provisoriamente
+dois Normal Zombies a cada composição. Os valores e a variedade de inimigos
+devem ser ajustados após playtests.
 
 ## Direção visual
 
@@ -270,8 +280,9 @@ Versão posterior:
 Durante a partida:
 
 - vida;
+- vida do núcleo do acampamento;
 - munição;
-- ronda;
+- ataque;
 - inimigos restantes;
 - Scrap da sessão;
 - XP ganho na sessão.

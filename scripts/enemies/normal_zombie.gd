@@ -4,7 +4,7 @@ signal health_changed(current_health: float, maximum_health: float)
 signal attacked(target: Node, damage: float)
 signal died(enemy: Node)
 
-const PLAYER_GROUP := &"player"
+const ENEMY_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
 
 @export_range(1.0, 1000.0, 1.0) var maximum_health: float = 50.0
@@ -23,14 +23,14 @@ const TARGET_REPATH_DISTANCE := 0.25
 
 var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
-var _target: CharacterBody3D
+var _target: PhysicsBody3D
 
 
 func _ready() -> void:
 	current_health = maximum_health
-	_target = get_tree().get_first_node_in_group(PLAYER_GROUP) as CharacterBody3D
+	_target = _find_nearest_target()
 	if _target == null:
-		push_error("NormalZombie requires a CharacterBody3D in the player group.")
+		push_error("NormalZombie requires a PhysicsBody3D in the enemy_target group.")
 
 	var attack_shape := attack_collision.shape.duplicate() as SphereShape3D
 	if attack_shape == null:
@@ -43,18 +43,53 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
+	_target = _find_nearest_target()
 	if not is_instance_valid(_target):
 		_stop_horizontal_movement()
 		move_and_slide()
 		return
 
-	if attack_area.overlaps_body(_target):
+	if _is_target_in_attack_range():
 		_stop_horizontal_movement()
 		_try_attack()
 	else:
 		_pursue_target(delta)
 
 	move_and_slide()
+
+
+func _find_nearest_target() -> PhysicsBody3D:
+	var nearest_target: PhysicsBody3D
+	var nearest_distance_squared := INF
+	for node in get_tree().get_nodes_in_group(ENEMY_TARGET_GROUP):
+		var candidate := node as PhysicsBody3D
+		if candidate == null:
+			continue
+		if (
+			not candidate.has_method(&"take_damage")
+			and not candidate.has_method(&"take_enemy_damage")
+		):
+			continue
+		var distance_squared := global_position.distance_squared_to(
+			candidate.global_position
+		)
+		if distance_squared < nearest_distance_squared:
+			nearest_target = candidate
+			nearest_distance_squared = distance_squared
+	return nearest_target
+
+
+func _is_target_in_attack_range() -> bool:
+	if attack_area.overlaps_body(_target):
+		return true
+	if not _target.has_method(&"get_attack_target_radius"):
+		return false
+	var target_radius := float(_target.call(&"get_attack_target_radius"))
+	var horizontal_offset := Vector2(
+		_target.global_position.x - global_position.x,
+		_target.global_position.z - global_position.z
+	)
+	return horizontal_offset.length() <= attack_range + target_radius
 
 
 func take_damage(amount: float) -> float:
@@ -109,7 +144,9 @@ func _try_attack() -> void:
 		return
 
 	attacked.emit(_target, attack_damage)
-	if _target.has_method("take_damage"):
+	if _target.has_method(&"take_enemy_damage"):
+		_target.call(&"take_enemy_damage", attack_damage)
+	elif _target.has_method(&"take_damage"):
 		_target.call("take_damage", attack_damage)
 	attack_cooldown_timer.start(attack_cooldown)
 

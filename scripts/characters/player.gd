@@ -139,6 +139,7 @@ func take_damage(amount: float) -> void:
 	health_changed.emit(current_health, maximum_health)
 	if is_zero_approx(current_health):
 		_is_dead = true
+		remove_from_group(&"enemy_target")
 		velocity = Vector3.ZERO
 		set_physics_process(false)
 		died.emit()

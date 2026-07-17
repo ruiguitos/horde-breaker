@@ -181,17 +181,26 @@ Fase: primeiro balanceamento conjunto de vida e dano pós-Milestone 14 concluíd
 - [x] Assault Rifle, Pistol, Shotgun e Worn Sword balanceadas provisoriamente para 30, 35, 12 por pellet e 50 de dano base.
 - [x] Dano das quatro armas configurado explicitamente nas respetivas cenas, sem depender dos valores genéricos dos scripts.
 - [x] Matriz corpo/cabeça documentada com multiplicador `2 ×` preservado e valores finais visíveis no ponto atingido.
+- [x] Vitória automática após três rondas substituída por ataques contínuos que reutilizam os três `WaveData` existentes.
+- [x] Escalada provisória configurada para acrescentar dois Normal Zombies a cada composição por ciclo completo.
+- [x] `CampCore` físico adicionado à arena com 500 pontos de vida, sinal de destruição, luz e identificação no mundo.
+- [x] Jogador e núcleo registados como `enemy_target`, permitindo aos zombies escolher o alvo vivo mais próximo.
+- [x] Ataques dos zombies adaptados ao volume do núcleo sem alterar o alcance existente contra o jogador.
+- [x] Dano inimigo do núcleo separado de `take_damage`, impedindo fogo amigo sem deixar os tiros atravessarem a estrutura.
+- [x] HUD atualizado com painel próprio para a vida do núcleo e designação de `ATAQUE`.
+- [x] Derrota configurada para ocorrer tanto pela morte do jogador como pela destruição do núcleo, com mensagens distintas.
+- [x] Recompensa permanente de 100 Credits transferida da vitória final para a conclusão de cada ciclo de três ataques.
+- [x] Painel de vitória removido da arena e preservado como cena não utilizada para evitar apagar trabalho anterior.
 
 ## Milestone atual
 
-**Primeiro balanceamento de vida e dano pós-Milestone 14 (concluído)**
+**Milestone 15 — Survival Foundation (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual do novo tempo para eliminar Normal Zombies e Runners com
-Recruit, Renegade e Medic, afinando os valores apenas depois de testar várias
-distâncias. Depois, definir o primeiro vertical slice do modo survival contínuo
-com ataques ao acampamento antes de iniciar sistemas de construção persistente.
+Fazer playtest manual da distribuição de alvos e dos 500 pontos de vida do núcleo
+com as três classes. Depois, implementar o Milestone 16 com Scrap de sessão e uma
+ação simples de reparação entre ataques, antes de introduzir construção livre.
 
 ## Validação
 
@@ -308,6 +317,14 @@ com ataques ao acampamento antes de iniciar sistemas de construção persistente
 - Teste automatizado confirmou dano corpo/cabeça de `30/60` na Assault Rifle, `35/70` na Pistol, `12/24` por pellet na Shotgun e `50/100` na Worn Sword.
 - Teste integrado com raycasts reais confirmou números `30/60` da Assault Rifle no corpo/cabeça, `35` da Pistol, `96` para oito pellets da Shotgun e `50` da Worn Sword.
 - Arena executada durante 60 frames em modo headless após o balanceamento sem erros de carregamento ou execução.
+- Importação headless após o Milestone 15 concluída sem erros de parsing ou de recursos.
+- Cena principal executada durante 120 frames em modo headless sem erros.
+- Teste integrado percorreu os ataques `1–4` com `5`, `10`, `17` e `7` inimigos, confirmando repetição contínua e aumento de dois Normal Zombies no novo ciclo.
+- Teste integrado confirmou uma única emissão de `cycle_completed` após três ataques e ausência do painel de vitória na arena.
+- Teste integrado confirmou zombies a escolher tanto jogador como núcleo, dano real causado ao núcleo e remoção do núcleo do grupo de alvos aos zero pontos de vida.
+- Teste integrado confirmou que o núcleo aceita dano real dos zombies, mas não expõe o método usado pelas armas do jogador.
+- Teste integrado confirmou mensagem específica de destruição do núcleo, apresentação do painel de derrota e pausa da árvore.
+- Captura OpenGL a 1152 × 648 confirmou o núcleo legível no mapa e o novo painel de vida sem sobreposição com ataque, ameaças ou retículo.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -315,11 +332,12 @@ com ataques ao acampamento antes de iniciar sistemas de construção persistente
 - resolução inicial;
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
-- estrutura final do core loop: rondas delimitadas ou survival contínuo com construção e evolução de um acampamento.
+- ritmo, custo e limites da reparação e construção do acampamento no modo survival contínuo.
 
 ## Problemas conhecidos
 
-- O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
+- Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
+- O núcleo ainda não pode ser reparado ou melhorado e não existem Scrap, fortificações colocáveis ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
