@@ -8,6 +8,7 @@ const HIT_COLLISION_MASK: int = (1 << 0) | (1 << 2)
 const MUZZLE_FLASH_DURATION := 0.05
 const TRACER_DURATION := 0.06
 const TRACER_THICKNESS := 0.025
+const AIM_RAY_EXTENSION := 0.1
 
 @export_range(0.1, 1000.0, 0.1) var damage: float = 25.0
 @export_range(0.1, 30.0, 0.1) var fire_rate: float = 6.0
@@ -40,6 +41,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
+	_update_weapon_aim()
 	if Input.is_action_pressed("reload"):
 		_start_reload()
 	if (
@@ -75,14 +77,19 @@ func _fire() -> void:
 		push_error("HitscanWeapon requires an active Camera3D.")
 		return
 
-	var ray_origin := camera.global_position
-	var ray_end := ray_origin - camera.global_basis.z * maximum_range
+	var aim_position := _get_camera_aim_position(camera)
+	_aim_weapon_at(aim_position)
+	var ray_origin := muzzle.global_position
+	var ray_direction := ray_origin.direction_to(aim_position)
+	if ray_direction == Vector3.ZERO:
+		return
+	var ray_end := aim_position + ray_direction * AIM_RAY_EXTENSION
 	var query := PhysicsRayQueryParameters3D.create(
 		ray_origin, ray_end, HIT_COLLISION_MASK
 	)
 	var result := get_world_3d().direct_space_state.intersect_ray(query)
 
-	var hit_position := ray_end
+	var hit_position := aim_position
 	var hit_collider: Object = null
 	if not result.is_empty():
 		hit_position = result["position"]
@@ -94,6 +101,33 @@ func _fire() -> void:
 	muzzle_flash_timer.start(MUZZLE_FLASH_DURATION)
 	_show_tracer(muzzle.global_position, hit_position)
 	shot_fired.emit(hit_position, hit_collider)
+
+
+func _update_weapon_aim() -> void:
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	_aim_weapon_at(_get_camera_aim_position(camera))
+
+
+func _get_camera_aim_position(camera: Camera3D) -> Vector3:
+	var ray_origin := camera.global_position
+	var ray_end := ray_origin - camera.global_basis.z * maximum_range
+	var query := PhysicsRayQueryParameters3D.create(
+		ray_origin, ray_end, HIT_COLLISION_MASK
+	)
+	var result := get_world_3d().direct_space_state.intersect_ray(query)
+	if result.is_empty():
+		return ray_end
+	return result["position"]
+
+
+func _aim_weapon_at(aim_position: Vector3) -> void:
+	if global_position.distance_squared_to(aim_position) <= 0.0001:
+		return
+	look_at(aim_position, Vector3.UP)
 
 
 func _show_tracer(start_position: Vector3, end_position: Vector3) -> void:

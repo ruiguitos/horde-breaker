@@ -50,6 +50,10 @@ Fase: Milestone 10 — Permanent Progression concluído.
 - [x] Raycast configurado para as layers `World` e `Enemies`.
 - [x] Integração de dano preparada através de `take_damage(amount)`.
 - [x] Clarão do cano e tracer temporário adicionados como feedback visual.
+- [x] Ponto de mira com centro claro e contorno escuro adicionado ao centro do HUD.
+- [x] Jogador e arma alinhados com a direção da câmara enquanto o rato está capturado.
+- [x] Disparo corrigido com raycast da câmara para o ponto visado e segundo raycast do cano para o impacto.
+- [x] Tracer corrigido para sair do cano e seguir até ao impacto real, incluindo bloqueio por paredes próximas.
 - [x] Jogador adicionado ao grupo `player` para descoberta do alvo sem caminhos frágeis.
 - [x] `NavigationRegion3D` e malha de navegação retangular adicionados à arena de protótipo.
 - [x] Normal Zombie provisório criado como `CharacterBody3D` com cápsula visual e colisão.
@@ -152,6 +156,10 @@ Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Sel
 - Teste automatizado confirmou persistência da compra e seleção da Shotgun após recarregar o `ConfigFile`.
 - Teste integrado das três rondas confirmou 286 XP de sessão, nível 3 com 36 XP restante e 100 Credits.
 - Teste automatizado confirmou persistência das recompensas após novo carregamento do save.
+- Teste automatizado rodou a câmara 90 graus e confirmou alinhamento do jogador e da arma com a mira.
+- Teste automatizado confirmou impacto exatamente no centro do ecrã, com erro de projeção de `0 px`.
+- Alvo colocado sob a mira recebeu 25 de dano, a munição passou de 30 para 29 e o tracer nasceu no cano.
+- Inspeção visual confirmou o ponto de mira centrado e legível sobre a arena.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -161,7 +169,6 @@ Preparar uma tarefa específica para o **Milestone 11 — Menu and Character Sel
 
 ## Problemas conhecidos
 
-- A mira fica para uma etapa posterior.
 - O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
 - A progressão ainda não possui menu; compra, seleção visual de personagem/arma e saldo entram no Milestone 11.
 - A Shotgun existe apenas como `WeaponData`; a arma jogável ainda não foi implementada.

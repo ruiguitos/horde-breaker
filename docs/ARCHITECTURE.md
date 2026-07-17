@@ -74,10 +74,12 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 
 ## Combate provisório
 
-- O disparo básico do Recruit usa hitscan a partir do centro da câmara ativa.
+- Um ponto de mira fixo no centro do HUD define a direção visual do disparo.
+- O primeiro raycast parte da câmara e encontra o ponto visado; o segundo parte do cano até esse ponto.
+- O segundo raycast impede que a arma dispare através de uma parede entre o cano e o alvo.
 - O raycast deteta a layer 1 (`World`) e a layer 3 (`Enemies`).
 - Um alvo que implemente `take_damage(amount)` recebe o dano configurado na arma.
-- O clarão do cano e um tracer temporário fornecem feedback visual.
+- A arma orienta-se para o ponto visado e o tracer parte do cano até ao impacto real.
 - A Assault Rifle usa um carregador local, emite alterações de munição e recarrega através da ação `reload`.
 
 ## Cena de inimigo provisória

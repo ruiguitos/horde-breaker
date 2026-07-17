@@ -33,8 +33,11 @@ func _physics_process(delta: float) -> void:
 	velocity.x = movement_direction.x * move_speed
 	velocity.z = movement_direction.z * move_speed
 
-	if movement_direction != Vector3.ZERO:
-		var target_rotation := atan2(-movement_direction.x, -movement_direction.z)
+	var facing_direction := movement_direction
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		facing_direction = _get_horizontal_camera_forward()
+	if facing_direction != Vector3.ZERO:
+		var target_rotation := atan2(-facing_direction.x, -facing_direction.z)
 		visual_root.rotation.y = rotate_toward(
 			visual_root.rotation.y, target_rotation, rotation_speed * delta
 		)
@@ -56,12 +59,16 @@ func take_damage(amount: float) -> void:
 
 
 func _get_camera_relative_direction(input_direction: Vector2) -> Vector3:
-	var camera_forward := -camera.global_basis.z
-	camera_forward.y = 0.0
-	camera_forward = camera_forward.normalized()
+	var camera_forward := _get_horizontal_camera_forward()
 
 	var camera_right := camera.global_basis.x
 	camera_right.y = 0.0
 	camera_right = camera_right.normalized()
 
 	return camera_right * input_direction.x - camera_forward * input_direction.y
+
+
+func _get_horizontal_camera_forward() -> Vector3:
+	var camera_forward := -camera.global_basis.z
+	camera_forward.y = 0.0
+	return camera_forward.normalized()
