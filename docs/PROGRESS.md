@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: protótipo visual CC0 pós-Milestone 14 concluído.
+Fase: dano por zonas pós-Milestone 14 concluído.
 
 Última atualização: 2026-07-17.
 
@@ -112,7 +112,7 @@ Fase: protótipo visual CC0 pós-Milestone 14 concluído.
 - [x] Ataque frontal do Renegade ligado à ação `attack` com 35 de dano e cooldown de 0,6 segundos.
 - [x] Volume melee configurado para atingir vários inimigos na layer 3 sem acertar em alvos atrás do jogador.
 - [x] Animação curta de balanço da espada adicionada por código como feedback provisório.
-- [x] HUD melee configurado para ocultar a mira de disparo e apresentar a Worn Sword equipada.
+- [x] HUD melee configurado para apresentar a mira e a Worn Sword equipada.
 - [x] Objetivo futuro de um mapa jogável com obstáculos, navegação e spawns registado em `docs/TODO.md`.
 - [x] Perfil de progresso para testes no editor configurado num save separado, com 2000 Credits e Recruit nível 5.
 - [x] Mira de disparo reduzida de 10 × 10 para 6 × 6 píxeis, com centro de 2 × 2 píxeis.
@@ -141,17 +141,40 @@ Fase: protótipo visual CC0 pós-Milestone 14 concluído.
 - [x] Assault Rifle, Pistol e Shotgun configuradas com modelos importados, mantendo raycasts, munição, cadência e recarga existentes.
 - [x] Animações provisórias de idle e movimento ligadas à velocidade do `CharacterBody3D`.
 - [x] Primitivas visuais anteriores preservadas nas cenas, mas ocultas, para permitirem comparação e reversão simples.
+- [x] Visual da Worn Sword corrigido no Renegade através da lâmina integrada no modelo animado, eliminando a espada primitiva suspensa.
+- [x] Ataque da Worn Sword ligado à animação `Slash` do modelo importado.
+- [x] Velocidade base alterada para andar a 4 m/s e corrida adicionada com `Shift` a 7 m/s.
+- [x] Salto adicionado com `Space`, limitado ao contacto com o chão e bloqueado durante o agachamento.
+- [x] Agachamento adicionado com `Ctrl`, incluindo cápsula reduzida, câmara mais baixa, velocidade própria e verificação de espaço para levantar.
+- [x] Interação adicionada com `F` através de uma área local e pickup de munições de teste colocado junto ao spawn.
+- [x] Vista frontal temporária adicionada ao manter `C`, com reposição da órbita anterior ao libertar a tecla.
+- [x] Mira sobre o ombro adicionada ao botão direito do rato, com transição de FOV, distância e deslocamento lateral.
+- [x] Estados provisórios de andar, correr, salto, agachamento e ataque ligados às animações dos modelos importados.
+- [x] Munição de reserva própria adicionada à Assault Rifle, Pistol e Shotgun.
+- [x] Recarga alterada para transferir apenas munições disponíveis da reserva para o carregador.
+- [x] HUD atualizado para apresentar `carregador / reserva`.
+- [x] Pickup de munições alterado para abastecer a reserva, incluindo a Shotgun quando o Renegade tem a Worn Sword ativa.
+- [x] Oito modelos ambientais CC0 selecionados do mesmo Quaternius Zombie Apocalypse Kit e importados em glTF.
+- [x] Primeiro mapa urbano modular criado com 16 peças de estrada, contentores, camião blindado, iluminação, barreiras e torre de água.
+- [x] Piso e caixas graybox ocultados visualmente, preservando as colisões funcionais por baixo dos novos modelos.
+- [x] Quatro paredes graybox ocultadas e limites temporários assinalados por barreiras visuais.
+- [x] Componente reutilizável `DamageHitbox` criado com zona e multiplicador configuráveis.
+- [x] Normal Zombie e Runner configurados com corpo a `1 ×` e cabeça a `2 ×` dano.
+- [x] Cápsula física do zombie separada das hitboxes de dano para o raycast distinguir corretamente corpo e cabeça.
+- [x] Assault Rifle, Pistol e Shotgun configuradas para detetar hitboxes `Area3D`, mantendo colisão com o mundo.
+- [x] Worn Sword configurada para aplicar headshot ao alvo apontado sem duplicar dano quando o volume sobrepõe corpo e cabeça.
+- [x] Mira mantida visível com a Worn Sword para permitir ataques melee apontados à cabeça.
 
 ## Milestone atual
 
-**Protótipo visual CC0 pós-Milestone 14 (concluído)**
+**Dano por zonas pós-Milestone 14 (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest visual das três classes, dos dois zombies e das três armas de fogo,
-confirmando escala, orientação e posição das mãos/armas. Depois, implementar uma
-primeira escolha de melhoria entre rondas. O Milestone 12 — Mixamo continua
-pendente até existirem modelos finais escolhidos.
+Fazer playtest manual de tiros e golpes no corpo/cabeça com Recruit, Renegade e
+Medic, afinando o tamanho das hitboxes e o multiplicador de cabeça. Depois,
+adicionar feedback visual de impacto/headshot e retomar a afinação dos limites,
+spawns e coberturas do mapa.
 
 ## Validação
 
@@ -213,7 +236,7 @@ pendente até existirem modelos finais escolhidos.
 - Teste melee com o driver Windows confirmou dois alvos frontais atingidos pelo mesmo golpe e um alvo traseiro intacto.
 - Teste automatizado confirmou 35 de dano por ataque, rejeição de ataques durante o cooldown e novo ataque após o intervalo.
 - Normal Zombie real morreu após dois ataques acionados através da ação `attack` e emitiu o sinal `died` esperado.
-- Arena instanciada com o Renegade confirmou Worn Sword ativa, Assault Rifle oculta, mira invisível e HUD `Arma: Worn Sword`.
+- Arena instanciada com o Renegade confirmou Worn Sword ativa, Assault Rifle oculta e HUD `Arma: Worn Sword`; a mira passou posteriormente a permanecer visível para permitir headshots melee.
 - Inspeção visual OpenGL confirmou a espada provisória visível na vista sobre o ombro.
 - Primeiro arranque criou `horde_breaker_test.cfg` com 2000 Credits, Recruit nível 5 e progressão normal das duas personagens.
 - Segundo arranque manteve o hash do perfil de teste, confirmando que os valores iniciais não são adicionados novamente.
@@ -237,6 +260,25 @@ pendente até existirem modelos finais escolhidos.
 - Arena de teste executada durante 30 frames em modo headless com o Recruit e os zombies importados sem erros de carregamento ou de animação.
 - Teste automatizado confirmou a arma visual ativa em cada loadout: Rifle/Pistol no Recruit, Shotgun no Renegade e Pistol no Medic.
 - Captura OpenGL a 1152 × 648 confirmou o Recruit no chão, orientado para a mira, sem as armas internas não equipadas visíveis.
+- Teste automatizado confirmou as ações `jump`, `sprint`, `crouch`, `interact`, `camera_front` e `aim` no `InputMap`.
+- Teste de física confirmou andar a 4 m/s, corrida a 7 m/s, salto ascendente e agachamento a 2,5 m/s com cápsula reduzida de 2 para 1,2 metros.
+- Teste de física confirmou que uma cobertura superior impede a personagem de se levantar e que a altura normal é reposta depois de libertar o espaço.
+- Teste integrado confirmou que `F` transfere munições para a reserva e remove o pickup apenas quando a transferência é válida.
+- Teste automatizado confirmou que o botão direito reduz o FOV de 70 para 55 e o comprimento do braço de 5 para 3,2 metros.
+- Teste automatizado confirmou que manter `C` roda a câmara aproximadamente 180 graus e que libertar a tecla repõe a órbita anterior.
+- Teste integrado confirmou que selecionar a Worn Sword mostra a lâmina integrada, mantém a primitiva antiga oculta e reproduz `Slash` ao atacar.
+- Capturas OpenGL confirmaram a espada na mão do Renegade em idle e ataque, a postura agachada, a mira aproximada e a vista frontal sem o objeto suspenso.
+- Oito modelos ambientais e de veículo foram importados em modo headless sem erros.
+- Teste automatizado confirmou Assault Rifle com `30 / 90`, recolha de 12 munições com o carregador cheio e reserva resultante de 102.
+- Teste automatizado confirmou que uma recarga com cinco munições de reserva transfere apenas essas cinco e deixa a reserva a zero.
+- Teste integrado confirmou que o Renegade recolhe munições para a Shotgun enquanto a Worn Sword está ativa, aumentando a reserva de 32 para 44.
+- Teste integrado confirmou 16 módulos de estrada, piso e quatro paredes visuais ocultos e navegação ainda disponível.
+- Captura OpenGL a 1152 × 648 confirmou o mapa urbano completo, contentores, camião, torre, barreiras e ausência das paredes graybox.
+- Teste direto confirmou 10 de dano no corpo e 20 de dano na cabeça através das `DamageHitbox`.
+- Teste com raycast real confirmou 25 de dano no corpo e 50 de dano na cabeça com a Assault Rifle.
+- Teste com a Worn Sword confirmou 35 de dano no corpo e 70 de dano na cabeça, aplicado uma única vez apesar da sobreposição das duas hitboxes.
+- Teste de herança confirmou `BodyHitbox`, `HeadHitbox` e multiplicador `2.0` no Runner.
+- Inspeção OpenGL com volumes de depuração confirmou a esfera de cabeça alinhada com a cabeça visível do Normal Zombie e a cápsula do corpo até ao pescoço.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -251,5 +293,10 @@ pendente até existirem modelos finais escolhidos.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
-- Apenas idle e movimento estão ligados aos modelos importados; ataque, recarga, dano e morte ainda não controlam animações próprias.
-- A Worn Sword mantém o modelo construído com primitivas, porque a seleção importada não inclui uma espada compatível.
+- A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
+- A reserva de munições já existe, mas usa um pickup genérico; tipos de munição, feedback contextual e respawn ainda não existem.
+- As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites físicos totalmente legíveis depois do playtest do mapa.
+- Os modelos ambientais são uma primeira composição modular e ainda não formam edifícios exploráveis.
+- As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
+- Ainda não existe indicador visual ou sonoro que diferencie impacto normal de headshot.
+- Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.

@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/normal_zombie.gd" id="1_zombie_script"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/enemies/Zombie_Basic.gltf" id="2_zombie_model"]
 [ext_resource type="Script" path="res://scripts/characters/imported_model_animation.gd" id="3_model_animation"]
+[ext_resource type="Script" path="res://scripts/enemies/damage_hitbox.gd" id="4_damage_hitbox"]
 
 [sub_resource type="StandardMaterial3D" id="Material_zombie"]
 albedo_color = Color(0.32, 0.58, 0.22, 1)
@@ -17,6 +18,13 @@ height = 2.0
 radius = 0.5
 height = 2.0
 
+[sub_resource type="CapsuleShape3D" id="Shape_body_hitbox"]
+radius = 0.45
+height = 1.9
+
+[sub_resource type="SphereShape3D" id="Shape_head_hitbox"]
+radius = 0.36
+
 [sub_resource type="StandardMaterial3D" id="Material_facing"]
 albedo_color = Color(0.85, 0.95, 0.75, 1)
 roughness = 0.8
@@ -29,12 +37,34 @@ size = Vector3(0.18, 0.18, 0.35)
 radius = 1.4
 
 [node name="NormalZombie" type="CharacterBody3D"]
-collision_layer = 4
+collision_layer = 0
 collision_mask = 3
 script = ExtResource("1_zombie_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("Shape_zombie")
+
+[node name="BodyHitbox" type="Area3D" parent="."]
+position = Vector3(0, -0.1, 0)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_damage_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BodyHitbox"]
+shape = SubResource("Shape_body_hitbox")
+
+[node name="HeadHitbox" type="Area3D" parent="."]
+position = Vector3(0, 1.2, 0)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_damage_hitbox")
+hit_zone = &"head"
+damage_multiplier = 2.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHitbox"]
+shape = SubResource("Shape_head_hitbox")
 
 [node name="VisualRoot" type="Node3D" parent="."]
 unique_name_in_owner = true

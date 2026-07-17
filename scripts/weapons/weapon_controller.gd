@@ -68,6 +68,25 @@ func get_active_slot() -> int:
 	return _active_slot
 
 
+func add_ammunition(amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var weapons: Array[Node3D] = []
+	if _active_weapon != null:
+		weapons.append(_active_weapon)
+	var loadout_weapons: Array[Node3D] = [_primary_weapon, _secondary_weapon]
+	for weapon in loadout_weapons:
+		if weapon != null and weapon != _active_weapon:
+			weapons.append(weapon)
+	for weapon in weapons:
+		if not weapon.has_method(&"add_ammunition"):
+			continue
+		var added_ammunition := int(weapon.call(&"add_ammunition", amount))
+		if added_ammunition > 0:
+			return added_ammunition
+	return 0
+
+
 func get_primary_weapon_name() -> String:
 	return _get_weapon_name(_primary_weapon_id)
 

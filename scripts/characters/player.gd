@@ -4,18 +4,33 @@ signal health_changed(current_health: float, maximum_health: float)
 signal died
 
 @export_range(1.0, 1000.0, 1.0) var maximum_health: float = 100.0
-@export var move_speed: float = 6.0
-@export var rotation_speed: float = 10.0
+@export_range(0.1, 20.0, 0.1) var move_speed: float = 4.0
+@export_range(0.1, 30.0, 0.1) var sprint_speed: float = 7.0
+@export_range(0.1, 10.0, 0.1) var crouch_speed: float = 2.5
+@export_range(0.1, 20.0, 0.1) var jump_velocity: float = 6.0
+@export_range(0.1, 30.0, 0.1) var rotation_speed: float = 10.0
+@export_range(1.0, 2.0, 0.05) var crouching_height: float = 1.2
+@export_range(0.0, 1.0, 0.05) var crouch_camera_drop: float = 0.35
+@export_range(1.0, 30.0, 0.5) var crouch_transition_speed: float = 8.0
 @export_range(0.0, 100.0, 0.5) var health_regeneration_rate: float = 1.0
 @export_range(0.0, 30.0, 0.5) var health_regeneration_delay: float = 6.0
 
 @onready var camera: Camera3D = %Camera3D
 @onready var visual_root: Node3D = %VisualRoot
+@onready var interaction_area: Area3D = %InteractionArea
+@onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var camera_pivot: Node3D = $CameraPivot
 
 var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _is_dead: bool = false
+var _is_crouching: bool = false
+var _is_sprinting: bool = false
+var _jump_requested: bool = false
 var _time_since_damage: float = 0.0
+var _standing_height: float
+var _standing_collision_y: float
+var _standing_camera_y: float
 
 
 func configure_character(character_data: CharacterData) -> void:
@@ -32,26 +47,62 @@ func configure_character(character_data: CharacterData) -> void:
 
 func _ready() -> void:
 	current_health = maximum_health
+	var capsule := collision_shape.shape.duplicate() as CapsuleShape3D
+	if capsule == null:
+		push_error("Player CollisionShape3D requires a CapsuleShape3D.")
+	else:
+		collision_shape.shape = capsule
+		_standing_height = capsule.height
+	_standing_collision_y = collision_shape.position.y
+	_standing_camera_y = camera_pivot.position.y
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("jump"):
+		_jump_requested = true
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("interact"):
+		_try_interact()
+		get_viewport().set_input_as_handled()
 
 
 func _physics_process(delta: float) -> void:
 	_time_since_damage += delta
 	_regenerate_health(delta)
+	_update_crouch_state()
+	_update_camera_height(delta)
 	if is_on_floor():
-		velocity.y = 0.0
+		if _jump_requested and not _is_crouching:
+			velocity.y = jump_velocity
+		else:
+			velocity.y = 0.0
 	else:
 		velocity.y -= _gravity * delta
+	_jump_requested = false
 
 	var input_direction := Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_backward"
 	)
 	var movement_direction := _get_camera_relative_direction(input_direction)
+	_is_sprinting = (
+		Input.is_action_pressed("sprint")
+		and not _is_crouching
+		and movement_direction != Vector3.ZERO
+	)
+	var current_speed := move_speed
+	if _is_crouching:
+		current_speed = crouch_speed
+	elif _is_sprinting:
+		current_speed = sprint_speed
 
-	velocity.x = movement_direction.x * move_speed
-	velocity.z = movement_direction.z * move_speed
+	velocity.x = movement_direction.x * current_speed
+	velocity.z = movement_direction.z * current_speed
 
 	var facing_direction := movement_direction
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if (
+		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+		and not Input.is_action_pressed("camera_front")
+	):
 		facing_direction = _get_horizontal_camera_forward()
 	if facing_direction != Vector3.ZERO:
 		var target_rotation := atan2(-facing_direction.x, -facing_direction.z)
@@ -60,6 +111,23 @@ func _physics_process(delta: float) -> void:
 		)
 
 	move_and_slide()
+
+
+func is_crouching() -> bool:
+	return _is_crouching
+
+
+func is_sprinting() -> bool:
+	return _is_sprinting
+
+
+func add_ammunition(amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var weapon_controller := get_node("VisualRoot/WeaponPivot")
+	if not weapon_controller.has_method(&"add_ammunition"):
+		return 0
+	return int(weapon_controller.call(&"add_ammunition", amount))
 
 
 func take_damage(amount: float) -> void:
@@ -93,7 +161,84 @@ func _regenerate_health(delta: float) -> void:
 	heal(health_regeneration_rate * delta)
 
 
+func _update_crouch_state() -> void:
+	var wants_to_crouch := Input.is_action_pressed("crouch")
+	if wants_to_crouch and not _is_crouching and is_on_floor():
+		_set_crouching(true)
+	elif not wants_to_crouch and _is_crouching and _can_stand_up():
+		_set_crouching(false)
+
+
+func _set_crouching(is_crouching: bool) -> void:
+	var capsule := collision_shape.shape as CapsuleShape3D
+	if capsule == null:
+		return
+	_is_crouching = is_crouching
+	var target_height := crouching_height if _is_crouching else _standing_height
+	capsule.height = target_height
+	var center_drop := (_standing_height - target_height) * 0.5
+	collision_shape.position.y = _standing_collision_y - center_drop
+
+
+func _can_stand_up() -> bool:
+	var current_capsule := collision_shape.shape as CapsuleShape3D
+	if current_capsule == null:
+		return true
+	var standing_capsule := current_capsule.duplicate() as CapsuleShape3D
+	standing_capsule.height = _standing_height
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = standing_capsule
+	var test_transform := collision_shape.global_transform
+	test_transform.origin += Vector3.UP * (
+		(_standing_height - current_capsule.height) * 0.5 + 0.01
+	)
+	query.transform = test_transform
+	query.collision_mask = collision_mask
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = [get_rid()]
+	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
+
+
+func _update_camera_height(delta: float) -> void:
+	var target_height := _standing_camera_y
+	if _is_crouching:
+		target_height -= crouch_camera_drop
+	camera_pivot.position.y = move_toward(
+		camera_pivot.position.y,
+		target_height,
+		crouch_transition_speed * delta
+	)
+
+
+func _try_interact() -> void:
+	var closest_area: Area3D
+	var closest_distance_squared := INF
+	for area in interaction_area.get_overlapping_areas():
+		if not area.has_method(&"interact"):
+			continue
+		var distance_squared := global_position.distance_squared_to(
+			area.global_position
+		)
+		if distance_squared < closest_distance_squared:
+			closest_area = area
+			closest_distance_squared = distance_squared
+	if closest_area != null:
+		closest_area.call(&"interact", self)
+
+
 func _get_camera_relative_direction(input_direction: Vector2) -> Vector3:
+	if Input.is_action_pressed("camera_front"):
+		var character_forward := -visual_root.global_basis.z
+		character_forward.y = 0.0
+		character_forward = character_forward.normalized()
+		var character_right := visual_root.global_basis.x
+		character_right.y = 0.0
+		character_right = character_right.normalized()
+		return (
+			character_right * input_direction.x
+			- character_forward * input_direction.y
+		)
 	var camera_forward := _get_horizontal_camera_forward()
 
 	var camera_right := camera.global_basis.x

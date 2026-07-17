@@ -8,6 +8,12 @@
 - [x] Criar a primeira expansão graybox da arena com três obstáculos, navegação que os contorna e seis pontos de spawn validados.
 - [ ] Evoluir o graybox para um mapa totalmente jogável, afinando rotas, zonas de combate, coberturas e spawns através de playtests com Recruit, Renegade e Medic.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
+- [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
+- [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.
+- [x] Adicionar munição de reserva, recarga com consumo real e recolha de munições mesmo com uma arma melee ativa.
+- [x] Criar a primeira composição urbana com modelos ambientais CC0 e remover as paredes graybox visíveis.
+- [x] Implementar dano por zonas com corpo a `1 ×` e cabeça a `2 ×` para armas de fogo e armas brancas.
+- [ ] Adicionar feedback visual e sonoro distinto para impacto no corpo e headshot.
 - [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração.
 - [ ] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.
 

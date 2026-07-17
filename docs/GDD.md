@@ -118,6 +118,14 @@ Loadout inicial:
 - principal: Pistol;
 - secundária: vazia até ser definida uma arma ou ferramenta médica adequada.
 
+## Dano por zonas
+
+- Um impacto no corpo aplica o dano base da arma.
+- Um impacto na cabeça aplica provisoriamente `2 ×` o dano base.
+- A regra aplica-se a todas as armas de fogo e armas brancas do jogador.
+- Nas armas melee, apenas o inimigo cuja cabeça esteja sob o centro da mira recebe o multiplicador; os restantes alvos do mesmo golpe recebem dano de corpo.
+- O multiplicador é configurável por hitbox e deve ser afinado através de playtests.
+
 ## Progressão
 
 ### Character XP

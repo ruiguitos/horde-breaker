@@ -47,8 +47,12 @@ func _update_health(current_health: float, maximum_health: float) -> void:
 	health_label.text = "Vida: %d / %d" % [roundi(current_health), roundi(maximum_health)]
 
 
-func _update_ammunition(current_ammunition: int, magazine_size: int) -> void:
-	ammunition_label.text = "Munição: %d / %d" % [current_ammunition, magazine_size]
+func _update_ammunition(
+	current_ammunition: int, _magazine_size: int, reserve_ammunition: int
+) -> void:
+	ammunition_label.text = "Munição: %d / %d" % [
+		current_ammunition, reserve_ammunition
+	]
 
 
 func _show_weapon(active_weapon: Node3D, slot: int) -> void:
@@ -70,10 +74,12 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 		_weapon.connect(&"ammunition_changed", _update_ammunition)
 		_weapon.connect(&"reload_started", _show_reloading)
 		_update_ammunition(
-			int(_weapon.get("current_ammunition")), int(_weapon.get("magazine_size"))
+			int(_weapon.get("current_ammunition")),
+			int(_weapon.get("magazine_size")),
+			int(_weapon.get("reserve_ammunition"))
 		)
 	else:
-		aim_point.hide()
+		aim_point.show()
 		ammunition_label.text = "Ataque corpo a corpo"
 
 
@@ -89,7 +95,8 @@ func _disconnect_weapon_signals() -> void:
 
 func _show_reloading(_duration: float) -> void:
 	ammunition_label.text = "Munição: %d / %d — a recarregar" % [
-		int(_weapon.get("current_ammunition")), int(_weapon.get("magazine_size"))
+		int(_weapon.get("current_ammunition")),
+		int(_weapon.get("reserve_ammunition"))
 	]
 
 

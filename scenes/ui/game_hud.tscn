@@ -92,7 +92,7 @@ mouse_filter = 2
 [node name="AmmunitionLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Munição: 30 / 30"
+text = "Munição: 30 / 90"
 mouse_filter = 2
 
 [node name="WavePanel" type="PanelContainer" parent="."]

@@ -22,6 +22,7 @@ position = Vector3(0, -1, 0)
 rotation = Vector3(0, 3.14159, 0)
 script = ExtResource("3_model_animation")
 idle_animation = &"Idle_Gun"
-move_animation = &"Run_Gun"
+move_animation = &"Walk_Gun"
+run_animation = &"Run_Gun"
 
 [editable path="VisualRoot"]

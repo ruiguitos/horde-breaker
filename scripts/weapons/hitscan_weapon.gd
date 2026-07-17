@@ -1,7 +1,9 @@
 extends Node3D
 
 signal shot_fired(hit_position: Vector3, hit_collider: Object)
-signal ammunition_changed(current_ammunition: int, magazine_size: int)
+signal ammunition_changed(
+	current_ammunition: int, magazine_size: int, reserve_ammunition: int
+)
 signal reload_started(duration: float)
 
 const HIT_COLLISION_MASK: int = (1 << 0) | (1 << 2)
@@ -14,6 +16,8 @@ const AIM_RAY_EXTENSION := 0.1
 @export_range(0.1, 30.0, 0.1) var fire_rate: float = 6.0
 @export_range(1.0, 500.0, 1.0) var maximum_range: float = 100.0
 @export_range(1, 200, 1) var magazine_size: int = 30
+@export_range(0, 1000, 1) var starting_reserve_ammunition: int = 90
+@export_range(0, 2000, 1) var maximum_reserve_ammunition: int = 180
 @export_range(0.1, 10.0, 0.1) var reload_duration: float = 1.5
 @export_range(1, 20, 1) var pellet_count: int = 1
 @export_range(0.0, 20.0, 0.5) var spread_degrees: float = 0.0
@@ -27,6 +31,7 @@ const AIM_RAY_EXTENSION := 0.1
 @onready var reload_timer: Timer = %ReloadTimer
 
 var current_ammunition: int
+var reserve_ammunition: int
 var _cooldown_remaining: float = 0.0
 var _reload_duration_multiplier: float = 1.0
 var _tracer_material: StandardMaterial3D
@@ -37,6 +42,7 @@ func _ready() -> void:
 	reload_timer.timeout.connect(_finish_reload)
 	reload_timer.wait_time = _get_effective_reload_duration()
 	current_ammunition = magazine_size
+	reserve_ammunition = mini(starting_reserve_ammunition, maximum_reserve_ammunition)
 	_tracer_material = StandardMaterial3D.new()
 	_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_tracer_material.albedo_color = Color(1.0, 0.75, 0.15, 1.0)
@@ -57,6 +63,7 @@ func _physics_process(delta: float) -> void:
 	)
 	if (
 		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+		and not Input.is_action_pressed("camera_front")
 		and attack_requested
 		and _cooldown_remaining <= 0.0
 		and reload_timer.is_stopped()
@@ -66,12 +73,16 @@ func _physics_process(delta: float) -> void:
 			return
 		_fire()
 		current_ammunition -= 1
-		ammunition_changed.emit(current_ammunition, magazine_size)
+		_emit_ammunition_changed()
 		_cooldown_remaining = 1.0 / fire_rate
 
 
 func _start_reload() -> void:
-	if current_ammunition >= magazine_size or not reload_timer.is_stopped():
+	if (
+		current_ammunition >= magazine_size
+		or reserve_ammunition <= 0
+		or not reload_timer.is_stopped()
+	):
 		return
 	var effective_duration := _get_effective_reload_duration()
 	reload_timer.start(effective_duration)
@@ -79,8 +90,11 @@ func _start_reload() -> void:
 
 
 func _finish_reload() -> void:
-	current_ammunition = magazine_size
-	ammunition_changed.emit(current_ammunition, magazine_size)
+	var missing_ammunition := magazine_size - current_ammunition
+	var transferred_ammunition := mini(missing_ammunition, reserve_ammunition)
+	current_ammunition += transferred_ammunition
+	reserve_ammunition -= transferred_ammunition
+	_emit_ammunition_changed()
 
 
 func _fire() -> void:
@@ -105,6 +119,8 @@ func _fire() -> void:
 		var query := PhysicsRayQueryParameters3D.create(
 			ray_origin, pellet_end, HIT_COLLISION_MASK
 		)
+		query.collide_with_areas = true
+		query.collide_with_bodies = true
 		var result := get_world_3d().direct_space_state.intersect_ray(query)
 		var hit_position := pellet_end
 		var hit_collider: Object = null
@@ -130,6 +146,25 @@ func set_reload_duration_multiplier(multiplier: float) -> void:
 
 func cancel_reload() -> void:
 	reload_timer.stop()
+
+
+func add_ammunition(amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var previous_reserve := reserve_ammunition
+	reserve_ammunition = mini(
+		reserve_ammunition + amount, maximum_reserve_ammunition
+	)
+	var added_ammunition := reserve_ammunition - previous_reserve
+	if added_ammunition > 0:
+		_emit_ammunition_changed()
+	return added_ammunition
+
+
+func _emit_ammunition_changed() -> void:
+	ammunition_changed.emit(
+		current_ammunition, magazine_size, reserve_ammunition
+	)
 
 
 func _get_effective_reload_duration() -> float:
@@ -167,6 +202,8 @@ func _get_camera_aim_position(camera: Camera3D) -> Vector3:
 	var query := PhysicsRayQueryParameters3D.create(
 		ray_origin, ray_end, HIT_COLLISION_MASK
 	)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
 	var result := get_world_3d().direct_space_state.intersect_ray(query)
 	if result.is_empty():
 		return ray_end

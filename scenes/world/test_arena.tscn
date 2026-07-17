@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -14,6 +14,8 @@
 [ext_resource type="Resource" path="res://data/waves/wave_3.tres" id="12_wave_3"]
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/world/city_test_map.tscn" id="16_city_map"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -53,14 +55,17 @@ material = SubResource("Material_obstacle")
 size = Vector3(6, 2, 2)
 
 [sub_resource type="BoxShape3D" id="Shape_center_obstacle"]
-size = Vector3(6, 2, 2)
+size = Vector3(6, 2.6, 2.6)
 
 [sub_resource type="BoxMesh" id="Mesh_side_obstacle"]
 material = SubResource("Material_obstacle")
 size = Vector3(2, 2, 5)
 
-[sub_resource type="BoxShape3D" id="Shape_side_obstacle"]
-size = Vector3(2, 2, 5)
+[sub_resource type="BoxShape3D" id="Shape_west_obstacle"]
+size = Vector3(2.6, 2.6, 6)
+
+[sub_resource type="BoxShape3D" id="Shape_east_obstacle"]
+size = Vector3(3, 3, 5.8)
 
 [node name="TestArena" type="Node3D"]
 
@@ -75,10 +80,13 @@ shadow_enabled = true
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 script = ExtResource("2_navigation_script")
 
+[node name="CityTestMap" parent="." instance=ExtResource("16_city_map")]
+
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Floor"]
+visible = false
 mesh = SubResource("Mesh_floor")
 
 [node name="Collision" type="CollisionShape3D" parent="Floor"]
@@ -90,6 +98,7 @@ shape = SubResource("Shape_floor")
 position = Vector3(0, 2, -16.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall"]
+visible = false
 mesh = SubResource("Mesh_wall")
 
 [node name="Collision" type="CollisionShape3D" parent="Walls/NorthWall"]
@@ -99,6 +108,7 @@ shape = SubResource("Shape_wall")
 position = Vector3(0, 2, 16.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall"]
+visible = false
 mesh = SubResource("Mesh_wall")
 
 [node name="Collision" type="CollisionShape3D" parent="Walls/SouthWall"]
@@ -109,6 +119,7 @@ position = Vector3(16.5, 2, 0)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall"]
+visible = false
 mesh = SubResource("Mesh_wall")
 
 [node name="Collision" type="CollisionShape3D" parent="Walls/EastWall"]
@@ -119,6 +130,7 @@ position = Vector3(-16.5, 2, 0)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall"]
+visible = false
 mesh = SubResource("Mesh_wall")
 
 [node name="Collision" type="CollisionShape3D" parent="Walls/WestWall"]
@@ -127,35 +139,43 @@ shape = SubResource("Shape_wall")
 [node name="Obstacles" type="Node3D" parent="."]
 
 [node name="CentralBarricade" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(0, 1, 0)
+position = Vector3(0, 1.3, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Obstacles/CentralBarricade"]
+visible = false
 mesh = SubResource("Mesh_center_obstacle")
 
 [node name="Collision" type="CollisionShape3D" parent="Obstacles/CentralBarricade"]
 shape = SubResource("Shape_center_obstacle")
 
 [node name="WestCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(-7, 1, -5)
+position = Vector3(-7, 1.3, -5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Obstacles/WestCover"]
+visible = false
 mesh = SubResource("Mesh_side_obstacle")
 
 [node name="Collision" type="CollisionShape3D" parent="Obstacles/WestCover"]
-shape = SubResource("Shape_side_obstacle")
+shape = SubResource("Shape_west_obstacle")
 
 [node name="EastCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(7, 1, 5)
+position = Vector3(7, 1.5, 5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Obstacles/EastCover"]
+visible = false
 mesh = SubResource("Mesh_side_obstacle")
 
 [node name="Collision" type="CollisionShape3D" parent="Obstacles/EastCover"]
-shape = SubResource("Shape_side_obstacle")
+shape = SubResource("Shape_east_obstacle")
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
 position = Vector3(0, 1, 8)
 script = ExtResource("1_player_spawner")
+
+[node name="Pickups" type="Node3D" parent="."]
+
+[node name="AmmoPickup" parent="Pickups" instance=ExtResource("15_ammo_pickup")]
+position = Vector3(1, 0.25, 7.5)
 
 [node name="EnemySpawns" type="Node3D" parent="."]
 unique_name_in_owner = true

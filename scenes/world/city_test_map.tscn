@@ -1,0 +1,140 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Street_4Way.gltf" id="3_street_4way"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Street_Straight_Crack1.gltf" id="4_street_straight"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/StreetLights.gltf" id="5_street_lights"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="6_traffic_barrier"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf" id="7_water_tower"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/vehicles/Vehicle_Truck_Armored.gltf" id="8_armored_truck"]
+
+[sub_resource type="BoxShape3D" id="Shape_water_tower"]
+size = Vector3(2.7, 9.4, 2.7)
+
+[node name="CityTestMap" type="Node3D"]
+
+[node name="Road" type="Node3D" parent="."]
+
+[node name="NorthWest" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-12, -0.1, -12)
+
+[node name="NorthMiddleWest" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-4, -0.1, -12)
+
+[node name="NorthMiddleEast" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(4, -0.1, -12)
+
+[node name="NorthEast" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(12, -0.1, -12)
+
+[node name="WestNorth" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-12, -0.1, -4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="CenterNorthWest" parent="Road" instance=ExtResource("3_street_4way")]
+position = Vector3(-4, -0.08, -4)
+
+[node name="CenterNorthEast" parent="Road" instance=ExtResource("3_street_4way")]
+position = Vector3(4, -0.08, -4)
+
+[node name="EastNorth" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(12, -0.1, -4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="WestSouth" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-12, -0.1, 4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="CenterSouthWest" parent="Road" instance=ExtResource("3_street_4way")]
+position = Vector3(-4, -0.08, 4)
+
+[node name="CenterSouthEast" parent="Road" instance=ExtResource("3_street_4way")]
+position = Vector3(4, -0.08, 4)
+
+[node name="EastSouth" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(12, -0.1, 4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="SouthWest" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-12, -0.1, 12)
+
+[node name="SouthMiddleWest" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(-4, -0.1, 12)
+
+[node name="SouthMiddleEast" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(4, -0.1, 12)
+
+[node name="SouthEast" parent="Road" instance=ExtResource("4_street_straight")]
+position = Vector3(12, -0.1, 12)
+
+[node name="GameplayProps" type="Node3D" parent="."]
+
+[node name="CentralContainer" parent="GameplayProps" instance=ExtResource("2_container_red")]
+
+[node name="WestContainer" parent="GameplayProps" instance=ExtResource("1_container_green")]
+position = Vector3(-7, 0, -5)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="EastTruck" parent="GameplayProps" instance=ExtResource("8_armored_truck")]
+position = Vector3(7, 0, 5)
+
+[node name="WaterTower" parent="GameplayProps" instance=ExtResource("7_water_tower")]
+position = Vector3(-13.5, 0.04, -13.5)
+
+[node name="WaterTowerBody" type="StaticBody3D" parent="GameplayProps" groups=["navigation_blocker"]]
+position = Vector3(-13.5, 4.7, -13.5)
+
+[node name="Collision" type="CollisionShape3D" parent="GameplayProps/WaterTowerBody"]
+shape = SubResource("Shape_water_tower")
+
+[node name="NorthWestLights" parent="GameplayProps" instance=ExtResource("5_street_lights")]
+position = Vector3(-10, 0.02, -8)
+
+[node name="SouthEastLights" parent="GameplayProps" instance=ExtResource("5_street_lights")]
+position = Vector3(10, 0.02, 8)
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="BoundaryMarkers" type="Node3D" parent="."]
+
+[node name="NorthBarrierWest" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-8, 0, -15.6)
+
+[node name="NorthBarrierCenter" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(0, 0, -15.6)
+
+[node name="NorthBarrierEast" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(8, 0, -15.6)
+
+[node name="SouthBarrierWest" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-8, 0, 15.6)
+
+[node name="SouthBarrierCenter" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(0, 0, 15.6)
+
+[node name="SouthBarrierEast" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(8, 0, 15.6)
+
+[node name="WestBarrierNorth" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-15.6, 0, -8)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="WestBarrierCenter" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-15.6, 0, 0)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="WestBarrierSouth" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-15.6, 0, 8)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="EastBarrierNorth" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(15.6, 0, -8)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="EastBarrierCenter" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(15.6, 0, 0)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="EastBarrierSouth" parent="BoundaryMarkers" instance=ExtResource("6_traffic_barrier")]
+position = Vector3(15.6, 0, 8)
+rotation = Vector3(0, 1.5708, 0)

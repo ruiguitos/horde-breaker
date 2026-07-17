@@ -18,6 +18,18 @@ Only the models required for the visual prototype were imported:
 - `weapons/Pistol.gltf` — Pistol test model
 - `weapons/Shotgun.gltf` — Shotgun test model
 
+The first city test map also uses a small selection from the same official
+download:
+
+- `environment/Street_4Way.gltf`
+- `environment/Street_Straight_Crack1.gltf`
+- `environment/Container_Green.gltf`
+- `environment/Container_Red.gltf`
+- `environment/StreetLights.gltf`
+- `environment/TrafficBarrier_1.gltf`
+- `environment/WaterTower.gltf`
+- `vehicles/Vehicle_Truck_Armored.gltf`
+
 The character files also contain matching weapon meshes already attached to the
 hand rig. Gameplay displays those embedded meshes so the active firearm follows
 the character animation correctly. The isolated weapon files are retained as

@@ -60,6 +60,7 @@ Estrutura prevista:
 ```text
 Player (CharacterBody3D)
   CollisionShape3D
+  InteractionArea (Area3D)
   VisualRoot (Node3D)
     Visual (MeshInstance3D)
     WeaponPivot (Marker3D + WeaponController)
@@ -76,6 +77,8 @@ O script do jogador deve tratar inicialmente:
 - movimento;
 - gravidade;
 - rotação;
+- andar, corrida, salto e agachamento;
+- interação com objetos próximos;
 - estado de vida.
 
 O combate deve ficar num componente ou controlador próprio quando começar a crescer.
@@ -85,24 +88,40 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - Um ponto de mira fixo no centro do HUD define a direção visual do disparo.
 - O primeiro raycast parte da câmara e encontra o ponto visado; o segundo parte do cano até esse ponto.
 - O segundo raycast impede que a arma dispare através de uma parede entre o cano e o alvo.
-- O raycast deteta a layer 1 (`World`) e a layer 3 (`Enemies`).
-- Um alvo que implemente `take_damage(amount)` recebe o dano configurado na arma.
+- O raycast deteta a layer 1 (`World`) e as `DamageHitbox` da layer 3.
+- `BodyHitbox` usa multiplicador `1.0` e `HeadHitbox` usa provisoriamente `2.0`; ambas delegam o dano no zombie que implementa `take_damage(amount)`.
 - A arma orienta-se para o ponto visado e o tracer parte do cano até ao impacto real.
-- A Assault Rifle usa um carregador local, emite alterações de munição e recarrega através da ação `reload`.
+- Cada arma de fogo mantém carregador e reserva próprios, emite alterações dos dois valores e transfere apenas a munição disponível durante `reload`.
+- Assault Rifle, Pistol e Shotgun começam respetivamente com reservas de 90, 48 e 32 munições.
 - A Pistol reutiliza o hitscan, mas dispara apenas uma vez por clique e usa um carregador de 12 munições.
 - A Shotgun dispara oito raycasts com dispersão, consome uma munição por ataque e é semiautomática.
 - O `WeaponController` instancia o loadout indicado por `CharacterData`, desativa a arma guardada e troca os slots através de `weapon_primary` e `weapon_secondary`.
 - O multiplicador de recarga da classe é aplicado a todas as armas de fogo criadas pelo controlador.
 - `ShoulderOffset` desloca a câmara 0,9 m para a direita para o jogador não tapar a mira; o raycast continua a partir do centro ótico da câmara.
-- A Worn Sword consulta um volume frontal na layer 3 (`Enemies`), aplica 35 de dano a todos os corpos válidos e usa cooldown de 0,6 segundos.
+- O botão direito do rato aproxima a câmara para uma mira sobre o ombro, reduzindo suavemente o FOV e o comprimento do `SpringArm3D`.
+- Manter `C` premido coloca temporariamente a câmara em frente da personagem e libertar a tecla repõe a órbita anterior.
+- A Worn Sword consulta um volume frontal na layer 3, aplica 35 de dano base a cada inimigo válido e usa cooldown de 0,6 segundos.
+- Um raycast curto a partir do centro da câmara identifica se a cabeça do alvo principal está sob a mira e aplica também à espada o multiplicador da `HeadHitbox`.
+- Corpo e cabeça são deduplicados por zombie para que o mesmo golpe nunca aplique dano duas vezes ao mesmo inimigo.
 - O volume frontal é uma aproximação retangular simples de um golpe em arco e usa uma consulta direta ao servidor de física no instante do ataque.
 - Antes de aplicar dano melee, um raycast na layer 1 (`World`) confirma que não existe uma cobertura entre a espada e o alvo.
+
+## Movimento e interação
+
+- A velocidade base corresponde a andar; `Shift` ativa a corrida enquanto existir direção de movimento.
+- `Space` salta apenas quando a personagem está no chão e não está agachada.
+- `Ctrl` reduz a altura da cápsula, baixa a câmara e limita a velocidade. A personagem só volta a levantar-se quando existe espaço livre por cima.
+- `F` procura o `Area3D` interagível mais próximo dentro de `InteractionArea` e chama o método `interact(player)`.
+- O pickup de teste acrescenta munições à reserva de uma arma de fogo do loadout, mesmo quando a personagem tem uma arma melee ativa.
+- O `WeaponController` tenta primeiro a arma ativa e depois o outro slot; o pickup só desaparece quando alguma reserva recebe pelo menos uma munição.
 
 ## Cena de inimigo provisória
 
 ```text
 NormalZombie (CharacterBody3D)
   CollisionShape3D
+  BodyHitbox (Area3D)
+  HeadHitbox (Area3D)
   Visual (MeshInstance3D)
   NavigationAgent3D
   AttackArea (Area3D)
@@ -117,12 +136,17 @@ Responsabilidades:
 - receber dano;
 - emitir sinal de morte.
 
+A cápsula do `CharacterBody3D` permanece responsável apenas pelo movimento e usa
+`collision_layer = 0`. `BodyHitbox` e `HeadHitbox` ocupam a layer 3 para separar
+colisão física de deteção de dano. O Runner herda as duas zonas da cena base.
+
 ## Arena
 
 ```text
 TestArena (Node3D)
   Environment
   DirectionalLight3D
+  CityTestMap
   Floor
   Walls
   Obstacles
@@ -132,8 +156,18 @@ TestArena (Node3D)
   Gameplay
 ```
 
-A arena graybox mede 32 × 32 metros e contém três coberturas estáticas na layer 1
-(`World`). Os obstáculos que devem bloquear caminhos pertencem ao grupo
+A arena mede 32 × 32 metros e instancia `city_test_map.tscn`, composto por módulos
+CC0 de estrada, contentores, iluminação, barreiras, uma torre de água e um camião
+blindado do Quaternius Zombie Apocalypse Kit. O piso graybox continua a fornecer
+a colisão, mas a sua malha está oculta.
+
+As quatro paredes graybox deixaram de ter representação visual. As colisões de
+segurança permanecem temporariamente no limite do piso, assinaladas por pequenas
+barreiras, para impedir que o jogador caia para fora da arena enquanto o mapa não
+possuir limites definitivos.
+
+Os contentores e o camião substituem as três caixas visuais anteriores e mantêm
+coberturas estáticas na layer 1 (`World`). Os obstáculos que devem bloquear caminhos pertencem ao grupo
 `navigation_blocker` e usam um `CollisionShape3D` com `BoxShape3D` chamado
 `Collision`.
 
@@ -175,7 +209,7 @@ a usar cápsulas provisórias com materiais distintos.
 - Sinais atualizam vida, munição, ronda e inimigos restantes sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
 - O HUD mostra a arma ativa, os dois slots e as teclas `1`/`2`.
-- A mira é apresentada para armas de fogo e ocultada quando a Worn Sword está ativa.
+- A mira é apresentada com armas de fogo e com a Worn Sword, permitindo apontar ataques melee à cabeça.
 
 ## Menus e seleção
 
@@ -192,10 +226,10 @@ a usar cápsulas provisórias com materiais distintos.
 |---:|---|
 | 1 | World |
 | 2 | Player |
-| 3 | Enemies |
-| 4 | Player projectiles |
-| 5 | Enemy attacks |
-| 6 | Pickups |
+| 3 | Enemy damage hitboxes |
+| 4 | Pickups |
+| 5 | Enemy attacks (futuro) |
+| 6 | Player projectiles (futuro) |
 
 Só configurar as layers quando forem necessárias e manter esta tabela atualizada.
 
