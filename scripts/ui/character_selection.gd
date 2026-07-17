@@ -3,14 +3,20 @@ extends Control
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
 const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
 const MEDIC_DATA: CharacterData = preload("res://data/characters/medic.tres")
+const SELECTED_COLOR := Color(0.957, 0.694, 0.31, 1.0)
+const UNLOCKED_COLOR := Color(0.44, 0.82, 0.59, 1.0)
+const LOCKED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 
 @onready var credits_label: Label = %CreditsLabel
+@onready var recruit_panel: PanelContainer = %RecruitPanel
 @onready var recruit_progress_label: Label = %RecruitProgressLabel
 @onready var recruit_status_label: Label = %RecruitStatusLabel
 @onready var recruit_button: Button = %RecruitButton
+@onready var renegade_panel: PanelContainer = %RenegadePanel
 @onready var renegade_progress_label: Label = %RenegadeProgressLabel
 @onready var renegade_status_label: Label = %RenegadeStatusLabel
 @onready var renegade_button: Button = %RenegadeButton
+@onready var medic_panel: PanelContainer = %MedicPanel
 @onready var medic_progress_label: Label = %MedicProgressLabel
 @onready var medic_status_label: Label = %MedicStatusLabel
 @onready var medic_button: Button = %MedicButton
@@ -35,29 +41,48 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	credits_label.text = "Credits: %d" % SaveManager.get_credits()
-	_configure_character(RECRUIT_DATA, recruit_progress_label, recruit_status_label, recruit_button)
-	_configure_character(RENEGADE_DATA, renegade_progress_label, renegade_status_label, renegade_button)
-	_configure_character(MEDIC_DATA, medic_progress_label, medic_status_label, medic_button)
+	credits_label.text = "CREDITS  ·  %d" % SaveManager.get_credits()
+	_configure_character(
+		RECRUIT_DATA,
+		recruit_panel,
+		recruit_progress_label,
+		recruit_status_label,
+		recruit_button
+	)
+	_configure_character(
+		RENEGADE_DATA,
+		renegade_panel,
+		renegade_progress_label,
+		renegade_status_label,
+		renegade_button
+	)
+	_configure_character(
+		MEDIC_DATA,
+		medic_panel,
+		medic_progress_label,
+		medic_status_label,
+		medic_button
+	)
 
 	var selected_data := SaveManager.get_character_data(
 		SaveManager.get_selected_character()
 	)
 	if selected_data == null:
 		return
-	weapon_context_label.text = "%s — %s" % [
+	weapon_context_label.text = "%s  —  %s" % [
 		selected_data.display_name, selected_data.class_description
 	]
-	primary_weapon_label.text = "Principal [1]: %s" % _get_weapon_name(
+	primary_weapon_label.text = _get_weapon_name(
 		selected_data.primary_weapon_id
 	)
-	secondary_weapon_label.text = "Secundária [2]: %s" % _get_weapon_name(
+	secondary_weapon_label.text = _get_weapon_name(
 		selected_data.secondary_weapon_id
 	)
 
 
 func _configure_character(
 	character_data: CharacterData,
+	panel: PanelContainer,
 	progress_label: Label,
 	status_label: Label,
 	button: Button
@@ -66,18 +91,22 @@ func _configure_character(
 	var character_id := character_data.character_id
 	var is_unlocked := SaveManager.is_character_unlocked(character_id)
 	var is_selected := SaveManager.get_selected_character() == character_id
+	panel.theme_type_variation = &"SelectedCard" if is_selected else &"CardPanel"
 	if is_selected:
-		status_label.text = "Desbloqueado e selecionado"
-		button.text = "Selecionado"
+		status_label.text = "SELECIONADO"
+		status_label.add_theme_color_override(&"font_color", SELECTED_COLOR)
+		button.text = "SELECIONADO"
 		button.disabled = true
 		return
 	if is_unlocked:
-		status_label.text = "Desbloqueado"
-		button.text = "Selecionar"
+		status_label.text = "DESBLOQUEADO"
+		status_label.add_theme_color_override(&"font_color", UNLOCKED_COLOR)
+		button.text = "SELECIONAR"
 		button.disabled = false
 		return
-	status_label.text = "Bloqueado — custo: %d Credits" % character_data.unlock_cost
-	button.text = "Desbloquear — %d Credits" % character_data.unlock_cost
+	status_label.text = "BLOQUEADO  •  %d CREDITS" % character_data.unlock_cost
+	status_label.add_theme_color_override(&"font_color", LOCKED_COLOR)
+	button.text = "DESBLOQUEAR  ·  %d" % character_data.unlock_cost
 	button.disabled = not SaveManager.can_purchase_character(character_data)
 
 
@@ -85,8 +114,8 @@ func _get_progress_text(character_data: CharacterData) -> String:
 	var level := SaveManager.get_character_level(character_data.character_id)
 	var xp := SaveManager.get_character_xp(character_data.character_id)
 	if level >= character_data.maximum_level:
-		return "Nível %d — máximo" % level
-	return "Nível %d — XP %d / %d" % [
+		return "NÍVEL %d  •  MÁXIMO" % level
+	return "NÍVEL %d  •  XP %d / %d" % [
 		level, xp, SaveManager.get_xp_required_for_next_level(level)
 	]
 

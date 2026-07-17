@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/wave_complete_panel.gd" id="1_wave_complete_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
 
 [node name="WaveCompletePanel" type="Control"]
 process_mode = 3
@@ -11,6 +12,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_wave_complete_script")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -20,7 +22,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.055, 0.035, 0.84)
+color = Color(0.012, 0.035, 0.027, 0.88)
+
+[node name="TopRail" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 5.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.294, 0.698, 0.465, 0.95)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -31,40 +42,65 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(380, 200)
+custom_minimum_size = Vector2(470, 382)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_left = 42
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 42
+theme_override_constants/margin_bottom = 32
 
-[node name="Content" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+[node name="Content" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 14
 alignment = 1
 
-[node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="Eyebrow" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.44, 0.82, 0.59, 1)
+theme_override_font_sizes/font_size = 12
+text = "SETOR CONTROLADO"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.87, 0.97, 0.89, 1)
+theme_override_font_sizes/font_size = 42
 text = "VITÓRIA"
 horizontal_alignment = 1
 
-[node name="Message" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
+custom_minimum_size = Vector2(72, 3)
 layout_mode = 2
-text = "Todos os zombies foram eliminados."
+size_flags_horizontal = 4
+mouse_filter = 2
+color = Color(0.294, 0.698, 0.465, 1)
+
+[node name="Message" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Todas as ameaças foram eliminadas.\nA arena está segura — por agora."
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="RestartButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="RestartButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-text = "Jogar novamente"
+theme_type_variation = &"PrimaryButton"
+text = "JOGAR NOVAMENTE"
 
-[node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "Menu principal"
+text = "Voltar ao menu principal"
+
+[node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Prepara o próximo destacamento."
+horizontal_alignment = 1

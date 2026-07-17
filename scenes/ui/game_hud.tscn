@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="1_hud_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
 
 [node name="GameHUD" type="Control"]
 layout_mode = 3
@@ -10,6 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_hud_script")
 
 [node name="AimPoint" type="Control" parent="."]
@@ -21,115 +23,274 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -3.0
-offset_top = -3.0
-offset_right = 3.0
-offset_bottom = 3.0
+offset_left = -9.0
+offset_top = -9.0
+offset_right = 9.0
+offset_bottom = 9.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Outline" type="ColorRect" parent="AimPoint"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Top" type="ColorRect" parent="AimPoint"]
+layout_mode = 0
+offset_left = 8.0
+offset_right = 10.0
+offset_bottom = 5.0
 mouse_filter = 2
-color = Color(0.02, 0.02, 0.02, 0.9)
+color = Color(0.97, 0.94, 0.875, 0.95)
+
+[node name="Bottom" type="ColorRect" parent="AimPoint"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 13.0
+offset_right = 10.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.97, 0.94, 0.875, 0.95)
+
+[node name="Left" type="ColorRect" parent="AimPoint"]
+layout_mode = 0
+offset_top = 8.0
+offset_right = 5.0
+offset_bottom = 10.0
+mouse_filter = 2
+color = Color(0.97, 0.94, 0.875, 0.95)
+
+[node name="Right" type="ColorRect" parent="AimPoint"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 8.0
+offset_right = 18.0
+offset_bottom = 10.0
+mouse_filter = 2
+color = Color(0.97, 0.94, 0.875, 0.95)
 
 [node name="Center" type="ColorRect" parent="AimPoint"]
 layout_mode = 0
-offset_left = 2.0
-offset_top = 2.0
-offset_right = 4.0
-offset_bottom = 4.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 10.0
+offset_bottom = 10.0
 mouse_filter = 2
-color = Color(0.95, 0.95, 0.95, 1)
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="WavePanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -142.0
+offset_top = 18.0
+offset_right = 142.0
+offset_bottom = 88.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Margin" type="MarginContainer" parent="WavePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 9
+mouse_filter = 2
+
+[node name="Content" type="HBoxContainer" parent="WavePanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+mouse_filter = 2
+
+[node name="Wave" type="VBoxContainer" parent="WavePanel/Margin/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="WavePanel/Margin/Content/Wave"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "RONDA"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="WaveLabel" type="Label" parent="WavePanel/Margin/Content/Wave"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MetricLabel"
+text = "01"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Divider" type="VSeparator" parent="WavePanel/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Enemies" type="VBoxContainer" parent="WavePanel/Margin/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="WavePanel/Margin/Content/Enemies"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "AMEAÇAS"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="EnemiesLabel" type="Label" parent="WavePanel/Margin/Content/Enemies"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MetricLabel"
+text = "05"
+horizontal_alignment = 1
+mouse_filter = 2
 
 [node name="HealthPanel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 486.0
-offset_bottom = 132.0
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = -116.0
+offset_right = 352.0
+offset_bottom = -18.0
+grow_vertical = 0
 mouse_filter = 2
+theme_type_variation = &"HudPanel"
 
-[node name="MarginContainer" type="MarginContainer" parent="HealthPanel"]
+[node name="Margin" type="MarginContainer" parent="HealthPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
+theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
+theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="HealthPanel/MarginContainer"]
+[node name="Content" type="VBoxContainer" parent="HealthPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 mouse_filter = 2
 
-[node name="HealthLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
-unique_name_in_owner = true
+[node name="Header" type="HBoxContainer" parent="HealthPanel/Margin/Content"]
 layout_mode = 2
-text = "Vida: 100 / 100"
 mouse_filter = 2
 
-[node name="HealthBar" type="ProgressBar" parent="HealthPanel/MarginContainer/Content"]
+[node name="Caption" type="Label" parent="HealthPanel/Margin/Content/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"EyebrowLabel"
+text = "ESTADO DO OPERACIONAL"
+mouse_filter = 2
+
+[node name="HealthLabel" type="Label" parent="HealthPanel/Margin/Content/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.91, 0.79, 1)
+theme_override_font_sizes/font_size = 18
+text = "100 / 100"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="HealthBar" type="ProgressBar" parent="HealthPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 value = 100.0
 show_percentage = false
 mouse_filter = 2
 
-[node name="WeaponLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
-unique_name_in_owner = true
+[node name="HealthHint" type="Label" parent="HealthPanel/Margin/Content"]
 layout_mode = 2
-text = "[1] Assault Rifle (ativa)  |  [2] Pistol"
+theme_type_variation = &"MutedLabel"
+text = "Mantém a distância da horda."
 mouse_filter = 2
 
-[node name="AmmunitionLabel" type="Label" parent="HealthPanel/MarginContainer/Content"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Munição: 30 / 90"
-mouse_filter = 2
-
-[node name="WavePanel" type="PanelContainer" parent="."]
+[node name="WeaponPanel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
-offset_left = -216.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 92.0
+anchor_bottom = 1.0
+offset_left = -438.0
+offset_top = -126.0
+offset_right = -18.0
+offset_bottom = -18.0
 grow_horizontal = 0
+grow_vertical = 0
 mouse_filter = 2
+theme_type_variation = &"HudPanel"
 
-[node name="MarginContainer" type="MarginContainer" parent="WavePanel"]
+[node name="Margin" type="MarginContainer" parent="WeaponPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
+theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
+theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="WavePanel/MarginContainer"]
+[node name="Content" type="VBoxContainer" parent="WeaponPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 mouse_filter = 2
 
-[node name="WaveLabel" type="Label" parent="WavePanel/MarginContainer/Content"]
-unique_name_in_owner = true
+[node name="Caption" type="Label" parent="WeaponPanel/Margin/Content"]
 layout_mode = 2
-text = "Ronda: 1"
+theme_type_variation = &"EyebrowLabel"
+text = "EQUIPAMENTO"
 horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="EnemiesLabel" type="Label" parent="WavePanel/MarginContainer/Content"]
+[node name="WeaponLabel" type="Label" parent="WeaponPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Inimigos: 5"
+theme_type_variation = &"MutedLabel"
+text = "[1] Assault Rifle  •  [2] Pistol"
 horizontal_alignment = 2
+autowrap_mode = 2
+mouse_filter = 2
+
+[node name="AmmoRow" type="HBoxContainer" parent="WeaponPanel/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="WeaponPanel/Margin/Content/AmmoRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "MUNIÇÃO  •  CARREGADOR / RESERVA"
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="AmmunitionLabel" type="Label" parent="WeaponPanel/Margin/Content/AmmoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MetricLabel"
+text = "30 / 90"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="ControlsPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -132.0
+offset_top = -48.0
+offset_right = 132.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Label" type="Label" parent="ControlsPanel"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "F  APANHAR   •   ESC  PAUSA"
+horizontal_alignment = 1
+vertical_alignment = 1
 mouse_filter = 2

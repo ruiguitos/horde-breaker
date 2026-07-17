@@ -3,6 +3,9 @@ extends Control
 const PLAYER_GROUP := &"player"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
 const WAVE_MANAGER_GROUP := &"wave_manager"
+const HEALTH_GOOD_COLOR := Color(0.74, 0.91, 0.79, 1.0)
+const HEALTH_WARNING_COLOR := Color(0.957, 0.694, 0.31, 1.0)
+const HEALTH_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
 
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_label: Label = %HealthLabel
@@ -44,13 +47,21 @@ func _ready() -> void:
 func _update_health(current_health: float, maximum_health: float) -> void:
 	health_bar.max_value = maximum_health
 	health_bar.value = current_health
-	health_label.text = "Vida: %d / %d" % [roundi(current_health), roundi(maximum_health)]
+	health_label.text = "%d / %d" % [roundi(current_health), roundi(maximum_health)]
+	var health_ratio := current_health / maximum_health if maximum_health > 0.0 else 0.0
+	var health_color := HEALTH_GOOD_COLOR
+	if health_ratio <= 0.25:
+		health_color = HEALTH_DANGER_COLOR
+	elif health_ratio <= 0.5:
+		health_color = HEALTH_WARNING_COLOR
+	health_label.add_theme_color_override(&"font_color", health_color)
 
 
 func _update_ammunition(
 	current_ammunition: int, _magazine_size: int, reserve_ammunition: int
 ) -> void:
-	ammunition_label.text = "Munição: %d / %d" % [
+	ammunition_label.add_theme_font_size_override(&"font_size", 26)
+	ammunition_label.text = "%d / %d" % [
 		current_ammunition, reserve_ammunition
 	]
 
@@ -61,13 +72,14 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 	var primary_name := String(_weapon_controller.call("get_primary_weapon_name"))
 	var secondary_name := String(_weapon_controller.call("get_secondary_weapon_name"))
 	if slot == 0:
-		primary_name += " (ativa)"
+		primary_name = "ATIVA  •  " + primary_name
 	else:
-		secondary_name += " (ativa)"
-	weapon_label.text = "[1] %s  |  [2] %s" % [primary_name, secondary_name]
+		secondary_name = "ATIVA  •  " + secondary_name
+	weapon_label.text = "[1] %s    [2] %s" % [primary_name, secondary_name]
 	if _weapon == null:
 		aim_point.hide()
-		ammunition_label.text = "Arma indisponível"
+		ammunition_label.add_theme_font_size_override(&"font_size", 17)
+		ammunition_label.text = "INDISPONÍVEL"
 		return
 	if _weapon.has_signal(&"ammunition_changed"):
 		aim_point.show()
@@ -80,7 +92,8 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 		)
 	else:
 		aim_point.show()
-		ammunition_label.text = "Ataque corpo a corpo"
+		ammunition_label.add_theme_font_size_override(&"font_size", 17)
+		ammunition_label.text = "CORPO A CORPO"
 
 
 func _disconnect_weapon_signals() -> void:
@@ -94,19 +107,20 @@ func _disconnect_weapon_signals() -> void:
 
 
 func _show_reloading(_duration: float) -> void:
-	ammunition_label.text = "Munição: %d / %d — a recarregar" % [
+	ammunition_label.add_theme_font_size_override(&"font_size", 16)
+	ammunition_label.text = "A RECARREGAR  •  %d / %d" % [
 		int(_weapon.get("current_ammunition")),
 		int(_weapon.get("reserve_ammunition"))
 	]
 
 
 func _update_wave(wave_number: int) -> void:
-	wave_label.text = "Ronda: %d" % wave_number
+	wave_label.text = "%02d" % wave_number
 
 
 func _update_enemy_count(remaining_enemies: int) -> void:
-	enemies_label.text = "Inimigos: %d" % remaining_enemies
+	enemies_label.text = "%02d" % remaining_enemies
 
 
 func _show_intermission(next_wave: int, duration: float) -> void:
-	wave_label.text = "Ronda %d em %d s" % [next_wave, ceili(duration)]
+	wave_label.text = "%02d  ·  %ds" % [next_wave, ceili(duration)]

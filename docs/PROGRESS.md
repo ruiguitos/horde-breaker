@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: dano por zonas pós-Milestone 14 concluído.
+Fase: revisão visual de UI/HUD pós-Milestone 14 concluída.
 
 Última atualização: 2026-07-17.
 
@@ -164,17 +164,24 @@ Fase: dano por zonas pós-Milestone 14 concluído.
 - [x] Assault Rifle, Pistol e Shotgun configuradas para detetar hitboxes `Area3D`, mantendo colisão com o mundo.
 - [x] Worn Sword configurada para aplicar headshot ao alvo apontado sem duplicar dano quando o volume sobrepõe corpo e cabeça.
 - [x] Mira mantida visível com a Worn Sword para permitir ataques melee apontados à cabeça.
+- [x] Tema visual partilhado criado para menus, HUD e ecrãs sobrepostos, sem dependências ou assets externos.
+- [x] Menu principal redesenhado com identidade visual própria, hierarquia mais clara e resumo destacado da classe/loadout.
+- [x] Seleção de personagens reorganizada em cartões de classe com estado visual selecionado, bloqueado e desbloqueado.
+- [x] Loadout da classe selecionada apresentado num painel próprio com os dois slots separados.
+- [x] HUD reorganizado em módulos independentes para vida, ronda, ameaças, arma e munição.
+- [x] Mira substituída por um retículo compacto e os valores de vida passam a mudar de cor em níveis de alerta.
+- [x] Atalhos essenciais adicionados ao HUD sem tapar a área central de combate.
+- [x] Pausa, derrota e vitória redesenhadas com mensagens, ações e cores de estado consistentes.
 
 ## Milestone atual
 
-**Dano por zonas pós-Milestone 14 (concluído)**
+**Revisão visual de UI/HUD pós-Milestone 14 (concluída)**
 
 ## Próxima tarefa
 
-Fazer playtest manual de tiros e golpes no corpo/cabeça com Recruit, Renegade e
-Medic, afinando o tamanho das hitboxes e o multiplicador de cabeça. Depois,
-adicionar feedback visual de impacto/headshot e retomar a afinação dos limites,
-spawns e coberturas do mapa.
+Fazer playtest manual da interface juntamente com tiros e golpes no corpo/cabeça
+com Recruit, Renegade e Medic. Depois, adicionar feedback visual de
+impacto/headshot e retomar a afinação dos limites, spawns e coberturas do mapa.
 
 ## Validação
 
@@ -279,6 +286,10 @@ spawns e coberturas do mapa.
 - Teste com a Worn Sword confirmou 35 de dano no corpo e 70 de dano na cabeça, aplicado uma única vez apesar da sobreposição das duas hitboxes.
 - Teste de herança confirmou `BodyHitbox`, `HeadHitbox` e multiplicador `2.0` no Runner.
 - Inspeção OpenGL com volumes de depuração confirmou a esfera de cabeça alinhada com a cabeça visível do Normal Zombie e a cápsula do corpo até ao pescoço.
+- Tema partilhado, seis cenas de UI e scripts associados importados pelo Godot 4.7 sem erros.
+- Menu principal e seleção de personagens executados isoladamente em modo headless com código de saída 0.
+- Arena de teste executada durante 60 frames em modo headless com o HUD revisto e código de saída 0.
+- Capturas OpenGL a 1152 × 648 confirmaram menu principal, seleção, HUD, pausa, derrota e vitória sem texto cortado ou painéis sobrepostos.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes

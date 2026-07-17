@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
 
 [node name="PauseMenu" type="Control"]
 process_mode = 3
@@ -11,6 +12,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_pause_script")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -20,7 +22,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.025, 0.04, 0.86)
+color = Color(0.012, 0.02, 0.029, 0.88)
+
+[node name="TopRail" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 4.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.9)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -31,46 +42,80 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(400, 330)
+custom_minimum_size = Vector2(446, 452)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 38
 theme_override_constants/margin_top = 30
 theme_override_constants/margin_right = 38
 theme_override_constants/margin_bottom = 30
 
-[node name="Content" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+[node name="Content" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="Eyebrow" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_type_variation = &"EyebrowLabel"
+text = "PARTIDA SUSPENSA"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 42
 text = "PAUSA"
 horizontal_alignment = 1
 
-[node name="Hint" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
+custom_minimum_size = Vector2(72, 3)
 layout_mode = 2
-text = "Esc para continuar"
+size_flags_horizontal = 4
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="HintCard" type="PanelContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_type_variation = &"CardPanel"
+
+[node name="Hint" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/HintCard"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "A arena está parada.\nPrime ESC para retomar imediatamente."
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+[node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/Margin/Content"]
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-text = "Continuar"
+mouse_filter = 2
 
-[node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="ResumeButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-text = "Menu principal"
+theme_type_variation = &"PrimaryButton"
+text = "CONTINUAR"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
+[node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "Sair"
+text = "Voltar ao menu principal"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_type_variation = &"DangerButton"
+text = "Sair do jogo"
+
+[node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "ESC  •  CONTINUAR"
+horizontal_alignment = 1
