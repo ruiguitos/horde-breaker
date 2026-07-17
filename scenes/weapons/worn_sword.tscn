@@ -1,0 +1,58 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/melee_weapon.gd" id="1_melee_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_blade"]
+albedo_color = Color(0.78, 0.84, 0.9, 1)
+metallic = 0.65
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Material_hilt"]
+albedo_color = Color(0.18, 0.12, 0.08, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Mesh_blade"]
+material = SubResource("Material_blade")
+size = Vector3(0.14, 0.09, 1.25)
+
+[sub_resource type="BoxMesh" id="Mesh_guard"]
+material = SubResource("Material_hilt")
+size = Vector3(0.55, 0.12, 0.12)
+
+[sub_resource type="BoxMesh" id="Mesh_grip"]
+material = SubResource("Material_hilt")
+size = Vector3(0.13, 0.13, 0.42)
+
+[sub_resource type="BoxShape3D" id="Shape_attack"]
+size = Vector3(2.8, 1.8, 2.2)
+
+[node name="WornSword" type="Node3D" groups=["player_weapon"]]
+script = ExtResource("1_melee_script")
+
+[node name="SwordVisualPivot" type="Node3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 0.35, 0)
+
+[node name="Blade" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, 0, -0.72)
+mesh = SubResource("Mesh_blade")
+
+[node name="Guard" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, 0, -0.08)
+mesh = SubResource("Mesh_guard")
+
+[node name="Grip" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, 0, 0.19)
+mesh = SubResource("Mesh_grip")
+
+[node name="AttackArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(-0.7, 0.5, -1.25)
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="AttackCollision" type="CollisionShape3D" parent="AttackArea"]
+unique_name_in_owner = true
+shape = SubResource("Shape_attack")

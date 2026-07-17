@@ -31,14 +31,18 @@ func _ready() -> void:
 		float(player.get("current_health")), float(player.get("maximum_health"))
 	)
 	if _weapon == null:
+		push_error("GameHUD could not find the selected player weapon.")
 		aim_point.hide()
-		ammunition_label.text = "Arma: Worn Sword — combate no Milestone 13"
-	else:
+		ammunition_label.text = "Arma indisponível"
+	elif _weapon.has_signal(&"ammunition_changed"):
 		_weapon.connect(&"ammunition_changed", _update_ammunition)
 		_weapon.connect(&"reload_started", _show_reloading)
 		_update_ammunition(
 			int(_weapon.get("current_ammunition")), int(_weapon.get("magazine_size"))
 		)
+	else:
+		aim_point.hide()
+		ammunition_label.text = "Arma: %s" % String(_weapon.get("display_name"))
 	_update_wave(int(wave_manager.get("current_wave")))
 	_update_enemy_count(int(wave_manager.get("alive_enemy_count")))
 

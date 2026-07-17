@@ -4,6 +4,7 @@
 
 - [ ] Implementar pausa real com `Esc`, incluindo pausa da árvore, libertação do rato e painel próprio. Atualmente, `Esc` apenas alterna a captura do rato.
 - [ ] Integrar modelos e animações do Adobe Mixamo no Milestone 12, depois de o protótipo de combate estar funcional. Não descarregar assets sem autorização explícita.
+- [ ] Expandir a arena para um mapa jogável com obstáculos, navegação validada, zonas de spawn e espaço suficiente para combate à distância e corpo a corpo.
 
 ## Regra
 

@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 11 — Menu and Character Selection concluído.
+Fase: protótipo base do Milestone 13 — Renegade Combat concluído antecipadamente.
 
 Última atualização: 2026-07-17.
 
@@ -108,14 +108,21 @@ Fase: Milestone 11 — Menu and Character Selection concluído.
 - [x] XP da sessão atribuído à personagem atualmente selecionada.
 - [x] Armas ainda não jogáveis impedidas de serem equipadas através de `WeaponData.is_playable`.
 - [x] Painéis de vitória e derrota atualizados com regresso ao menu principal.
+- [x] Worn Sword provisória criada apenas com caixas e materiais internos do Godot.
+- [x] Ataque frontal do Renegade ligado à ação `attack` com 35 de dano e cooldown de 0,6 segundos.
+- [x] Volume melee configurado para atingir vários inimigos na layer 3 sem acertar em alvos atrás do jogador.
+- [x] Animação curta de balanço da espada adicionada por código como feedback provisório.
+- [x] HUD melee configurado para ocultar a mira de disparo e apresentar a Worn Sword equipada.
+- [x] Objetivo futuro de um mapa jogável com obstáculos, navegação e spawns registado em `docs/TODO.md`.
+- [x] Perfil de progresso para testes no editor configurado num save separado, com 2000 Credits e Recruit nível 5.
 
 ## Milestone atual
 
-**Milestone 11 — Menu and Character Selection (concluído)**
+**Milestone 13 — Renegade Combat (protótipo base concluído antecipadamente)**
 
 ## Próxima tarefa
 
-Preparar o **Milestone 12 — Mixamo**, mantendo as mecânicas atuais durante a substituição visual.
+Preparar uma etapa pequena para expandir a arena: primeiro graybox com obstáculos, atualização da navegação e validação de spawns. O Milestone 12 — Mixamo permanece pendente.
 
 ## Validação
 
@@ -177,6 +184,14 @@ Preparar o **Milestone 12 — Mixamo**, mantendo as mecânicas atuais durante a 
 - Teste automatizado confirmou desbloqueio do Renegade por 500 Credits e persistência da seleção.
 - Teste automatizado instanciou a arena com Recruit e Renegade e confirmou personagem, arma e visibilidade da mira esperadas.
 - Menus renderizados com OpenGL a 1152 × 648 sem texto cortado, sobreposição ou botões fora do ecrã.
+- Teste melee com o driver Windows confirmou dois alvos frontais atingidos pelo mesmo golpe e um alvo traseiro intacto.
+- Teste automatizado confirmou 35 de dano por ataque, rejeição de ataques durante o cooldown e novo ataque após o intervalo.
+- Normal Zombie real morreu após dois ataques acionados através da ação `attack` e emitiu o sinal `died` esperado.
+- Arena instanciada com o Renegade confirmou Worn Sword ativa, Assault Rifle oculta, mira invisível e HUD `Arma: Worn Sword`.
+- Inspeção visual OpenGL confirmou a espada provisória visível na vista sobre o ombro.
+- Primeiro arranque criou `horde_breaker_test.cfg` com 2000 Credits, Recruit nível 5 e progressão normal das duas personagens.
+- Segundo arranque manteve o hash do perfil de teste, confirmando que os valores iniciais não são adicionados novamente.
+- Hash do save normal permaneceu inalterado durante os dois arranques com o perfil de teste.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -188,5 +203,5 @@ Preparar o **Milestone 12 — Mixamo**, mantendo as mecânicas atuais durante a 
 
 - O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
 - A Shotgun existe apenas como `WeaponData`; a arma jogável ainda não foi implementada.
-- O Renegade pode ser selecionado e movimentado, mas o ataque com Worn Sword só entra no Milestone 13.
+- O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - Modelos e animações Mixamo continuam pendentes para o Milestone 12.

@@ -169,6 +169,8 @@ Objetivo:
 
 ## Milestone 13 — Renegade Combat
 
+Estado: protótipo base concluído antecipadamente; apresentação e afinação permanecem futuras.
+
 Objetivo:
 
 - espada;

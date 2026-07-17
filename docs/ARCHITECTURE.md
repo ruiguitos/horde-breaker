@@ -84,6 +84,8 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - A arma orienta-se para o ponto visado e o tracer parte do cano até ao impacto real.
 - A Assault Rifle usa um carregador local, emite alterações de munição e recarrega através da ação `reload`.
 - `ShoulderOffset` desloca a câmara 0,9 m para a direita para o jogador não tapar a mira; o raycast continua a partir do centro ótico da câmara.
+- A Worn Sword consulta um volume frontal na layer 3 (`Enemies`), aplica 35 de dano a todos os corpos válidos e usa cooldown de 0,6 segundos.
+- O volume frontal é uma aproximação retangular simples de um golpe em arco e usa uma consulta direta ao servidor de física no instante do ataque.
 
 ## Cena de inimigo provisória
 
@@ -125,7 +127,7 @@ arena tiver obstáculos ou formas mais complexas.
 
 `PlayerSpawn` usa `player_spawner.gd` para instanciar a cena indicada pelo
 `CharacterData` da personagem selecionada. O Recruit continua totalmente jogável;
-o Renegade usa uma cápsula provisória distinta e ainda não possui ataque.
+o Renegade usa uma cápsula provisória distinta e equipa a Worn Sword.
 
 ## Game over provisório
 
@@ -147,7 +149,7 @@ o Renegade usa uma cápsula provisória distinta e ainda não possui ataque.
 - O HUD local descobre jogador, arma opcional e `WaveManager` através de grupos estáveis.
 - Sinais atualizam vida, munição, ronda e inimigos restantes sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
-- Quando o Renegade está selecionado, a mira é ocultada e o HUD identifica a Worn Sword como combate futuro.
+- Quando o Renegade está selecionado, a mira de disparo é ocultada e o HUD identifica a Worn Sword equipada.
 
 ## Menus e seleção
 

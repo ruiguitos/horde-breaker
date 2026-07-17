@@ -1,14 +1,11 @@
-[gd_resource type="Resource" script_class="CharacterData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://d2ue03b3ynrjx"]
 
-[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1_character_data"]
+[ext_resource type="Script" uid="uid://ddbtpalijvrvt" path="res://scripts/data/character_data.gd" id="1_character_data"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="2_player_scene"]
 
 [resource]
 script = ExtResource("1_character_data")
 character_id = &"recruit"
 display_name = "Recruit"
-maximum_level = 10
-unlock_cost = 0
-base_health = 100.0
 starting_weapon_id = &"assault_rifle"
 character_scene = ExtResource("2_player_scene")

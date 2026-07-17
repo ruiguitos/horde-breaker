@@ -49,8 +49,8 @@ func _refresh() -> void:
 	_configure_character_button(RENEGADE_DATA, renegade_status_label, renegade_button)
 	if selected_character == RENEGADE_DATA.character_id:
 		weapon_context_label.text = (
-			"Armas do Renegade — a Worn Sword fica selecionada; "
-			+ "o ataque chega no Milestone 13."
+			"Armas do Renegade — a Worn Sword atinge vários inimigos "
+			+ "num ataque frontal."
 		)
 	else:
 		weapon_context_label.text = (

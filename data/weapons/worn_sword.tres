@@ -9,4 +9,4 @@ display_name = "Worn Sword"
 required_character_id = &"renegade"
 required_level = 1
 credit_cost = 0
-is_playable = false
+is_playable = true
