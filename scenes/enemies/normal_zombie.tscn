@@ -1,6 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/normal_zombie.gd" id="1_zombie_script"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/enemies/Zombie_Basic.gltf" id="2_zombie_model"]
+[ext_resource type="Script" path="res://scripts/characters/imported_model_animation.gd" id="3_model_animation"]
 
 [sub_resource type="StandardMaterial3D" id="Material_zombie"]
 albedo_color = Color(0.32, 0.58, 0.22, 1)
@@ -38,11 +40,20 @@ shape = SubResource("Shape_zombie")
 unique_name_in_owner = true
 
 [node name="Visual" type="MeshInstance3D" parent="VisualRoot"]
+visible = false
 mesh = SubResource("Mesh_zombie")
 
 [node name="FacingMarker" type="MeshInstance3D" parent="VisualRoot"]
+visible = false
 position = Vector3(0, 0, -0.55)
 mesh = SubResource("Mesh_facing")
+
+[node name="ImportedModel" parent="VisualRoot" instance=ExtResource("2_zombie_model")]
+position = Vector3(0, -1, 0)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(1.35, 1.35, 1.35)
+script = ExtResource("3_model_animation")
+move_animation = &"Walk"
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 unique_name_in_owner = true

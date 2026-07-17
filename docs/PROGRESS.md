@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 14 — Classes and Loadouts concluído.
+Fase: protótipo visual CC0 pós-Milestone 14 concluído.
 
 Última atualização: 2026-07-17.
 
@@ -135,16 +135,23 @@ Fase: Milestone 14 — Classes and Loadouts concluído.
 - [x] Menus atualizados para apresentar as três classes, passivos e loadouts.
 - [x] Migração de save configurada para acrescentar Pistol, Shotgun, Medic e os novos slots sem apagar valores existentes.
 - [x] Jogos semelhantes e ideias de evolução registados em `docs/INSPIRATIONS.md`.
+- [x] Seleção reduzida do Quaternius Zombie Apocalypse Kit importada em glTF com origem e licença CC0 documentadas.
+- [x] Recruit, Renegade e Medic configurados com modelos visuais distintos, preservando as cápsulas de colisão e os scripts existentes.
+- [x] Normal Zombie e Runner configurados com modelos visuais distintos sem alterar navegação, vida, dano ou recompensas.
+- [x] Assault Rifle, Pistol e Shotgun configuradas com modelos importados, mantendo raycasts, munição, cadência e recarga existentes.
+- [x] Animações provisórias de idle e movimento ligadas à velocidade do `CharacterBody3D`.
+- [x] Primitivas visuais anteriores preservadas nas cenas, mas ocultas, para permitirem comparação e reversão simples.
 
 ## Milestone atual
 
-**Milestone 14 — Classes and Loadouts (concluído)**
+**Protótipo visual CC0 pós-Milestone 14 (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest dos três passivos e dos quatro tipos de arma. Depois, implementar
-uma primeira escolha de melhoria entre rondas, mantendo o Milestone 12 — Mixamo
-pendente até os loadouts provisórios estarem afinados.
+Fazer playtest visual das três classes, dos dois zombies e das três armas de fogo,
+confirmando escala, orientação e posição das mãos/armas. Depois, implementar uma
+primeira escolha de melhoria entre rondas. O Milestone 12 — Mixamo continua
+pendente até existirem modelos finais escolhidos.
 
 ## Validação
 
@@ -225,6 +232,11 @@ pendente até os loadouts provisórios estarem afinados.
 - Teste de física confirmou dano de múltiplos pellets da Shotgun sem ultrapassar o máximo de oito pellets.
 - Teste automatizado confirmou as ações `weapon_primary` e `weapon_secondary` e a rejeição segura do slot secundário vazio do Medic.
 - Menu de classes e arena com Shotgun renderizados em OpenGL a 1152 × 648 sem texto cortado ou sobreposição.
+- Oito ficheiros glTF do Quaternius foram importados pelo Godot 4.7 em modo headless com código de saída 0.
+- Cenas do Recruit, Renegade, Medic, Assault Rifle, Pistol e Shotgun executadas isoladamente em modo headless sem erros.
+- Arena de teste executada durante 30 frames em modo headless com o Recruit e os zombies importados sem erros de carregamento ou de animação.
+- Teste automatizado confirmou a arma visual ativa em cada loadout: Rifle/Pistol no Recruit, Shotgun no Renegade e Pistol no Medic.
+- Captura OpenGL a 1152 × 648 confirmou o Recruit no chão, orientado para a mira, sem as armas internas não equipadas visíveis.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -238,4 +250,6 @@ pendente até os loadouts provisórios estarem afinados.
 - O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
-- Modelos e animações Mixamo continuam pendentes para o Milestone 12.
+- Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
+- Apenas idle e movimento estão ligados aos modelos importados; ataque, recarga, dano e morte ainda não controlam animações próprias.
+- A Worn Sword mantém o modelo construído com primitivas, porque a seleção importada não inclui uma espada compatível.

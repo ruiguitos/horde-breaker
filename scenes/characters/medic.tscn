@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/characters/Characters_Sam.gltf" id="2_medic_model"]
+[ext_resource type="Script" path="res://scripts/characters/imported_model_animation.gd" id="3_model_animation"]
 
 [sub_resource type="StandardMaterial3D" id="Material_medic"]
 albedo_color = Color(0.18, 0.72, 0.46, 1)
@@ -10,5 +12,16 @@ roughness = 0.75
 
 [node name="Visual" parent="VisualRoot" index="0"]
 material_override = SubResource("Material_medic")
+
+[node name="ImportedModel" parent="VisualRoot" index="2"]
+process_mode = 4
+visible = false
+
+[node name="ClassModel" parent="VisualRoot" instance=ExtResource("2_medic_model")]
+position = Vector3(0, -1, 0)
+rotation = Vector3(0, 3.14159, 0)
+script = ExtResource("3_model_animation")
+idle_animation = &"Idle_Gun"
+move_animation = &"Run_Gun"
 
 [editable path="VisualRoot"]
