@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: protótipo base do Milestone 13 — Renegade Combat concluído antecipadamente.
+Fase: Milestone 14 — Classes and Loadouts concluído.
 
 Última atualização: 2026-07-17.
 
@@ -97,7 +97,7 @@ Fase: protótipo base do Milestone 13 — Renegade Combat concluído antecipadam
 - [x] Bónus de XP por ronda configurado como `20 × ronda`.
 - [x] Vitória configurada para atribuir 100 Credits permanentes.
 - [x] Requisitos, compra e seleção permanente de armas implementados nos dados.
-- [x] Shotgun configurada para Recruit nível 5 e custo de 750 Credits, sem criar ainda a arma jogável.
+- [x] Configuração inicial da Shotgun criada para Recruit nível 5; esta configuração foi posteriormente substituída pelo loadout do Renegade no Milestone 14.
 - [x] `GameManager` configurado como Autoload para transições entre menus e arena.
 - [x] Menu principal criado com Credits, personagem, arma, nível, XP e início de partida.
 - [x] Ecrã de personagem e armas criado para Recruit e Renegade.
@@ -115,14 +115,36 @@ Fase: protótipo base do Milestone 13 — Renegade Combat concluído antecipadam
 - [x] HUD melee configurado para ocultar a mira de disparo e apresentar a Worn Sword equipada.
 - [x] Objetivo futuro de um mapa jogável com obstáculos, navegação e spawns registado em `docs/TODO.md`.
 - [x] Perfil de progresso para testes no editor configurado num save separado, com 2000 Credits e Recruit nível 5.
+- [x] Mira de disparo reduzida de 10 × 10 para 6 × 6 píxeis, com centro de 2 × 2 píxeis.
+- [x] Menu de pausa próprio implementado com `Esc`, pausa real da árvore, libertação do rato e foco no botão de continuação.
+- [x] Pausa configurada para continuar, regressar ao menu principal ou sair sem se sobrepor aos painéis de vitória e derrota.
+- [x] Arena graybox expandida para 32 × 32 metros, mantendo apenas primitivas internas do Godot.
+- [x] Três coberturas estáticas adicionadas e identificadas através do grupo `navigation_blocker`.
+- [x] Navegação em runtime convertida para uma grelha que exclui as células ocupadas pelos obstáculos com margem de segurança.
+- [x] Jogador reposicionado e seis pontos de spawn distribuídos à volta da arena expandida.
+- [x] Worn Sword impedida de causar dano através das coberturas da layer `World`.
+- [x] `CharacterData` expandido com arma principal, arma secundária, regeneração, multiplicador de recarga e descrição da classe.
+- [x] `WeaponController` local criado para instanciar loadouts e trocar de arma através das teclas `1` e `2`.
+- [x] Recruit configurado com Assault Rifle, Pistol e recarga 30% mais rápida.
+- [x] Renegade configurado com Shotgun, Worn Sword e 140 pontos de vida.
+- [x] Medic provisório criado com Pistol, 100 pontos de vida e regeneração de 4 pontos por segundo após 3 segundos sem dano.
+- [x] Regeneração base de 1 ponto por segundo após 6 segundos configurada para Recruit e Renegade.
+- [x] Pistol semiautomática criada com carregador de 12 munições.
+- [x] Shotgun jogável criada com oito pellets, dispersão, carregador de oito munições e disparo semiautomático.
+- [x] HUD atualizado com arma ativa, loadout e indicação das teclas dos dois slots.
+- [x] Menus atualizados para apresentar as três classes, passivos e loadouts.
+- [x] Migração de save configurada para acrescentar Pistol, Shotgun, Medic e os novos slots sem apagar valores existentes.
+- [x] Jogos semelhantes e ideias de evolução registados em `docs/INSPIRATIONS.md`.
 
 ## Milestone atual
 
-**Milestone 13 — Renegade Combat (protótipo base concluído antecipadamente)**
+**Milestone 14 — Classes and Loadouts (concluído)**
 
 ## Próxima tarefa
 
-Preparar uma etapa pequena para expandir a arena: primeiro graybox com obstáculos, atualização da navegação e validação de spawns. O Milestone 12 — Mixamo permanece pendente.
+Fazer playtest dos três passivos e dos quatro tipos de arma. Depois, implementar
+uma primeira escolha de melhoria entre rondas, mantendo o Milestone 12 — Mixamo
+pendente até os loadouts provisórios estarem afinados.
 
 ## Validação
 
@@ -171,8 +193,6 @@ Preparar uma etapa pequena para expandir a arena: primeiro graybox com obstácul
 - Importação confirmou o registo das classes `CharacterData`, `WeaponData` e `WaveData` sem erros.
 - Teste com Autoload real e save isolado confirmou os valores iniciais do Recruit e da Assault Rifle.
 - Teste automatizado confirmou progressão de nível 1 para nível 5 com 700 XP.
-- Teste automatizado confirmou que a Shotgun permanece bloqueada sem requisitos e pode ser comprada por 750 Credits no nível 5.
-- Teste automatizado confirmou persistência da compra da Shotgun e bloqueio da seleção enquanto a arma não for jogável.
 - Teste integrado das três rondas confirmou 286 XP de sessão, nível 3 com 36 XP restante e 100 Credits.
 - Teste automatizado confirmou persistência das recompensas após novo carregamento do save.
 - Teste automatizado rodou a câmara 90 graus e confirmou alinhamento do jogador e da arma com a mira.
@@ -180,7 +200,6 @@ Preparar uma etapa pequena para expandir a arena: primeiro graybox com obstácul
 - Alvo colocado sob a mira recebeu 25 de dano, a munição passou de 30 para 29 e o tracer nasceu no cano.
 - Inspeção visual confirmou o ponto de mira centrado e legível sobre a arena.
 - Cena principal de menu executada em modo headless durante dois frames com código de saída 0.
-- Teste com save isolado confirmou Recruit inicial, progressão até nível 5, compra da Shotgun e saldo correto.
 - Teste automatizado confirmou desbloqueio do Renegade por 500 Credits e persistência da seleção.
 - Teste automatizado instanciou a arena com Recruit e Renegade e confirmou personagem, arma e visibilidade da mira esperadas.
 - Menus renderizados com OpenGL a 1152 × 648 sem texto cortado, sobreposição ou botões fora do ecrã.
@@ -192,16 +211,31 @@ Preparar uma etapa pequena para expandir a arena: primeiro graybox com obstácul
 - Primeiro arranque criou `horde_breaker_test.cfg` com 2000 Credits, Recruit nível 5 e progressão normal das duas personagens.
 - Segundo arranque manteve o hash do perfil de teste, confirmando que os valores iniciais não são adicionados novamente.
 - Hash do save normal permaneceu inalterado durante os dois arranques com o perfil de teste.
+- Teste integrado confirmou 846 polígonos navegáveis, exclusão das três coberturas e caminhos válidos dos seis spawns até ao jogador.
+- Teste integrado confirmou exatamente cinco zombies na primeira ronda e movimento normal antes e depois da pausa.
+- Teste integrado confirmou que os zombies não mudam de posição enquanto a árvore está pausada.
+- Teste integrado confirmou mira com 6 × 6 píxeis e centro com 2 × 2 píxeis.
+- Teste de física confirmou que a Worn Sword tem linha direta para um alvo livre e fica bloqueada pela barricada central.
+- Inspeção visual OpenGL confirmou as três coberturas, espaço de circulação, mira reduzida e painel de pausa legível.
+- Teste com save legado isolado preservou 1234 Credits, Recruit nível 5 com 42 XP e Renegade nível 2 com 17 XP.
+- A migração acrescentou Pistol ao Recruit, Shotgun ao Renegade e valores iniciais do Medic sem remover compras existentes.
+- Teste automatizado confirmou Assault Rifle/Pistol no Recruit, Shotgun/Worn Sword no Renegade e Pistol/slot vazio no Medic.
+- Teste automatizado confirmou recargas do Recruit reduzidas de 1,5 para 1,05 segundos e de 1,3 para 0,91 segundos.
+- Teste automatizado confirmou 140 de vida no Renegade e regeneração de 4 pontos por segundo no Medic contra 1 ponto no Recruit.
+- Teste de física confirmou dano de múltiplos pellets da Shotgun sem ultrapassar o máximo de oito pellets.
+- Teste automatizado confirmou as ações `weapon_primary` e `weapon_secondary` e a rejeição segura do slot secundário vazio do Medic.
+- Menu de classes e arena com Shotgun renderizados em OpenGL a 1152 × 648 sem texto cortado ou sobreposição.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
 
 - resolução inicial;
 - layout definitivo de controlos.
+- arma ou ferramenta secundária definitiva do Medic.
 
 ## Problemas conhecidos
 
 - O protótipo atual termina após três rondas; Brute, Spitter, boss e cinco rondas completas ficam para etapas posteriores.
-- A Shotgun existe apenas como `WeaponData`; a arma jogável ainda não foi implementada.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
+- O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Modelos e animações Mixamo continuam pendentes para o Milestone 12.

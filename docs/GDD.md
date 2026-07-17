@@ -49,19 +49,21 @@ Características:
 - dano equilibrado;
 - segurança à distância;
 - munição e recarga;
+- recarga 30% mais rápida do que as restantes classes;
 - vulnerável quando é cercado.
 
-Arma inicial:
+Loadout inicial:
 
-- Assault Rifle.
+- principal: Assault Rifle;
+- secundária: Pistol.
 
 Armas planeadas:
 
 | Arma | Nível mínimo | Credits | Estado |
 |---|---:|---:|---|
 | Assault Rifle | 1 | 0 | Inicial |
+| Pistol | 1 | 0 | Inicial secundária |
 | SMG | 3 | 400 | Planeada |
-| Shotgun | 5 | 750 | Planeada |
 | Marksman Rifle | 8 | 1500 | Planeada |
 
 ### Renegade
@@ -70,23 +72,51 @@ Personagem desbloqueável.
 
 Preço provisório: 500 Credits.
 
-Estilo: corpo a corpo com espada.
+Estilo: combate agressivo a curta distância.
 
 Características:
 
 - dano elevado;
 - ataque em arco;
 - possibilidade de atingir vários inimigos;
+- 140 pontos de vida, acima das restantes classes;
+- Shotgun para abrir espaço antes do combate corpo a corpo;
 - maior risco por proximidade.
+
+Loadout inicial:
+
+- principal: Shotgun;
+- secundária: Worn Sword.
 
 Armas planeadas:
 
 | Arma | Nível mínimo | Credits | Estado |
 |---|---:|---:|---|
 | Worn Sword | 1 | 0 | Inicial |
+| Shotgun | 1 | 0 | Inicial principal |
 | Katana | 3 | 500 | Planeada |
 | Heavy Blade | 5 | 900 | Planeada |
 | Energy Blade | 8 | 1800 | Planeada |
+
+### Medic
+
+Personagem desbloqueável.
+
+Preço provisório: 750 Credits.
+
+Estilo: sobrevivência e recuperação sustentada.
+
+Características:
+
+- 100 pontos de vida;
+- regenera 4 pontos de vida por segundo após 3 segundos sem sofrer dano;
+- usa uma Pistol;
+- menor poder imediato do que Recruit e Renegade.
+
+Loadout inicial:
+
+- principal: Pistol;
+- secundária: vazia até ser definida uma arma ou ferramenta médica adequada.
 
 ## Progressão
 
@@ -97,7 +127,7 @@ Cada personagem tem:
 - nível próprio;
 - XP próprio;
 - armas compradas próprias;
-- arma selecionada própria.
+- loadout principal/secundário próprio.
 
 O XP ganho ao jogar com uma personagem só progride essa personagem.
 
@@ -232,7 +262,8 @@ Menu principal:
 - saldo de Credits;
 - personagem selecionada;
 - nível e XP;
-- armas disponíveis, bloqueadas e compradas;
+- classe, passivo e loadout principal/secundário;
+- armas disponíveis, bloqueadas e compradas quando existirem alternativas;
 - iniciar partida.
 
 ## Princípios de design

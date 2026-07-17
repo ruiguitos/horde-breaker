@@ -154,7 +154,7 @@ Objetivo:
 Objetivo:
 
 - menu principal;
-- seleção Recruit/Renegade;
+- seleção Recruit/Renegade/Medic;
 - compra;
 - seleção de armas.
 
@@ -178,3 +178,23 @@ Objetivo:
 - múltiplos alvos;
 - cooldown ou combo;
 - dash posterior.
+
+## Milestone 14 — Classes and Loadouts
+
+Estado: primeira versão funcional concluída.
+
+Objetivo:
+
+- dois slots de arma por classe, com segundo slot opcional;
+- troca entre arma principal e secundária;
+- Recruit com recarga mais rápida;
+- Renegade com mais vida;
+- Medic com regeneração superior;
+- menu e HUD adaptados aos loadouts.
+
+Critérios:
+
+- `1` e `2` trocam entre slots disponíveis;
+- apenas a arma ativa processa input;
+- saves antigos recebem os novos campos sem perder progresso;
+- as vantagens das três classes podem ser medidas em teste.

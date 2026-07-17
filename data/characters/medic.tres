@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1_character_data"]
+[ext_resource type="PackedScene" path="res://scenes/characters/medic.tscn" id="2_medic_scene"]
+
+[resource]
+script = ExtResource("1_character_data")
+character_id = &"medic"
+display_name = "Medic"
+maximum_level = 10
+unlock_cost = 750
+base_health = 100.0
+primary_weapon_id = &"pistol"
+health_regeneration_rate = 4.0
+health_regeneration_delay = 3.0
+class_description = "Especialista em sobrevivência. Regenera 4 de vida por segundo após 3 segundos sem sofrer dano."
+character_scene = ExtResource("2_medic_scene")

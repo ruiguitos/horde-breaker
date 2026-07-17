@@ -1,13 +1,12 @@
 [gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_weapon_data"]
-[ext_resource type="PackedScene" path="res://scenes/weapons/assault_rifle.tscn" id="2_weapon_scene"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/pistol.tscn" id="2_weapon_scene"]
 
 [resource]
 script = ExtResource("1_weapon_data")
-weapon_id = &"assault_rifle"
-display_name = "Assault Rifle"
-required_character_id = &"recruit"
+weapon_id = &"pistol"
+display_name = "Pistol"
 required_level = 1
 credit_cost = 0
 is_playable = true

@@ -7,5 +7,8 @@
 script = ExtResource("1_character_data")
 character_id = &"recruit"
 display_name = "Recruit"
-starting_weapon_id = &"assault_rifle"
+primary_weapon_id = &"assault_rifle"
+secondary_weapon_id = &"pistol"
+reload_duration_multiplier = 0.7
+class_description = "Especialista em armas automáticas. Recarrega armas 30% mais depressa."
 character_scene = ExtResource("2_player_scene")

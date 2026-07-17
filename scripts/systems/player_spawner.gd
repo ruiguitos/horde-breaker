@@ -2,6 +2,7 @@ extends Marker3D
 
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
 const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
+const MEDIC_DATA: CharacterData = preload("res://data/characters/medic.tres")
 
 
 func _ready() -> void:
@@ -14,6 +15,10 @@ func _ready() -> void:
 	if player == null:
 		push_error("PlayerSpawner character scenes must use CharacterBody3D as root.")
 		return
+	if not player.has_method(&"configure_character"):
+		push_error("Player scenes must implement configure_character(CharacterData).")
+		return
+	player.call(&"configure_character", character_data)
 	add_child(player)
 
 
@@ -24,4 +29,9 @@ func _get_selected_character_data() -> CharacterData:
 		and SaveManager.is_character_unlocked(selected_character)
 	):
 		return RENEGADE_DATA
+	if (
+		selected_character == MEDIC_DATA.character_id
+		and SaveManager.is_character_unlocked(selected_character)
+	):
+		return MEDIC_DATA
 	return RECRUIT_DATA

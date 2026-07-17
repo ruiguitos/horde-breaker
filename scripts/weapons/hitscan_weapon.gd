@@ -15,6 +15,11 @@ const AIM_RAY_EXTENSION := 0.1
 @export_range(1.0, 500.0, 1.0) var maximum_range: float = 100.0
 @export_range(1, 200, 1) var magazine_size: int = 30
 @export_range(0.1, 10.0, 0.1) var reload_duration: float = 1.5
+@export_range(1, 20, 1) var pellet_count: int = 1
+@export_range(0.0, 20.0, 0.5) var spread_degrees: float = 0.0
+@export var automatic_fire: bool = true
+@export var weapon_id: StringName = &"assault_rifle"
+@export var display_name: String = "Assault Rifle"
 
 @onready var muzzle: Marker3D = %Muzzle
 @onready var muzzle_flash: MeshInstance3D = %MuzzleFlash
@@ -23,13 +28,14 @@ const AIM_RAY_EXTENSION := 0.1
 
 var current_ammunition: int
 var _cooldown_remaining: float = 0.0
+var _reload_duration_multiplier: float = 1.0
 var _tracer_material: StandardMaterial3D
 
 
 func _ready() -> void:
 	muzzle_flash_timer.timeout.connect(_hide_muzzle_flash)
 	reload_timer.timeout.connect(_finish_reload)
-	reload_timer.wait_time = reload_duration
+	reload_timer.wait_time = _get_effective_reload_duration()
 	current_ammunition = magazine_size
 	_tracer_material = StandardMaterial3D.new()
 	_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -44,9 +50,14 @@ func _physics_process(delta: float) -> void:
 	_update_weapon_aim()
 	if Input.is_action_pressed("reload"):
 		_start_reload()
+	var attack_requested := (
+		Input.is_action_pressed("attack")
+		if automatic_fire
+		else Input.is_action_just_pressed("attack")
+	)
 	if (
 		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-		and Input.is_action_pressed("attack")
+		and attack_requested
 		and _cooldown_remaining <= 0.0
 		and reload_timer.is_stopped()
 	):
@@ -62,8 +73,9 @@ func _physics_process(delta: float) -> void:
 func _start_reload() -> void:
 	if current_ammunition >= magazine_size or not reload_timer.is_stopped():
 		return
-	reload_timer.start(reload_duration)
-	reload_started.emit(reload_duration)
+	var effective_duration := _get_effective_reload_duration()
+	reload_timer.start(effective_duration)
+	reload_started.emit(effective_duration)
 
 
 func _finish_reload() -> void:
@@ -80,27 +92,64 @@ func _fire() -> void:
 	var aim_position := _get_camera_aim_position(camera)
 	_aim_weapon_at(aim_position)
 	var ray_origin := muzzle.global_position
-	var ray_direction := ray_origin.direction_to(aim_position)
-	if ray_direction == Vector3.ZERO:
+	var base_direction := ray_origin.direction_to(aim_position)
+	if base_direction == Vector3.ZERO:
 		return
-	var ray_end := aim_position + ray_direction * AIM_RAY_EXTENSION
-	var query := PhysicsRayQueryParameters3D.create(
-		ray_origin, ray_end, HIT_COLLISION_MASK
-	)
-	var result := get_world_3d().direct_space_state.intersect_ray(query)
-
-	var hit_position := aim_position
-	var hit_collider: Object = null
-	if not result.is_empty():
-		hit_position = result["position"]
-		hit_collider = result["collider"]
-		if hit_collider != null and hit_collider.has_method("take_damage"):
-			hit_collider.call("take_damage", damage)
+	var reported_hit_position := aim_position
+	var reported_hit_collider: Object = null
+	for pellet_index in range(pellet_count):
+		var pellet_direction := _get_pellet_direction(base_direction, pellet_index)
+		var pellet_end := ray_origin + pellet_direction * (
+			maximum_range + AIM_RAY_EXTENSION
+		)
+		var query := PhysicsRayQueryParameters3D.create(
+			ray_origin, pellet_end, HIT_COLLISION_MASK
+		)
+		var result := get_world_3d().direct_space_state.intersect_ray(query)
+		var hit_position := pellet_end
+		var hit_collider: Object = null
+		if not result.is_empty():
+			hit_position = result["position"]
+			hit_collider = result["collider"]
+			if hit_collider != null and hit_collider.has_method("take_damage"):
+				hit_collider.call("take_damage", damage)
+		if pellet_index == 0:
+			reported_hit_position = hit_position
+			reported_hit_collider = hit_collider
+		_show_tracer(muzzle.global_position, hit_position)
 
 	muzzle_flash.visible = true
 	muzzle_flash_timer.start(MUZZLE_FLASH_DURATION)
-	_show_tracer(muzzle.global_position, hit_position)
-	shot_fired.emit(hit_position, hit_collider)
+	shot_fired.emit(reported_hit_position, reported_hit_collider)
+
+
+func set_reload_duration_multiplier(multiplier: float) -> void:
+	_reload_duration_multiplier = maxf(multiplier, 0.1)
+	reload_timer.wait_time = _get_effective_reload_duration()
+
+
+func cancel_reload() -> void:
+	reload_timer.stop()
+
+
+func _get_effective_reload_duration() -> float:
+	return reload_duration * _reload_duration_multiplier
+
+
+func _get_pellet_direction(base_direction: Vector3, pellet_index: int) -> Vector3:
+	if pellet_count <= 1 or pellet_index == 0 or is_zero_approx(spread_degrees):
+		return base_direction
+	var spread_basis := Basis.looking_at(base_direction, Vector3.UP)
+	var normalized_radius := sqrt(
+		float(pellet_index) / float(maxi(pellet_count - 1, 1))
+	)
+	var angle := float(pellet_index) * 2.399963
+	var spread_radius := tan(deg_to_rad(spread_degrees)) * normalized_radius
+	return (
+		-spread_basis.z
+		+ spread_basis.x * cos(angle) * spread_radius
+		+ spread_basis.y * sin(angle) * spread_radius
+	).normalized()
 
 
 func _update_weapon_aim() -> void:

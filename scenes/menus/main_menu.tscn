@@ -68,9 +68,11 @@ horizontal_alignment = 1
 
 [node name="SelectionLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-text = "Personagem: Recruit    Arma: Assault Rifle"
+text = "Classe: Recruit    [1] Assault Rifle    [2] Pistol"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="ProgressLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
 unique_name_in_owner = true
@@ -82,7 +84,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "O Recruit e a Assault Rifle estão prontos para jogar."
+text = "Especialista em armas automáticas. Recarrega armas 30% mais depressa."
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -96,7 +98,7 @@ text = "Iniciar partida"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "Personagem e armas"
+text = "Personagens e classes"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/Content"]
 unique_name_in_owner = true

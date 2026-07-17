@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_weapon_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/shotgun.tscn" id="2_weapon_scene"]
 
 [resource]
 script = ExtResource("1_weapon_data")
 weapon_id = &"shotgun"
 display_name = "Shotgun"
-required_character_id = &"recruit"
-required_level = 5
-credit_cost = 750
-is_playable = false
+required_character_id = &"renegade"
+required_level = 1
+credit_cost = 0
+is_playable = true
+weapon_scene = ExtResource("2_weapon_scene")

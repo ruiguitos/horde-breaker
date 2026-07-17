@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -13,6 +13,7 @@
 [ext_resource type="Resource" path="res://data/waves/wave_2.tres" id="11_wave_2"]
 [ext_resource type="Resource" path="res://data/waves/wave_3.tres" id="12_wave_3"]
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -27,10 +28,10 @@ roughness = 1.0
 
 [sub_resource type="BoxMesh" id="Mesh_floor"]
 material = SubResource("Material_floor")
-size = Vector3(24, 1, 24)
+size = Vector3(32, 1, 32)
 
 [sub_resource type="BoxShape3D" id="Shape_floor"]
-size = Vector3(24, 1, 24)
+size = Vector3(32, 1, 32)
 
 [sub_resource type="StandardMaterial3D" id="Material_wall"]
 albedo_color = Color(0.42, 0.44, 0.48, 1)
@@ -38,10 +39,28 @@ roughness = 0.9
 
 [sub_resource type="BoxMesh" id="Mesh_wall"]
 material = SubResource("Material_wall")
-size = Vector3(25, 4, 1)
+size = Vector3(33, 4, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_wall"]
-size = Vector3(25, 4, 1)
+size = Vector3(33, 4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_obstacle"]
+albedo_color = Color(0.22, 0.32, 0.42, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="Mesh_center_obstacle"]
+material = SubResource("Material_obstacle")
+size = Vector3(6, 2, 2)
+
+[sub_resource type="BoxShape3D" id="Shape_center_obstacle"]
+size = Vector3(6, 2, 2)
+
+[sub_resource type="BoxMesh" id="Mesh_side_obstacle"]
+material = SubResource("Material_obstacle")
+size = Vector3(2, 2, 5)
+
+[sub_resource type="BoxShape3D" id="Shape_side_obstacle"]
+size = Vector3(2, 2, 5)
 
 [node name="TestArena" type="Node3D"]
 
@@ -68,7 +87,7 @@ shape = SubResource("Shape_floor")
 [node name="Walls" type="Node3D" parent="."]
 
 [node name="NorthWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(0, 2, -12.5)
+position = Vector3(0, 2, -16.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall"]
 mesh = SubResource("Mesh_wall")
@@ -77,7 +96,7 @@ mesh = SubResource("Mesh_wall")
 shape = SubResource("Shape_wall")
 
 [node name="SouthWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(0, 2, 12.5)
+position = Vector3(0, 2, 16.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall"]
 mesh = SubResource("Mesh_wall")
@@ -86,7 +105,7 @@ mesh = SubResource("Mesh_wall")
 shape = SubResource("Shape_wall")
 
 [node name="EastWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(12.5, 2, 0)
+position = Vector3(16.5, 2, 0)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall"]
@@ -96,7 +115,7 @@ mesh = SubResource("Mesh_wall")
 shape = SubResource("Shape_wall")
 
 [node name="WestWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(-12.5, 2, 0)
+position = Vector3(-16.5, 2, 0)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall"]
@@ -105,27 +124,59 @@ mesh = SubResource("Mesh_wall")
 [node name="Collision" type="CollisionShape3D" parent="Walls/WestWall"]
 shape = SubResource("Shape_wall")
 
-[node name="PlayerSpawn" type="Marker3D" parent="."]
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="CentralBarricade" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
 position = Vector3(0, 1, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/CentralBarricade"]
+mesh = SubResource("Mesh_center_obstacle")
+
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/CentralBarricade"]
+shape = SubResource("Shape_center_obstacle")
+
+[node name="WestCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
+position = Vector3(-7, 1, -5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/WestCover"]
+mesh = SubResource("Mesh_side_obstacle")
+
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/WestCover"]
+shape = SubResource("Shape_side_obstacle")
+
+[node name="EastCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
+position = Vector3(7, 1, 5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/EastCover"]
+mesh = SubResource("Mesh_side_obstacle")
+
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/EastCover"]
+shape = SubResource("Shape_side_obstacle")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+position = Vector3(0, 1, 8)
 script = ExtResource("1_player_spawner")
 
 [node name="EnemySpawns" type="Node3D" parent="."]
 unique_name_in_owner = true
 
 [node name="NorthSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(0, 1, -8)
+position = Vector3(0, 1, -13)
+
+[node name="NorthEastSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(12, 1, -10)
 
 [node name="EastSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(8, 1, 0)
-
-[node name="WestSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(-8, 1, 0)
+position = Vector3(13, 1, 2)
 
 [node name="SouthEastSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(5.5, 1, 5.5)
+position = Vector3(10, 1, 12)
 
 [node name="SouthWestSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(-5.5, 1, 5.5)
+position = Vector3(-12, 1, 10)
+
+[node name="WestSpawn" type="Marker3D" parent="EnemySpawns"]
+position = Vector3(-13, 1, -4)
 
 [node name="Gameplay" type="Node" parent="."]
 
@@ -155,3 +206,8 @@ layer = 10
 layer = 10
 
 [node name="WaveCompletePanel" parent="WaveCompleteLayer" instance=ExtResource("6_wave_complete")]
+
+[node name="PauseLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="PauseMenu" parent="PauseLayer" instance=ExtResource("14_pause_menu")]

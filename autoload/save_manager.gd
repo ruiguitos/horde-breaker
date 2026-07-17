@@ -10,10 +10,14 @@ signal selected_weapon_changed(character_id: StringName, weapon_id: StringName)
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
 const RENEGADE_ID := &"renegade"
+const MEDIC_ID := &"medic"
 const ASSAULT_RIFLE_ID := &"assault_rifle"
+const PISTOL_ID := &"pistol"
+const SHOTGUN_ID := &"shotgun"
 const WORN_SWORD_ID := &"worn_sword"
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
 const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
+const MEDIC_DATA: CharacterData = preload("res://data/characters/medic.tres")
 
 var storage_path: String = DEFAULT_SAVE_PATH
 var _config := ConfigFile.new()
@@ -46,6 +50,12 @@ func reset_progress() -> void:
 	credits_changed.emit(get_credits())
 	character_progress_changed.emit(
 		RECRUIT_ID, get_character_level(RECRUIT_ID), get_character_xp(RECRUIT_ID)
+	)
+	character_progress_changed.emit(
+		RENEGADE_ID, get_character_level(RENEGADE_ID), get_character_xp(RENEGADE_ID)
+	)
+	character_progress_changed.emit(
+		MEDIC_ID, get_character_level(MEDIC_ID), get_character_xp(MEDIC_ID)
 	)
 	selected_character_changed.emit(get_selected_character())
 
@@ -169,7 +179,12 @@ func is_weapon_purchased(character_id: StringName, weapon_id: StringName) -> boo
 func meets_weapon_requirements(
 	character_id: StringName, weapon_data: WeaponData
 ) -> bool:
-	if weapon_data == null or weapon_data.required_character_id != character_id:
+	if weapon_data == null:
+		return false
+	if (
+		weapon_data.required_character_id != &""
+		and weapon_data.required_character_id != character_id
+	):
 		return false
 	return (
 		get_character_level(character_id) >= weapon_data.required_level
@@ -201,18 +216,42 @@ func purchase_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 
 
 func get_selected_weapon(character_id: StringName) -> StringName:
-	var fallback_weapon := (
-		WORN_SWORD_ID if character_id == RENEGADE_ID else ASSAULT_RIFLE_ID
-	)
+	return get_primary_weapon(character_id)
+
+
+func get_primary_weapon(character_id: StringName) -> StringName:
+	var character_data := get_character_data(character_id)
+	if character_data == null:
+		return &""
 	return StringName(
-		_config.get_value(String(character_id), "selected_weapon", String(fallback_weapon))
+		_config.get_value(
+			String(character_id),
+			"selected_primary_weapon",
+			String(character_data.primary_weapon_id)
+		)
+	)
+
+
+func get_secondary_weapon(character_id: StringName) -> StringName:
+	var character_data := get_character_data(character_id)
+	if character_data == null:
+		return &""
+	return StringName(
+		_config.get_value(
+			String(character_id),
+			"selected_secondary_weapon",
+			String(character_data.secondary_weapon_id)
+		)
 	)
 
 
 func select_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 	if (
 		weapon_data == null
-		or weapon_data.required_character_id != character_id
+		or (
+			weapon_data.required_character_id != &""
+			and weapon_data.required_character_id != character_id
+		)
 		or not weapon_data.is_playable
 		or not is_weapon_purchased(character_id, weapon_data.weapon_id)
 	):
@@ -226,12 +265,19 @@ func select_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 	return true
 
 
-func _get_maximum_level(character_id: StringName) -> int:
+func get_character_data(character_id: StringName) -> CharacterData:
 	if character_id == RECRUIT_ID:
-		return RECRUIT_DATA.maximum_level
+		return RECRUIT_DATA
 	if character_id == RENEGADE_ID:
-		return RENEGADE_DATA.maximum_level
-	return 10
+		return RENEGADE_DATA
+	if character_id == MEDIC_ID:
+		return MEDIC_DATA
+	return null
+
+
+func _get_maximum_level(character_id: StringName) -> int:
+	var character_data := get_character_data(character_id)
+	return character_data.maximum_level if character_data != null else 10
 
 
 func _ensure_defaults() -> bool:
@@ -248,13 +294,21 @@ func _ensure_defaults() -> bool:
 		_set_default(
 			String(RECRUIT_ID),
 			"purchased_weapons",
-			PackedStringArray([String(ASSAULT_RIFLE_ID)])
+			PackedStringArray([String(ASSAULT_RIFLE_ID), String(PISTOL_ID)])
 		)
 		or defaults_added
 	)
 	defaults_added = (
 		_set_default(
-			String(RECRUIT_ID), "selected_weapon", String(ASSAULT_RIFLE_ID)
+			String(RECRUIT_ID),
+			"selected_primary_weapon",
+			String(ASSAULT_RIFLE_ID)
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_set_default(
+			String(RECRUIT_ID), "selected_secondary_weapon", String(PISTOL_ID)
 		)
 		or defaults_added
 	)
@@ -265,17 +319,75 @@ func _ensure_defaults() -> bool:
 		_set_default(
 			String(RENEGADE_ID),
 			"purchased_weapons",
-			PackedStringArray([String(WORN_SWORD_ID)])
+			PackedStringArray([String(SHOTGUN_ID), String(WORN_SWORD_ID)])
 		)
 		or defaults_added
 	)
 	defaults_added = (
 		_set_default(
-			String(RENEGADE_ID), "selected_weapon", String(WORN_SWORD_ID)
+			String(RENEGADE_ID), "selected_primary_weapon", String(SHOTGUN_ID)
 		)
 		or defaults_added
 	)
+	defaults_added = (
+		_set_default(
+			String(RENEGADE_ID), "selected_secondary_weapon", String(WORN_SWORD_ID)
+		)
+		or defaults_added
+	)
+	defaults_added = _set_default(String(MEDIC_ID), "unlocked", false) or defaults_added
+	defaults_added = _set_default(String(MEDIC_ID), "level", 1) or defaults_added
+	defaults_added = _set_default(String(MEDIC_ID), "xp", 0) or defaults_added
+	defaults_added = (
+		_set_default(
+			String(MEDIC_ID),
+			"purchased_weapons",
+			PackedStringArray([String(PISTOL_ID)])
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_set_default(
+			String(MEDIC_ID), "selected_primary_weapon", String(PISTOL_ID)
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_set_default(String(MEDIC_ID), "selected_secondary_weapon", "")
+		or defaults_added
+	)
+	defaults_added = (
+		_ensure_purchased_weapons(
+			RECRUIT_ID, PackedStringArray([String(ASSAULT_RIFLE_ID), String(PISTOL_ID)])
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_ensure_purchased_weapons(
+			RENEGADE_ID, PackedStringArray([String(SHOTGUN_ID), String(WORN_SWORD_ID)])
+		)
+		or defaults_added
+	)
+	defaults_added = (
+		_ensure_purchased_weapons(MEDIC_ID, PackedStringArray([String(PISTOL_ID)]))
+		or defaults_added
+	)
 	return defaults_added
+
+
+func _ensure_purchased_weapons(
+	character_id: StringName, required_weapons: PackedStringArray
+) -> bool:
+	var purchased_weapons := get_purchased_weapons(character_id)
+	var changed := false
+	for weapon_id in required_weapons:
+		if weapon_id in purchased_weapons:
+			continue
+		purchased_weapons.append(weapon_id)
+		changed = true
+	if changed:
+		_config.set_value(String(character_id), "purchased_weapons", purchased_weapons)
+	return changed
 
 
 func _set_default(section: String, key: String, value: Variant) -> bool:

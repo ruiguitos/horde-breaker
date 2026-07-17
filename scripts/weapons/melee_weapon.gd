@@ -4,8 +4,10 @@ signal attack_performed(hit_count: int)
 
 const REST_ROTATION_Y := -0.6
 const SWING_ROTATION_Y := 0.9
+const WORLD_COLLISION_MASK := 1
 
 @export var display_name: String = "Worn Sword"
+@export var weapon_id: StringName = &"worn_sword"
 @export_range(0.1, 1000.0, 0.1) var damage: float = 35.0
 @export_range(0.1, 5.0, 0.05) var attack_cooldown: float = 0.6
 @export_range(0.05, 1.0, 0.05) var swing_duration: float = 0.2
@@ -53,11 +55,22 @@ func try_attack() -> bool:
 		if damaged_bodies.has(instance_id):
 			continue
 		damaged_bodies[instance_id] = true
-		if body.has_method(&"take_damage"):
+		if body.has_method(&"take_damage") and _has_clear_path_to(body as Node3D):
 			body.call(&"take_damage", damage)
 			hit_count += 1
 	attack_performed.emit(hit_count)
 	return true
+
+
+func _has_clear_path_to(target: Node3D) -> bool:
+	if target == null:
+		return false
+	var ray_query := PhysicsRayQueryParameters3D.create(
+		global_position,
+		target.global_position + Vector3.UP * 0.4,
+		WORLD_COLLISION_MASK
+	)
+	return get_world_3d().direct_space_state.intersect_ray(ray_query).is_empty()
 
 
 func _play_swing() -> void:

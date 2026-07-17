@@ -7,3 +7,4 @@ extends Resource
 @export_range(1, 100, 1) var required_level: int = 1
 @export_range(0, 100000, 1) var credit_cost: int = 0
 @export var is_playable: bool = false
+@export var weapon_scene: PackedScene

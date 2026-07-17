@@ -15,11 +15,6 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
-		_toggle_mouse_capture()
-		get_viewport().set_input_as_handled()
-		return
-
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return
 
@@ -37,10 +32,3 @@ func _unhandled_input(event: InputEvent) -> void:
 	)
 	spring_arm.rotation.x = _pitch
 	get_viewport().set_input_as_handled()
-
-
-func _toggle_mouse_capture() -> void:
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	else:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
