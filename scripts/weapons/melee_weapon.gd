@@ -5,6 +5,7 @@ signal attack_performed(hit_count: int)
 const REST_ROTATION_Y := -0.6
 const SWING_ROTATION_Y := 0.9
 const WORLD_COLLISION_MASK := 1
+const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 
 @export var display_name: String = "Worn Sword"
 @export var weapon_id: StringName = &"worn_sword"
@@ -65,8 +66,16 @@ func try_attack() -> bool:
 			var damage_multiplier := (
 				aimed_multiplier if target == aimed_target else 1.0
 			)
-			target.call(&"take_damage", damage * damage_multiplier)
-			hit_count += 1
+			var final_damage := damage * damage_multiplier
+			var applied_result: Variant = target.call(&"take_damage", final_damage)
+			var applied_damage := (
+				float(applied_result) if applied_result != null else final_damage
+			)
+			if applied_damage > 0.0:
+				_spawn_damage_number(
+					applied_damage, target, damage_multiplier > 1.0
+				)
+				hit_count += 1
 	attack_performed.emit(hit_count)
 	return true
 
@@ -119,6 +128,22 @@ func _has_clear_path_to(target: Node3D) -> bool:
 		WORLD_COLLISION_MASK
 	)
 	return get_world_3d().direct_space_state.intersect_ray(ray_query).is_empty()
+
+
+func _spawn_damage_number(
+	damage_amount: float, target: Node3D, is_headshot: bool
+) -> void:
+	var damage_number := DAMAGE_NUMBER_SCENE.instantiate() as Label3D
+	if damage_number == null:
+		push_error("MeleeWeapon could not create the damage number.")
+		return
+	var effect_parent: Node = get_tree().current_scene
+	if effect_parent == null:
+		effect_parent = get_tree().root
+	effect_parent.add_child(damage_number)
+	var vertical_offset := 1.35 if is_headshot else 0.8
+	damage_number.global_position = target.global_position + Vector3.UP * vertical_offset
+	damage_number.call(&"configure", damage_amount, is_headshot)
 
 
 func _play_swing() -> void:

@@ -57,15 +57,17 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float) -> float:
 	if amount <= 0.0 or current_health <= 0.0:
-		return
+		return 0.0
 
-	current_health = maxf(current_health - amount, 0.0)
+	var applied_damage := minf(amount, current_health)
+	current_health -= applied_damage
 	health_changed.emit(current_health, maximum_health)
 	if is_zero_approx(current_health):
 		died.emit(self)
 		queue_free()
+	return applied_damage
 
 
 func _apply_gravity(delta: float) -> void:

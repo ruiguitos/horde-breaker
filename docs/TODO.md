@@ -13,9 +13,11 @@
 - [x] Adicionar munição de reserva, recarga com consumo real e recolha de munições mesmo com uma arma melee ativa.
 - [x] Criar a primeira composição urbana com modelos ambientais CC0 e remover as paredes graybox visíveis.
 - [x] Implementar dano por zonas com corpo a `1 ×` e cabeça a `2 ×` para armas de fogo e armas brancas.
-- [ ] Adicionar feedback visual e sonoro distinto para impacto no corpo e headshot.
+- [x] Adicionar números de dano pequenos, com cor distinta para impacto no corpo e headshot.
+- [ ] Adicionar feedback visual no próprio inimigo e feedback sonoro distinto para impacto no corpo e headshot.
 - [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração.
 - [ ] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.
+- [ ] Decidir se a estrutura final continua baseada em rondas ou evolui para survival contínuo com construção de um acampamento; não iniciar sistemas de base antes desta decisão.
 
 ## Regra
 

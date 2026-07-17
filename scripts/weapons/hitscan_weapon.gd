@@ -11,6 +11,7 @@ const MUZZLE_FLASH_DURATION := 0.05
 const TRACER_DURATION := 0.06
 const TRACER_THICKNESS := 0.025
 const AIM_RAY_EXTENSION := 0.1
+const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 
 @export_range(0.1, 1000.0, 0.1) var damage: float = 25.0
 @export_range(0.1, 30.0, 0.1) var fire_rate: float = 6.0
@@ -109,6 +110,7 @@ func _fire() -> void:
 	var base_direction := ray_origin.direction_to(aim_position)
 	if base_direction == Vector3.ZERO:
 		return
+	var damage_feedback: Dictionary = {}
 	var reported_hit_position := aim_position
 	var reported_hit_collider: Object = null
 	for pellet_index in range(pellet_count):
@@ -128,11 +130,22 @@ func _fire() -> void:
 			hit_position = result["position"]
 			hit_collider = result["collider"]
 			if hit_collider != null and hit_collider.has_method("take_damage"):
-				hit_collider.call("take_damage", damage)
+				var applied_result: Variant = hit_collider.call("take_damage", damage)
+				var applied_damage := _get_applied_damage(
+					applied_result, hit_collider
+				)
+				if applied_damage > 0.0:
+					_record_damage_feedback(
+						damage_feedback,
+						hit_collider,
+						hit_position,
+						applied_damage
+					)
 		if pellet_index == 0:
 			reported_hit_position = hit_position
 			reported_hit_collider = hit_collider
 		_show_tracer(muzzle.global_position, hit_position)
+	_show_damage_feedback(damage_feedback)
 
 	muzzle_flash.visible = true
 	muzzle_flash_timer.start(MUZZLE_FLASH_DURATION)
@@ -169,6 +182,69 @@ func _emit_ammunition_changed() -> void:
 
 func _get_effective_reload_duration() -> float:
 	return reload_duration * _reload_duration_multiplier
+
+
+func _get_applied_damage(applied_result: Variant, collider: Object) -> float:
+	if applied_result != null:
+		return float(applied_result)
+	var damage_multiplier := 1.0
+	if collider.has_method(&"get_damage_multiplier"):
+		damage_multiplier = float(collider.call(&"get_damage_multiplier"))
+	return damage * damage_multiplier
+
+
+func _record_damage_feedback(
+	feedback_by_target: Dictionary,
+	collider: Object,
+	hit_position: Vector3,
+	applied_damage: float
+) -> void:
+	var target: Object = collider
+	if collider.has_method(&"get_damage_target"):
+		var damage_target: Object = collider.call(&"get_damage_target")
+		if damage_target != null:
+			target = damage_target
+	var target_id := target.get_instance_id()
+	var is_headshot: bool = (
+		collider.has_method(&"get_hit_zone")
+		and collider.call(&"get_hit_zone") == &"head"
+	)
+	if feedback_by_target.has(target_id):
+		var feedback: Dictionary = feedback_by_target[target_id]
+		feedback["damage"] = float(feedback["damage"]) + applied_damage
+		if is_headshot:
+			feedback["position"] = hit_position
+			feedback["is_headshot"] = true
+		return
+	feedback_by_target[target_id] = {
+		"damage": applied_damage,
+		"position": hit_position,
+		"is_headshot": is_headshot,
+	}
+
+
+func _show_damage_feedback(feedback_by_target: Dictionary) -> void:
+	for feedback: Dictionary in feedback_by_target.values():
+		_spawn_damage_number(
+			float(feedback["damage"]),
+			feedback["position"] as Vector3,
+			bool(feedback["is_headshot"])
+		)
+
+
+func _spawn_damage_number(
+	damage_amount: float, hit_position: Vector3, is_headshot: bool
+) -> void:
+	var damage_number := DAMAGE_NUMBER_SCENE.instantiate() as Label3D
+	if damage_number == null:
+		push_error("HitscanWeapon could not create the damage number.")
+		return
+	var effect_parent: Node = get_tree().current_scene
+	if effect_parent == null:
+		effect_parent = get_tree().root
+	effect_parent.add_child(damage_number)
+	damage_number.global_position = hit_position + Vector3.UP * 0.12
+	damage_number.call(&"configure", damage_amount, is_headshot)
 
 
 func _get_pellet_direction(base_direction: Vector3, pellet_index: int) -> Vector3:

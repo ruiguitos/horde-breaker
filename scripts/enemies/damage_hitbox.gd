@@ -12,10 +12,14 @@ func _ready() -> void:
 		push_error("DamageHitbox requires an ancestor with take_damage(amount).")
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float) -> float:
 	if amount <= 0.0 or not is_instance_valid(_damage_target):
-		return
-	_damage_target.call(&"take_damage", amount * damage_multiplier)
+		return 0.0
+	var final_damage := amount * damage_multiplier
+	var applied_damage: Variant = _damage_target.call(&"take_damage", final_damage)
+	if applied_damage == null:
+		return final_damage
+	return float(applied_damage)
 
 
 func get_damage_target() -> Node3D:

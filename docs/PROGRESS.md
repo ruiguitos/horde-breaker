@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: revisão visual de UI/HUD pós-Milestone 14 concluída.
+Fase: feedback visual de dano pós-Milestone 14 concluído.
 
 Última atualização: 2026-07-17.
 
@@ -172,16 +172,22 @@ Fase: revisão visual de UI/HUD pós-Milestone 14 concluída.
 - [x] Mira substituída por um retículo compacto e os valores de vida passam a mudar de cor em níveis de alerta.
 - [x] Atalhos essenciais adicionados ao HUD sem tapar a área central de combate.
 - [x] Pausa, derrota e vitória redesenhadas com mensagens, ações e cores de estado consistentes.
+- [x] Indicador `DamageNumber3D` criado para apresentar valores pequenos no ponto atingido, subindo e desaparecendo automaticamente.
+- [x] Dano realmente retirado à vida devolvido pelas hitboxes ao sistema de feedback, incluindo overkill limitado à vida restante.
+- [x] Impactos no corpo apresentados a claro e headshots apresentados a dourado, sem alterar os multiplicadores existentes.
+- [x] Pellets da Shotgun agregados por inimigo para mostrar apenas um total por disparo.
+- [x] Worn Sword configurada para apresentar um número por inimigo atingido pelo mesmo golpe.
 
 ## Milestone atual
 
-**Revisão visual de UI/HUD pós-Milestone 14 (concluída)**
+**Feedback visual de dano pós-Milestone 14 (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual da interface juntamente com tiros e golpes no corpo/cabeça
-com Recruit, Renegade e Medic. Depois, adicionar feedback visual de
-impacto/headshot e retomar a afinação dos limites, spawns e coberturas do mapa.
+Fazer playtest manual dos números de dano com Recruit, Renegade e Medic e afinar
+tamanho, duração ou posição se necessário. Antes de criar sistemas de longo
+prazo, decidir se o core loop continua baseado em rondas ou evolui para survival
+contínuo com construção de acampamento.
 
 ## Validação
 
@@ -290,6 +296,10 @@ impacto/headshot e retomar a afinação dos limites, spawns e coberturas do mapa
 - Menu principal e seleção de personagens executados isoladamente em modo headless com código de saída 0.
 - Arena de teste executada durante 60 frames em modo headless com o HUD revisto e código de saída 0.
 - Capturas OpenGL a 1152 × 648 confirmaram menu principal, seleção, HUD, pausa, derrota e vitória sem texto cortado ou painéis sobrepostos.
+- Teste automatizado confirmou números `10` no corpo e `20` na cabeça com dano base 10, incluindo a cor dourada exclusiva do headshot.
+- Teste automatizado confirmou que oito pellets de 9 de dano da Shotgun produzem um único número agregado de `72` no mesmo inimigo.
+- Teste automatizado confirmou um número `35` para o golpe de corpo da Worn Sword e remoção automática de todos os indicadores após 0,65 segundos.
+- Captura OpenGL a 1152 × 648 confirmou o número de headshot pequeno, legível e sem interferir com o HUD.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -297,6 +307,7 @@ impacto/headshot e retomar a afinação dos limites, spawns e coberturas do mapa
 - resolução inicial;
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
+- estrutura final do core loop: rondas delimitadas ou survival contínuo com construção e evolução de um acampamento.
 
 ## Problemas conhecidos
 
@@ -309,5 +320,5 @@ impacto/headshot e retomar a afinação dos limites, spawns e coberturas do mapa
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites físicos totalmente legíveis depois do playtest do mapa.
 - Os modelos ambientais são uma primeira composição modular e ainda não formam edifícios exploráveis.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
-- Ainda não existe indicador visual ou sonoro que diferencie impacto normal de headshot.
+- Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.
