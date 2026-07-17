@@ -184,9 +184,19 @@ Completar cada ciclo de três ataques atribui provisoriamente 100 Credits.
 
 ### Scrap
 
-Moeda temporária por partida.
+Moeda temporária da expedição. O protótipo atual separa:
 
-Serve para melhorias temporárias entre rondas:
+- **Scrap transportado**: encontrado em caches espalhados pelo mapa e ainda na posse do jogador;
+- **Scrap na base**: depositado no núcleo do acampamento e disponível para utilização.
+
+Existem provisoriamente oito caches estáticos de 25 Scrap. `F` recolhe uma cache
+próxima e, junto do núcleo, deposita todo o Scrap transportado.
+
+Durante uma fase de exploração, `F` junto do núcleo também permite reparar até
+50 pontos de vida por interação. Cada unidade de Scrap repara 5 pontos de vida,
+pelo que uma reparação completa custa no máximo 10 Scrap.
+
+Futuramente também poderá servir para melhorias temporárias entre ataques:
 
 - dano;
 - vida máxima;
@@ -244,7 +254,8 @@ Planeado para uma fase posterior.
 - Começa provisoriamente com 500 pontos de vida.
 - Os zombies podem escolhê-lo como alvo e causar-lhe dano.
 - A partida termina se o núcleo for destruído, mesmo que o jogador continue vivo.
-- Reparação, melhorias, construção livre e persistência da base ficam para etapas posteriores.
+- Durante a exploração, aceita o depósito de Scrap e reparações de 5 pontos de vida por Scrap.
+- Melhorias, construção livre e persistência da base ficam para etapas posteriores.
 
 ## Ataques provisórios
 
@@ -256,7 +267,16 @@ Planeado para uma fase posterior.
 
 O ciclo repete-se continuamente e cada ciclo completo acrescenta provisoriamente
 dois Normal Zombies a cada composição. Os valores e a variedade de inimigos
-devem ser ajustados após playtests.
+devem ser ajustados após playtests. Antes do primeiro ataque existem 30 segundos
+de exploração; entre ataques existem provisoriamente 45 segundos para explorar,
+recolher recursos e reparar o núcleo.
+
+## Exploração provisória
+
+- O mapa de teste mede 64 × 64 metros e combina quatro bairros modulares rodados.
+- Os pontos de aparecimento dos inimigos e os caches de Scrap ficam distribuídos nas zonas exteriores.
+- As ruas mantêm caminhos contínuos até ao núcleo e permitem testar deslocações mais longas.
+- Os modelos atuais continuam provisórios e repetidos; edifícios exploráveis, POIs únicos e um mapa final maior ficam para uma etapa posterior.
 
 ## Direção visual
 

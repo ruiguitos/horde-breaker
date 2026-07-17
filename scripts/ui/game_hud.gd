@@ -2,6 +2,7 @@ extends Control
 
 const PLAYER_GROUP := &"player"
 const CAMP_CORE_GROUP := &"camp_core"
+const CAMP_ECONOMY_GROUP := &"camp_economy"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
 const WAVE_MANAGER_GROUP := &"wave_manager"
 const HEALTH_GOOD_COLOR := Color(0.74, 0.91, 0.79, 1.0)
@@ -14,27 +15,36 @@ const HEALTH_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
 @onready var camp_health_label: Label = %CampHealthLabel
 @onready var weapon_label: Label = %WeaponLabel
 @onready var ammunition_label: Label = %AmmunitionLabel
+@onready var wave_caption: Label = %WaveCaption
 @onready var wave_label: Label = %WaveLabel
 @onready var enemies_label: Label = %EnemiesLabel
+@onready var carried_scrap_label: Label = %CarriedScrapLabel
+@onready var stored_scrap_label: Label = %StoredScrapLabel
+@onready var feedback_panel: PanelContainer = %FeedbackPanel
+@onready var feedback_label: Label = %FeedbackLabel
+@onready var feedback_timer: Timer = %FeedbackTimer
 @onready var aim_point: Control = %AimPoint
 
 var _weapon: Node
 var _weapon_controller: Node
+var _preparation_next_wave: int = 1
 
 
 func _ready() -> void:
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
 	var camp_core := get_tree().get_first_node_in_group(CAMP_CORE_GROUP)
+	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	_weapon_controller = get_tree().get_first_node_in_group(WEAPON_CONTROLLER_GROUP)
 	var wave_manager := get_tree().get_first_node_in_group(WAVE_MANAGER_GROUP)
 	if (
 		player == null
 		or camp_core == null
+		or camp_economy == null
 		or _weapon_controller == null
 		or wave_manager == null
 	):
 		push_error(
-			"GameHUD requires player, camp_core, weapon_controller and wave_manager groups."
+			"GameHUD requires player, camp_core, camp_economy, weapon_controller and wave_manager groups."
 		)
 		return
 
@@ -43,6 +53,12 @@ func _ready() -> void:
 	wave_manager.connect(&"wave_started", _update_wave)
 	wave_manager.connect(&"enemy_count_changed", _update_enemy_count)
 	wave_manager.connect(&"intermission_started", _show_intermission)
+	wave_manager.connect(
+		&"preparation_time_changed", _update_preparation_time
+	)
+	camp_economy.connect(&"scrap_changed", _update_scrap)
+	camp_economy.connect(&"feedback_requested", _show_feedback)
+	feedback_timer.timeout.connect(feedback_panel.hide)
 	_weapon_controller.connect(&"active_weapon_changed", _show_weapon)
 
 	_update_health(
@@ -51,6 +67,10 @@ func _ready() -> void:
 	_update_camp_health(
 		float(camp_core.get("current_health")),
 		float(camp_core.get("maximum_health"))
+	)
+	_update_scrap(
+		int(camp_economy.get("carried_scrap")),
+		int(camp_economy.get("stored_scrap"))
 	)
 	_show_weapon(
 		_weapon_controller.call("get_active_weapon"),
@@ -146,6 +166,7 @@ func _show_reloading(_duration: float) -> void:
 
 
 func _update_wave(wave_number: int) -> void:
+	wave_caption.text = "ATAQUE"
 	wave_label.text = "%02d" % wave_number
 
 
@@ -154,4 +175,27 @@ func _update_enemy_count(remaining_enemies: int) -> void:
 
 
 func _show_intermission(next_wave: int, duration: float) -> void:
-	wave_label.text = "%02d  ·  %ds" % [next_wave, ceili(duration)]
+	_preparation_next_wave = next_wave
+	wave_caption.text = "EXPLORAÇÃO"
+	enemies_label.text = "--"
+	_update_preparation_time(ceili(duration))
+
+
+func _update_preparation_time(seconds_remaining: int) -> void:
+	if seconds_remaining <= 0:
+		wave_label.text = "%02d  ·  AGORA" % _preparation_next_wave
+		return
+	wave_label.text = "%02d  ·  %ds" % [
+		_preparation_next_wave, seconds_remaining
+	]
+
+
+func _update_scrap(carried_scrap: int, stored_scrap: int) -> void:
+	carried_scrap_label.text = "%03d" % carried_scrap
+	stored_scrap_label.text = "%03d" % stored_scrap
+
+
+func _show_feedback(message: String, duration: float) -> void:
+	feedback_label.text = message
+	feedback_panel.show()
+	feedback_timer.start(maxf(duration, 0.1))

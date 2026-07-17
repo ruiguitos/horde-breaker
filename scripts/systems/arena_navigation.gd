@@ -67,16 +67,25 @@ func _is_cell_blocked(
 		if collision == null:
 			push_error("Navigation blockers require a CollisionShape3D named Collision.")
 			continue
+		if collision.disabled:
+			continue
 		var box_shape := collision.shape as BoxShape3D
 		if box_shape == null:
 			push_error("Navigation blockers currently require a BoxShape3D.")
 			continue
 		var obstacle_center := to_local(collision.global_position)
-		var obstacle_scale := collision.global_basis.get_scale()
+		var collision_basis := global_basis.inverse() * collision.global_basis
+		var shape_half_size := box_shape.size * 0.5
 		var obstacle_half_size := Vector3(
-			box_shape.size.x * absf(obstacle_scale.x) * 0.5,
-			box_shape.size.y * absf(obstacle_scale.y) * 0.5,
-			box_shape.size.z * absf(obstacle_scale.z) * 0.5
+			absf(collision_basis.x.x) * shape_half_size.x
+				+ absf(collision_basis.y.x) * shape_half_size.y
+				+ absf(collision_basis.z.x) * shape_half_size.z,
+			absf(collision_basis.x.y) * shape_half_size.x
+				+ absf(collision_basis.y.y) * shape_half_size.y
+				+ absf(collision_basis.z.y) * shape_half_size.z,
+			absf(collision_basis.x.z) * shape_half_size.x
+				+ absf(collision_basis.y.z) * shape_half_size.y
+				+ absf(collision_basis.z.z) * shape_half_size.z
 		)
 		if (
 			absf(cell_center.x - obstacle_center.x)

@@ -106,7 +106,8 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 0
 mouse_filter = 2
 
-[node name="Caption" type="Label" parent="WavePanel/Margin/Content/Wave"]
+[node name="WaveCaption" type="Label" parent="WavePanel/Margin/Content/Wave"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
 text = "ATAQUE"
@@ -200,8 +201,106 @@ mouse_filter = 2
 [node name="CampHint" type="Label" parent="CampPanel/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Defende-o durante cada ataque."
+text = "F: depositar Scrap ou reparar."
 mouse_filter = 2
+
+[node name="ScrapPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -352.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 116.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Margin" type="MarginContainer" parent="ScrapPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="ScrapPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="ScrapPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "RECURSOS DA EXPEDIÇÃO"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="Values" type="HBoxContainer" parent="ScrapPanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 18
+mouse_filter = 2
+
+[node name="CarriedCaption" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "TRANSPORTADO"
+mouse_filter = 2
+
+[node name="CarriedScrapLabel" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MetricLabel"
+text = "000"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="StoredCaption" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "NA BASE"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="StoredScrapLabel" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MetricLabel"
+text = "000"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="FeedbackPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -230.0
+offset_top = 102.0
+offset_right = 230.0
+offset_bottom = 148.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
+
+[node name="FeedbackLabel" type="Label" parent="FeedbackPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "+25 SCRAP TRANSPORTADO"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="FeedbackTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 2.5
+one_shot = true
 
 [node name="HealthPanel" type="PanelContainer" parent="."]
 layout_mode = 1

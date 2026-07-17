@@ -34,11 +34,21 @@ func take_enemy_damage(amount: float) -> float:
 	return applied_damage
 
 
+func repair(amount: float) -> float:
+	if amount <= 0.0 or _is_destroyed or current_health >= maximum_health:
+		return 0.0
+	var repaired_health := minf(amount, maximum_health - current_health)
+	current_health += repaired_health
+	health_changed.emit(current_health, maximum_health)
+	_update_world_label()
+	return repaired_health
+
+
 func get_attack_target_radius() -> float:
 	return attack_target_radius
 
 
 func _update_world_label() -> void:
-	health_label.text = "CAMP CORE\n%d / %d" % [
+	health_label.text = "CAMP CORE\n%d / %d\n[F] DEPOSITAR / REPARAR" % [
 		roundi(current_health), roundi(maximum_health)
 	]

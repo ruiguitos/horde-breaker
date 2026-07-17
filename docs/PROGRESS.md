@@ -2,9 +2,9 @@
 
 ## Estado atual
 
-Fase: primeiro balanceamento conjunto de vida e dano pós-Milestone 14 concluído.
+Fase: primeiro vertical slice de exploração, Scrap e reparação do Milestone 16 concluído.
 
-Última atualização: 2026-07-17.
+Última atualização: 2026-07-18.
 
 ## Concluído
 
@@ -191,16 +191,27 @@ Fase: primeiro balanceamento conjunto de vida e dano pós-Milestone 14 concluíd
 - [x] Derrota configurada para ocorrer tanto pela morte do jogador como pela destruição do núcleo, com mensagens distintas.
 - [x] Recompensa permanente de 100 Credits transferida da vitória final para a conclusão de cada ciclo de três ataques.
 - [x] Painel de vitória removido da arena e preservado como cena não utilizada para evitar apagar trabalho anterior.
+- [x] Arena expandida de 32 × 32 para 64 × 64 metros através de quatro bairros modulares rodados.
+- [x] Colisões e navegação expandidas até aos novos limites; seis spawns inimigos deslocados para zonas exteriores.
+- [x] Exclusão da navegação corrigida para respeitar as dimensões projetadas dos obstáculos rodados.
+- [x] Colisões das antigas coberturas graybox desativadas e nós preservados; contentores e camião do mapa recebem colisões próprias.
+- [x] Oito caches estáticos de 25 Scrap distribuídos pelas zonas exteriores para incentivar exploração.
+- [x] `CampEconomy` implementado com Scrap transportado e Scrap armazenado apenas durante a partida.
+- [x] Interação `F` permite recolher caches e depositar todo o Scrap transportado no núcleo.
+- [x] Núcleo reparável durante a exploração a 5 pontos de vida por Scrap, até 50 pontos por interação.
+- [x] Preparação inicial de 30 segundos e exploração de 45 segundos entre ataques, ambas com contagem decrescente.
+- [x] HUD atualizado com recursos da expedição e feedback curto para recolha, depósito e reparação.
 
 ## Milestone atual
 
-**Milestone 15 — Survival Foundation (concluído)**
+**Milestone 16 — Camp Resources and Repair (primeiro slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual da distribuição de alvos e dos 500 pontos de vida do núcleo
-com as três classes. Depois, implementar o Milestone 16 com Scrap de sessão e uma
-ação simples de reparação entre ataques, antes de introduzir construção livre.
+Fazer playtest manual dos percursos do mapa, da duração de 30/45 segundos e do
+custo de reparação com as três classes. Depois, implementar um único ponto fixo
+de construção para uma barricada, sem iniciar ainda construção livre. Numa etapa
+visual posterior, substituir os quatro bairros repetidos por POIs maiores e únicos.
 
 ## Validação
 
@@ -325,6 +336,13 @@ ação simples de reparação entre ataques, antes de introduzir construção li
 - Teste integrado confirmou que o núcleo aceita dano real dos zombies, mas não expõe o método usado pelas armas do jogador.
 - Teste integrado confirmou mensagem específica de destruição do núcleo, apresentação do painel de derrota e pausa da árvore.
 - Captura OpenGL a 1152 × 648 confirmou o núcleo legível no mapa e o novo painel de vida sem sobreposição com ataque, ameaças ou retículo.
+- Importação headless após o primeiro slice do Milestone 16 concluída sem erros de parsing ou de recursos.
+- Arena expandida executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou arena de 64 × 64 metros, quatro bairros e malha de navegação com 3344 polígonos.
+- Teste integrado confirmou caminhos dos seis spawns inimigos até ao núcleo e oito caches de Scrap presentes.
+- Teste integrado confirmou recolha de 25 Scrap, depósito, reparação de 50 pontos por 10 Scrap e bloqueio da reparação durante um ataque.
+- Teste integrado confirmou o início do primeiro ataque após a fase de preparação.
+- Captura OpenGL a 1152 × 648 confirmou o centro desimpedido, maior distância visual, contagem de exploração e painéis de Scrap sem sobreposição.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -332,19 +350,20 @@ ação simples de reparação entre ataques, antes de introduzir construção li
 - resolução inicial;
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
-- ritmo, custo e limites da reparação e construção do acampamento no modo survival contínuo.
+- afinação final dos 30/45 segundos, custo e limites da reparação e construção do acampamento no modo survival contínuo.
 
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
-- O núcleo ainda não pode ser reparado ou melhorado e não existem Scrap, fortificações colocáveis ou persistência da base.
+- Os oito caches de Scrap são estáticos e não reaparecem; ainda só existe um recurso, sem loot aleatório ou inventário.
+- O núcleo pode ser reparado, mas ainda não existem melhorias, fortificações colocáveis ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições já existe, mas usa um pickup genérico; tipos de munição, feedback contextual e respawn ainda não existem.
-- As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites físicos totalmente legíveis depois do playtest do mapa.
-- Os modelos ambientais são uma primeira composição modular e ainda não formam edifícios exploráveis.
+- As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
+- Os modelos ambientais repetem o mesmo bairro quatro vezes e ainda não formam edifícios exploráveis ou POIs únicos de grande escala.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.

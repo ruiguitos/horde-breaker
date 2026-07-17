@@ -214,7 +214,7 @@ Objetivo:
 
 ## Milestone 16 — Camp Resources and Repair
 
-Estado: planeado.
+Estado: primeiro vertical slice funcional concluído; fortificação colocável ainda pendente.
 
 Objetivo:
 
@@ -222,3 +222,11 @@ Objetivo:
 - permitir reparar o núcleo entre ataques;
 - apresentar decisões simples de gastar ou guardar recursos;
 - preparar uma primeira fortificação colocável sem iniciar ainda construção livre.
+
+Implementado neste slice:
+
+- mapa de teste expandido para 64 × 64 metros com quatro bairros modulares;
+- oito caches de Scrap, transporte e depósito no núcleo;
+- reparação do núcleo apenas durante fases de exploração;
+- preparação inicial de 30 segundos e exploração de 45 segundos entre ataques;
+- HUD de recursos, contagem decrescente e feedback contextual.

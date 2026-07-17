@@ -14,6 +14,7 @@
 - `SaveManager` persiste progresso, desbloqueios e seleções com `ConfigFile`.
 - `GameManager` centraliza as mudanças entre menu principal, seleção e arena.
 - `WaveManager` controla localmente ataques contínuos, spawns, ciclos e inimigos vivos.
+- `CampEconomy` mantém o Scrap transportado e armazenado durante a partida e emite alterações para o HUD.
 - `CharacterProgression` atribui recompensas à personagem selecionada através do `SaveManager`.
 - `WeaponController` cria os dois slots da classe, ativa apenas uma arma e trata a troca com `1`/`2`.
 
@@ -116,6 +117,8 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - `F` procura o `Area3D` interagível mais próximo dentro de `InteractionArea` e chama o método `interact(player)`.
 - O pickup de teste acrescenta munições à reserva de uma arma de fogo do loadout, mesmo quando a personagem tem uma arma melee ativa.
 - O `WeaponController` tenta primeiro a arma ativa e depois o outro slot; o pickup só desaparece quando alguma reserva recebe pelo menos uma munição.
+- `ScrapPickup` acrescenta 25 unidades ao Scrap transportado e só desaparece após uma recolha válida.
+- A área de interação do `CampCore` deposita primeiro todo o Scrap transportado; sem Scrap transportado, tenta reparar o núcleo durante a exploração.
 
 ## Cena de inimigo provisória
 
@@ -148,34 +151,42 @@ colisão física de deteção de dano. O Runner herda as duas zonas da cena base
 TestArena (Node3D)
   Environment
   DirectionalLight3D
-  CityTestMap
+  CityNorthWest
+  CityNorthEast
+  CitySouthWest
+  CitySouthEast
   Floor
   Walls
   Obstacles
   NavigationRegion3D
   PlayerSpawn
+  CampCore
+  Pickups
   EnemySpawns
   Gameplay
 ```
 
-A arena mede 32 × 32 metros e instancia `city_test_map.tscn`, composto por módulos
-CC0 de estrada, contentores, iluminação, barreiras, uma torre de água e um camião
-blindado do Quaternius Zombie Apocalypse Kit. O piso graybox continua a fornecer
-a colisão, mas a sua malha está oculta.
+A arena mede 64 × 64 metros e instancia quatro cópias rodadas de
+`city_test_map.tscn`. Cada bairro usa módulos CC0 de estrada, contentores,
+iluminação, barreiras, uma torre de água e um camião blindado do Quaternius Zombie
+Apocalypse Kit. O piso graybox continua a fornecer a colisão, mas a sua malha está
+oculta.
 
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
-segurança permanecem temporariamente no limite do piso, assinaladas por pequenas
-barreiras, para impedir que o jogador caia para fora da arena enquanto o mapa não
-possuir limites definitivos.
+segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
+caia para fora da arena enquanto o mapa não possuir limites definitivos. As
+barreiras internas duplicadas dos módulos estão ocultas.
 
-Os contentores e o camião substituem as três caixas visuais anteriores e mantêm
-coberturas estáticas na layer 1 (`World`). Os obstáculos que devem bloquear caminhos pertencem ao grupo
+Os contentores, o camião e a torre de água mantêm coberturas estáticas na layer 1
+(`World`). As três colisões graybox anteriores foram desativadas, mas os nós foram
+preservados. Os obstáculos que devem bloquear caminhos pertencem ao grupo
 `navigation_blocker` e usam um `CollisionShape3D` com `BoxShape3D` chamado
 `Collision`.
 
-`arena_navigation.gd` cria em runtime uma grelha navegável de 1 metro e exclui
-as células ocupadas pelas coberturas, incluindo uma margem de segurança. Esta
-solução mantém o protótipo simples e deverá ser substituída por uma navmesh feita
+`arena_navigation.gd` cria em runtime uma grelha navegável de 1 metro até 31,5
+metros do centro e exclui as células ocupadas pelas coberturas ativas, incluindo
+uma margem de segurança. O cálculo projeta também os volumes rodados de cada
+bairro na grelha. Esta solução mantém o protótipo simples e deverá ser substituída por uma navmesh feita
 no editor quando a geometria deixar de ser composta por caixas alinhadas aos eixos.
 
 `PlayerSpawn` usa `player_spawner.gd` para instanciar a cena indicada pelo
@@ -193,6 +204,9 @@ a usar cápsulas provisórias com materiais distintos.
 - O painel local de game over escuta `died` e `destroyed`, apresenta a causa, liberta o rato e pausa a árvore.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
 - O painel de derrota também permite regressar ao menu através do `GameManager`.
+- `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
+- Existem oito `ScrapPickup` estáticos e sem respawn nas zonas exteriores do mapa.
+- `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
 
 ## Pausa
 
@@ -205,7 +219,8 @@ a usar cápsulas provisórias com materiais distintos.
 
 - O `WaveManager` local lê uma lista tipada de recursos `WaveData` e cria os inimigos nos marcadores da arena.
 - O gestor mantém a contagem de inimigos vivos e recebe o sinal `died` de cada instância.
-- `wave_completed` inicia um intervalo configurável e o índice seguinte reutiliza ciclicamente os três `WaveData` existentes.
+- A partida começa com 30 segundos de exploração e `wave_completed` inicia um intervalo configurável de 45 segundos.
+- Os temporizadores de preparação respeitam a pausa da árvore; terminado o intervalo, o índice seguinte reutiliza ciclicamente os três `WaveData` existentes.
 - Cada ciclo acrescenta dois Normal Zombies a todas as composições e emite `cycle_completed` após o terceiro ataque.
 - `CharacterProgression` atribui 100 Credits em cada `cycle_completed`; já não existe vitória automática após três ataques.
 - O Runner herda a cena do Normal Zombie e altera apenas atributos e material provisório.
@@ -213,10 +228,11 @@ a usar cápsulas provisórias com materiais distintos.
 ## HUD provisório
 
 - O HUD local descobre jogador, núcleo, arma opcional e `WaveManager` através de grupos estáveis.
-- Sinais atualizam vida do jogador, vida do núcleo, munição, ataque e inimigos restantes sem polling por frame.
+- Sinais atualizam vida do jogador, vida do núcleo, munição, ataque, inimigos restantes, contagem da exploração e Scrap sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
 - O HUD mostra a arma ativa, os dois slots e as teclas `1`/`2`.
 - A mira é apresentada com armas de fogo e com a Worn Sword, permitindo apontar ataques melee à cabeça.
+- Um painel de recursos distingue Scrap transportado de Scrap na base e mensagens curtas confirmam recolha, depósito e reparação.
 
 ## Menus e seleção
 
@@ -248,7 +264,10 @@ signal died
 signal enemy_died(enemy: Node)
 signal wave_started(wave_number: int)
 signal wave_completed(wave_number: int)
+signal intermission_started(next_wave: int, duration: float)
+signal preparation_time_changed(seconds_remaining: int)
 signal cycle_completed(cycle_number: int)
+signal scrap_changed(carried_scrap: int, stored_scrap: int)
 signal destroyed
 signal xp_gained(amount: int)
 signal level_up(new_level: int)

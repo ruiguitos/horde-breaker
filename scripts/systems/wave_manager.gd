@@ -4,6 +4,7 @@ signal wave_started(wave_number: int)
 signal enemy_count_changed(remaining_enemies: int)
 signal wave_completed(wave_number: int)
 signal intermission_started(next_wave: int, duration: float)
+signal preparation_time_changed(seconds_remaining: int)
 signal enemy_defeated(xp_reward: int)
 signal all_waves_completed
 signal cycle_completed(cycle_number: int)
@@ -12,7 +13,8 @@ signal cycle_completed(cycle_number: int)
 @export var runner_zombie_scene: PackedScene
 @export var waves: Array[WaveData] = []
 @export_range(0.0, 5.0, 0.05) var spawn_interval: float = 0.2
-@export_range(0.0, 30.0, 0.5) var inter_wave_delay: float = 3.0
+@export_range(0.0, 120.0, 0.5) var initial_preparation_delay: float = 30.0
+@export_range(0.0, 120.0, 0.5) var inter_wave_delay: float = 45.0
 @export_range(0, 50, 1) var normal_zombies_per_cycle: int = 2
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
@@ -22,10 +24,20 @@ var current_wave: int = 0
 var alive_enemy_count: int = 0
 var _is_spawning: bool = false
 var _is_transitioning: bool = false
+var _is_preparing: bool = false
 
 
 func _ready() -> void:
-	call_deferred("_start_next_wave")
+	call_deferred("_start_initial_preparation")
+
+
+func is_preparation_active() -> bool:
+	return _is_preparing
+
+
+func _start_initial_preparation() -> void:
+	await _run_preparation(1, initial_preparation_delay)
+	_start_next_wave()
 
 
 func _start_next_wave() -> void:
@@ -65,7 +77,7 @@ func _start_next_wave() -> void:
 		if not _spawn_enemy(enemy_scenes[enemy_index], spawn_point):
 			_register_failed_spawn()
 		if spawn_interval > 0.0 and enemy_index < enemy_scenes.size() - 1:
-			await get_tree().create_timer(spawn_interval).timeout
+			await get_tree().create_timer(spawn_interval, false).timeout
 
 	_is_spawning = false
 	if alive_enemy_count == 0:
@@ -128,7 +140,18 @@ func _complete_current_wave() -> void:
 	if current_wave % waves.size() == 0:
 		cycle_completed.emit(current_wave / waves.size())
 
-	intermission_started.emit(current_wave + 1, inter_wave_delay)
-	if inter_wave_delay > 0.0:
-		await get_tree().create_timer(inter_wave_delay).timeout
+	await _run_preparation(current_wave + 1, inter_wave_delay)
 	_start_next_wave()
+
+
+func _run_preparation(next_wave: int, duration: float) -> void:
+	_is_preparing = true
+	intermission_started.emit(next_wave, duration)
+	var remaining_time := duration
+	while remaining_time > 0.0:
+		preparation_time_changed.emit(ceili(remaining_time))
+		var wait_duration := minf(remaining_time, 1.0)
+		await get_tree().create_timer(wait_duration, false).timeout
+		remaining_time -= wait_duration
+	preparation_time_changed.emit(0)
+	_is_preparing = false
