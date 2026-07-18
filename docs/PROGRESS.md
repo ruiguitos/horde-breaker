@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 17 concluído com os quatro POIs exploráveis.
+Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disparo automático por proximidade.
 
 Última atualização: 2026-07-18.
 
@@ -237,18 +237,26 @@ Fase: Milestone 17 concluído com os quatro POIs exploráveis.
 - [x] Duas caches de 25 Scrap adicionadas à estação e repostas por ciclo apenas quando recolhidas.
 - [x] `FuelStationEncounter` criado com três Runners, uma ativação por ciclo, 24 XP total e contagem das vagas inalterada.
 - [x] Proposta de mundo aberto compacto por setores documentada em `docs/OPEN_WORLD_PLAN.md`, sem implementar ainda streaming.
+- [x] Ataques agendados com aviso longo escolhidos para exploração distante; implementação do aviso permanece pendente.
+- [x] Normal Zombie e Runner registados no grupo `enemy` para aquisição estável de alvo.
+- [x] Assault Rifle, Pistol e Shotgun configuradas para disparar automaticamente contra o inimigo visível mais próximo até 3 metros.
+- [x] Disparo manual preservado durante o protótipo e Worn Sword mantida fora do sistema automático.
+- [x] `east_sector.tscn` criado como segundo setor graybox de 64 × 64 metros, ligado à fronteira leste.
+- [x] `WorldStreamer` criado com carregamento em `x = 18`, descarregamento em `x = 8` e uma única instância do setor.
+- [x] Jogador, acampamento e sistemas globais mantidos fora de `LoadedSectors` durante a transição.
+- [x] Segunda região de navegação alinhada com o setor persistente através da fronteira em `x = 32`.
+- [x] Farol de reconhecimento adicionado como primeiro objetivo do setor, com estado preservado em memória após recarregar.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (concluído)**
+**Milestone 18 — Compact Open World Prototype (primeiro slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual da estação de combustível com Recruit, Renegade e Medic,
-confirmando a entrada sob a cobertura, o combate contra três Runners e a recolha
-das duas caches. Em seguida, decidir como os ataques funcionam quando o jogador
-está longe do acampamento e aprovar ou rejeitar o protótipo de dois setores do
-Milestone 18.
+Fazer playtest manual com Recruit, Renegade e Medic, atravessando a saída leste,
+ativando o farol e regressando ao acampamento. Confirmar também se 3 metros dão
+tempo de reação suficiente ao disparo automático e se o ataque manual deve
+permanecer. Em seguida, extrair o mapa inicial para uma cena de setor própria.
 
 ## Validação
 
@@ -420,6 +428,14 @@ Milestone 18.
 - Teste integrado confirmou 3522 polígonos navegáveis, percurso de 26 pontos do acampamento ao interior e os quatro acessos preservados.
 - Teste integrado confirmou três Runners, 24 XP total, `alive_enemy_count` inalterado em zero e reposição seletiva das duas caches sem duplicação.
 - Capturas OpenGL a 1152 × 648 confirmaram a loja aberta, iluminação quente, duas caches legíveis e Runners separados na zona das bombas.
+- Importação headless do primeiro slice do Milestone 18 concluída sem erros de parsing ou recursos.
+- Menu principal e arena do primeiro slice executados durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou ausência de disparo a 4 metros e através de uma parede, seguida de dano automático real a 2,5 metros.
+- Teste integrado confirmou configuração comum na Pistol e Shotgun, herança do grupo `enemy` no Runner e exclusão da Worn Sword.
+- Teste integrado confirmou duas regiões de navegação e um percurso contínuo de 33 pontos até ao farol do setor leste.
+- Teste integrado confirmou carregamento, descarregamento e novo carregamento com uma única instância do setor.
+- Teste integrado confirmou preservação das instâncias do jogador e do acampamento e do estado ativado do farol.
+- Capturas OpenGL a 1152 × 648 confirmaram os dois setores alinhados, estrada contínua e farol visualmente destacado no graybox leste.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -428,8 +444,8 @@ Milestone 18.
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
 - afinação final dos 30/45 segundos, custo de 30 Scrap, 200 pontos de vida e limites da reparação/construção no modo survival contínuo.
-- regra dos ataques quando o jogador está longe do acampamento num mapa aberto.
-- aprovação do protótipo de mundo aberto com setores e tamanho inicial de 256 × 256 metros.
+- alcance final do disparo automático entre 2 e 3 metros e permanência do controlo manual.
+- aprovação da expansão do protótipo de dois setores para 16 setores e 256 × 256 metros.
 
 ## Problemas conhecidos
 
@@ -446,7 +462,10 @@ Milestone 18.
 - O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
 - As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
 - As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
-- O mapa continua a ser uma única cena de 64 × 64 metros totalmente carregada; a divisão por setores está apenas documentada e não existe streaming.
+- O setor persistente ainda faz parte de `test_arena.tscn`; apenas o setor leste está isolado numa cena própria.
+- O setor leste usa um `PackedScene` pré-carregado; background loading e medição de pausas maiores ainda não estão implementados.
+- Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
+- O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.

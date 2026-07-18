@@ -2,8 +2,9 @@
 
 ## Estado da decisão
 
-Proposta técnica e de design criada em 2026-07-18. Ainda não altera o formato do
-jogo nem autoriza a expansão imediata do mapa.
+Proposta técnica e de design aprovada em 2026-07-18. O primeiro slice da Fase 2
+está implementado com um setor leste graybox; a expansão para 16 setores continua
+dependente dos resultados deste protótipo.
 
 ## Conclusão curta
 
@@ -48,8 +49,9 @@ escolher uma destas regras:
 3. **Acampamento atacável à distância:** mantém o tempo contínuo, mas exige mapa,
    alertas, defesas autónomas e uma forma justa de regressar rapidamente.
 
-A primeira opção preserva melhor a sensação de mundo contínuo e mantém o jogador
-responsável pela preparação da base sem o punir com ataques impossíveis de alcançar.
+A primeira opção foi escolhida. Preserva melhor a sensação de mundo contínuo e
+mantém o jogador responsável pela preparação da base sem o punir com ataques
+impossíveis de alcançar. O aviso longo ainda não está implementado.
 
 ## Arquitetura proposta
 
@@ -83,6 +85,10 @@ OpenWorldRoot
 - A instanciação e remoção dos nós continuam a ocorrer na thread principal.
 - O protótipo deve começar com apenas dois setores vizinhos antes de avançar para
   uma grelha 4 × 4.
+
+O primeiro slice usa temporariamente um `PackedScene` já carregado porque o setor
+graybox é pequeno. Esta simplificação permite validar a transição e o estado antes
+de introduzir carregamento em background.
 
 Referência: [Background loading — Godot](https://docs.godotengine.org/en/stable/tutorials/io/background_loading.html).
 
@@ -139,10 +145,10 @@ e desempenho. Referências: [Large world coordinates](https://docs.godotengine.o
 
 ### Fase 2 — protótipo de dois setores
 
-- transformar o mapa atual no setor inicial;
-- criar um segundo setor graybox ligado por uma estrada;
-- manter jogador e acampamento ao carregar e descarregar o segundo setor;
-- provar uma transição sem pausa e sem duplicação de estado.
+- [ ] extrair o mapa atual para uma cena de setor inicial independente;
+- [x] criar um segundo setor graybox ligado por uma estrada;
+- [x] manter jogador e acampamento ao carregar e descarregar o segundo setor;
+- [ ] medir a pausa da transição e adotar background loading; a ausência de duplicação e o estado do farol já foram validados.
 
 ### Fase 3 — mundo compacto 4 × 4
 
@@ -164,9 +170,9 @@ O protótipo de mundo aberto só deve começar quando:
 
 - [x] os quatro POIs atuais forem jogáveis;
 - o posto militar e o hospital tiverem sido testados com as três classes;
-- existir uma decisão sobre ataques enquanto o jogador está longe;
+- [x] existir uma decisão sobre ataques enquanto o jogador está longe;
 - a arena atual mantiver desempenho estável com as hordas previstas;
-- estiver definido o primeiro objetivo de uma expedição além de recolher Scrap.
+- [x] estiver definido o primeiro objetivo de uma expedição além de recolher Scrap.
 
 ## Riscos conhecidos
 
@@ -179,7 +185,7 @@ O protótipo de mundo aberto só deve começar quando:
 
 ## Recomendação atual
 
-Com o Milestone 17 concluído no mapa de 64 × 64 metros, decidir primeiro a regra
-dos ataques quando o jogador está longe. Depois, criar apenas um segundo setor
-graybox. Se a transição, navegação e persistência de sessão forem fiáveis,
-avançar para o mundo compacto de 256 × 256 metros.
+Validar manualmente o setor leste, o farol e o disparo automático com as três
+classes. Depois, extrair o setor inicial e substituir o carregamento síncrono por
+background loading. Só se esta transição continuar fiável deve o mapa avançar
+para os 16 setores do protótipo de 256 × 256 metros.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -20,6 +20,8 @@
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
 [ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
 [ext_resource type="PackedScene" path="res://scenes/world/exploration_pois.tscn" id="20_exploration_pois"]
+[ext_resource type="Script" path="res://scripts/systems/world_streamer.gd" id="21_world_streamer"]
+[ext_resource type="PackedScene" path="res://scenes/world/sectors/east_sector.tscn" id="22_east_sector"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -83,7 +85,7 @@ shadow_enabled = true
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." groups=["arena_navigation"]]
 script = ExtResource("2_navigation_script")
-navigation_half_extent = 31.5
+navigation_half_extent = 32.0
 
 [node name="RoadNorthWest" parent="." instance=ExtResource("16_city_roads")]
 position = Vector3(-16, 0, -16)
@@ -101,6 +103,10 @@ position = Vector3(16, 0, 16)
 rotation = Vector3(0, 3.14159, 0)
 
 [node name="ExplorationPOIs" parent="." instance=ExtResource("20_exploration_pois")]
+
+[node name="LoadedSectors" type="Node3D" parent="." groups=["world_streamer"]]
+script = ExtResource("21_world_streamer")
+east_sector_scene = ExtResource("22_east_sector")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
@@ -144,6 +150,7 @@ mesh = SubResource("Mesh_wall")
 
 [node name="Collision" type="CollisionShape3D" parent="Walls/EastWall"]
 shape = SubResource("Shape_wall")
+disabled = true
 
 [node name="WestWall" type="StaticBody3D" parent="Walls"]
 position = Vector3(-32.5, 2, 0)

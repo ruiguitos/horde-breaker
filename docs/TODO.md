@@ -13,7 +13,9 @@
 - [x] Abrir o hospital como segundo interior explorável e adicionar um medkit de 40 pontos reposto por ciclo.
 - [x] Abrir o posto militar com duas caixas de munições e um encontro de dois Normal Zombies mais um Runner.
 - [x] Abrir a estação de combustível com duas caches de Scrap e um encontro de três Runners por ciclo.
-- [ ] Decidir como funcionam os ataques quando o jogador está longe e aprovar o protótipo de mundo aberto por setores descrito em `docs/OPEN_WORLD_PLAN.md`.
+- [x] Escolher ataques agendados com aviso longo e aprovar o protótipo de dois setores descrito em `docs/OPEN_WORLD_PLAN.md`.
+- [x] Criar o primeiro setor leste carregável, com navegação ligada e estado do farol preservado em memória.
+- [ ] Extrair o setor inicial, implementar carregamento em background e preservar loot e encontros locais.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.
@@ -21,6 +23,8 @@
 - [x] Criar a primeira composição urbana com modelos ambientais CC0 e remover as paredes graybox visíveis.
 - [x] Implementar dano por zonas com corpo a `1 ×` e cabeça a `2 ×` para armas de fogo e armas brancas.
 - [x] Adicionar números de dano pequenos, com cor distinta para impacto no corpo e headshot.
+- [x] Adicionar disparo automático das armas de fogo contra inimigos com linha de visão até 3 metros.
+- [ ] Afinar entre 2 e 3 metros e decidir se o disparo manual permanece depois do playtest das três classes.
 - [ ] Adicionar feedback visual no próprio inimigo e feedback sonoro distinto para impacto no corpo e headshot.
 - [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração.
 - [ ] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.

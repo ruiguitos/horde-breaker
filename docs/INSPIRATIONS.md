@@ -1,6 +1,6 @@
 # Horde Breaker — Referências e ideias
 
-Pesquisa realizada em 2026-07-17. Estas referências servem para identificar
+Pesquisa iniciada em 2026-07-17 e atualizada em 2026-07-18. Estas referências servem para identificar
 padrões de design; não autorizam copiar assets, código ou conteúdo protegido.
 
 ## Jogos próximos
@@ -68,12 +68,14 @@ Ideias úteis:
 Combina personagens, armas, habilidades, árvore permanente e objetivos de
 progressão num formato centrado em hordas de zombies.
 
-Fonte: [página oficial na Steam](https://store.steampowered.com/app/2163330/Yet_Another_Zombie_Survivors/).
+Fontes: [página oficial na Steam](https://store.steampowered.com/app/2163330/Yet_Another_Zombie_Survivors/)
+e [descrição oficial](https://yetanotherzombie.wiki.gg/wiki/Yet_Another_Zombie_Survivors).
 
 Ideias úteis:
 
 - objetivos de mastery por personagem;
 - evolução de armas após cumprir condições claras;
+- autoapontar e disparar para reduzir a carga de controlo, preservando provisoriamente uma opção manual;
 - modos ou modificadores adicionais apenas depois do core loop estar afinado.
 
 ## Ideias recomendadas para Horde Breaker

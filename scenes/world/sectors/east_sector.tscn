@@ -1,0 +1,205 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="1_city_roads"]
+[ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation"]
+[ext_resource type="Script" path="res://scripts/systems/sector_beacon.gd" id="3_beacon"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="4_container"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="5_barrier"]
+
+[sub_resource type="StandardMaterial3D" id="Material_sector"]
+albedo_color = Color(0.24, 0.27, 0.3, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+material = SubResource("Material_sector")
+size = Vector3(64, 1, 64)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(64, 1, 64)
+
+[sub_resource type="BoxMesh" id="Mesh_wall"]
+material = SubResource("Material_sector")
+size = Vector3(65, 4, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall"]
+size = Vector3(65, 4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_landmark"]
+albedo_color = Color(0.55, 0.24, 0.08, 1)
+roughness = 0.82
+
+[sub_resource type="BoxMesh" id="Mesh_landmark"]
+material = SubResource("Material_landmark")
+size = Vector3(12, 5, 10)
+
+[sub_resource type="BoxShape3D" id="Shape_landmark"]
+size = Vector3(12, 5, 10)
+
+[sub_resource type="BoxMesh" id="Mesh_outbuilding"]
+material = SubResource("Material_landmark")
+size = Vector3(8, 3.5, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_outbuilding"]
+size = Vector3(8, 3.5, 8)
+
+[sub_resource type="StandardMaterial3D" id="Material_beacon"]
+albedo_color = Color(0.85, 0.3, 0.06, 1)
+emission_enabled = true
+emission = Color(0.45, 0.08, 0.01, 1)
+emission_energy_multiplier = 1.5
+metallic = 0.5
+roughness = 0.4
+
+[sub_resource type="CylinderMesh" id="Mesh_beacon"]
+material = SubResource("Material_beacon")
+top_radius = 0.32
+bottom_radius = 0.55
+height = 3.5
+
+[sub_resource type="SphereShape3D" id="Shape_beacon_trigger"]
+radius = 2.2
+
+[node name="EastSector" type="Node3D" groups=["world_sector"]]
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+script = ExtResource("2_navigation")
+navigation_half_extent = 32.0
+
+[node name="RoadNorthWest" parent="." instance=ExtResource("1_city_roads")]
+position = Vector3(-16, 0, -16)
+
+[node name="RoadNorthEast" parent="." instance=ExtResource("1_city_roads")]
+position = Vector3(16, 0, -16)
+rotation = Vector3(0, -1.5708, 0)
+
+[node name="RoadSouthWest" parent="." instance=ExtResource("1_city_roads")]
+position = Vector3(-16, 0, 16)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="RoadSouthEast" parent="." instance=ExtResource("1_city_roads")]
+position = Vector3(16, 0, 16)
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+visible = false
+mesh = SubResource("Mesh_floor")
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("Shape_floor")
+
+[node name="Boundaries" type="Node3D" parent="."]
+
+[node name="NorthWall" type="StaticBody3D" parent="Boundaries"]
+position = Vector3(0, 2, -32.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Boundaries/NorthWall"]
+visible = false
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Boundaries/NorthWall"]
+shape = SubResource("Shape_wall")
+
+[node name="SouthWall" type="StaticBody3D" parent="Boundaries"]
+position = Vector3(0, 2, 32.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Boundaries/SouthWall"]
+visible = false
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Boundaries/SouthWall"]
+shape = SubResource("Shape_wall")
+
+[node name="EastWall" type="StaticBody3D" parent="Boundaries"]
+position = Vector3(32.5, 2, 0)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Boundaries/EastWall"]
+visible = false
+mesh = SubResource("Mesh_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Boundaries/EastWall"]
+shape = SubResource("Shape_wall")
+
+[node name="Landmarks" type="Node3D" parent="."]
+
+[node name="Depot" type="StaticBody3D" parent="Landmarks" groups=["navigation_blocker"]]
+position = Vector3(14, 2.5, 10)
+
+[node name="Mesh" type="MeshInstance3D" parent="Landmarks/Depot"]
+mesh = SubResource("Mesh_landmark")
+
+[node name="Collision" type="CollisionShape3D" parent="Landmarks/Depot"]
+shape = SubResource("Shape_landmark")
+
+[node name="Outbuilding" type="StaticBody3D" parent="Landmarks" groups=["navigation_blocker"]]
+position = Vector3(-10, 1.75, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Landmarks/Outbuilding"]
+mesh = SubResource("Mesh_outbuilding")
+
+[node name="Collision" type="CollisionShape3D" parent="Landmarks/Outbuilding"]
+shape = SubResource("Shape_outbuilding")
+
+[node name="ContainerNorth" parent="Landmarks" instance=ExtResource("4_container")]
+position = Vector3(7, 0, -17)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="ContainerSouth" parent="Landmarks" instance=ExtResource("4_container")]
+position = Vector3(20, 0, 18)
+
+[node name="EntryBarrierNorth" parent="Landmarks" instance=ExtResource("5_barrier")]
+position = Vector3(-27, 0, -3)
+
+[node name="EntryBarrierSouth" parent="Landmarks" instance=ExtResource("5_barrier")]
+position = Vector3(-27, 0, 3)
+
+[node name="ExpeditionBeacon" type="Area3D" parent="." groups=["sector_objective"]]
+unique_name_in_owner = true
+position = Vector3(14, 0, -8)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("3_beacon")
+
+[node name="Visual" type="MeshInstance3D" parent="ExpeditionBeacon"]
+position = Vector3(0, 1.75, 0)
+mesh = SubResource("Mesh_beacon")
+
+[node name="BeaconLight" type="OmniLight3D" parent="ExpeditionBeacon"]
+unique_name_in_owner = true
+position = Vector3(0, 3.7, 0)
+light_color = Color(1, 0.42, 0.12, 1)
+light_energy = 4.0
+omni_range = 9.0
+shadow_enabled = true
+
+[node name="StatusLabel" type="Label3D" parent="ExpeditionBeacon"]
+unique_name_in_owner = true
+position = Vector3(0, 4.8, 0)
+modulate = Color(1, 0.72, 0.2, 1)
+outline_modulate = Color(0.05, 0.02, 0.01, 1)
+text = "FAROL DE RECONHECIMENTO"
+font_size = 28
+outline_size = 9
+billboard = 1
+no_depth_test = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ExpeditionBeacon"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("Shape_beacon_trigger")
+
+[node name="SectorLabel" type="Label3D" parent="."]
+position = Vector3(-24, 4.5, 0)
+modulate = Color(0.95, 0.55, 0.2, 1)
+outline_modulate = Color(0.04, 0.02, 0.01, 1)
+text = "SETOR LESTE  •  PROTÓTIPO"
+font_size = 30
+outline_size = 10
+billboard = 1
+no_depth_test = true
+
+[node name="EntryPoint" type="Marker3D" parent="." groups=["sector_entry_point"]]
+position = Vector3(-28, 0, 0)

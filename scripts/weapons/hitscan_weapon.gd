@@ -7,6 +7,9 @@ signal ammunition_changed(
 signal reload_started(duration: float)
 
 const HIT_COLLISION_MASK: int = (1 << 0) | (1 << 2)
+const WORLD_COLLISION_MASK := 1 << 0
+const ENEMY_GROUP := &"enemy"
+const PLAYER_GROUP := &"player"
 const MUZZLE_FLASH_DURATION := 0.05
 const TRACER_DURATION := 0.06
 const TRACER_THICKNESS := 0.025
@@ -23,6 +26,8 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @export_range(1, 20, 1) var pellet_count: int = 1
 @export_range(0.0, 20.0, 0.5) var spread_degrees: float = 0.0
 @export var automatic_fire: bool = true
+@export var proximity_auto_fire_enabled: bool = true
+@export_range(1.0, 10.0, 0.25) var proximity_auto_fire_range: float = 3.0
 @export var weapon_id: StringName = &"assault_rifle"
 @export var display_name: String = "Assault Rifle"
 
@@ -36,9 +41,11 @@ var reserve_ammunition: int
 var _cooldown_remaining: float = 0.0
 var _reload_duration_multiplier: float = 1.0
 var _tracer_material: StandardMaterial3D
+var _player_body: Node3D
 
 
 func _ready() -> void:
+	_player_body = _find_player_body()
 	muzzle_flash_timer.timeout.connect(_hide_muzzle_flash)
 	reload_timer.timeout.connect(_finish_reload)
 	reload_timer.wait_time = _get_effective_reload_duration()
@@ -54,7 +61,6 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
-	_update_weapon_aim()
 	if Input.is_action_pressed("reload"):
 		_start_reload()
 	var attack_requested := (
@@ -62,17 +68,34 @@ func _physics_process(delta: float) -> void:
 		if automatic_fire
 		else Input.is_action_just_pressed("attack")
 	)
-	if (
+	var manual_attack_allowed := (
 		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and not Input.is_action_pressed("camera_front")
 		and attack_requested
+	)
+	var proximity_target: Node3D
+	var proximity_aim_position := Vector3.ZERO
+	if not manual_attack_allowed:
+		proximity_target = _get_nearest_proximity_target()
+	if proximity_target != null:
+		proximity_aim_position = _get_target_aim_position(proximity_target)
+		_aim_weapon_at(proximity_aim_position)
+		if not _has_clear_path_to(proximity_aim_position):
+			proximity_target = null
+	else:
+		_update_weapon_aim()
+	if (
+		(proximity_target != null or manual_attack_allowed)
 		and _cooldown_remaining <= 0.0
 		and reload_timer.is_stopped()
 	):
 		if current_ammunition <= 0:
 			_start_reload()
 			return
-		_fire()
+		if proximity_target != null:
+			_fire_at(proximity_aim_position)
+		else:
+			_fire()
 		current_ammunition -= 1
 		_emit_ammunition_changed()
 		_cooldown_remaining = 1.0 / fire_rate
@@ -106,6 +129,10 @@ func _fire() -> void:
 
 	var aim_position := _get_camera_aim_position(camera)
 	_aim_weapon_at(aim_position)
+	_fire_at(aim_position)
+
+
+func _fire_at(aim_position: Vector3) -> void:
 	var ray_origin := muzzle.global_position
 	var base_direction := ray_origin.direction_to(aim_position)
 	if base_direction == Vector3.ZERO:
@@ -150,6 +177,14 @@ func _fire() -> void:
 	muzzle_flash.visible = true
 	muzzle_flash_timer.start(MUZZLE_FLASH_DURATION)
 	shot_fired.emit(reported_hit_position, reported_hit_collider)
+
+
+func get_proximity_auto_fire_range() -> float:
+	return proximity_auto_fire_range
+
+
+func get_proximity_target() -> Node3D:
+	return _get_nearest_proximity_target()
 
 
 func set_reload_duration_multiplier(multiplier: float) -> void:
@@ -261,6 +296,61 @@ func _get_pellet_direction(base_direction: Vector3, pellet_index: int) -> Vector
 		+ spread_basis.x * cos(angle) * spread_radius
 		+ spread_basis.y * sin(angle) * spread_radius
 	).normalized()
+
+
+func _get_nearest_proximity_target() -> Node3D:
+	if not proximity_auto_fire_enabled or not is_instance_valid(_player_body):
+		return null
+	var nearest_target: Node3D
+	var nearest_distance_squared := proximity_auto_fire_range * proximity_auto_fire_range
+	for enemy_value in get_tree().get_nodes_in_group(ENEMY_GROUP):
+		var enemy := enemy_value as Node3D
+		if (
+			enemy == null
+			or not is_instance_valid(enemy)
+			or enemy.is_queued_for_deletion()
+			or not enemy.has_method(&"take_damage")
+		):
+			continue
+		var distance_squared := _player_body.global_position.distance_squared_to(
+			enemy.global_position
+		)
+		if distance_squared > nearest_distance_squared:
+			continue
+		var aim_position := _get_target_aim_position(enemy)
+		if not _has_clear_path_to(aim_position):
+			continue
+		nearest_target = enemy
+		nearest_distance_squared = distance_squared
+	return nearest_target
+
+
+func _get_target_aim_position(target: Node3D) -> Vector3:
+	var body_hitbox := target.get_node_or_null("BodyHitbox") as Node3D
+	if body_hitbox != null:
+		return body_hitbox.global_position
+	return target.global_position + Vector3.UP * 0.4
+
+
+func _has_clear_path_to(target_position: Vector3) -> bool:
+	var sight_origin := muzzle.global_position
+	if is_instance_valid(_player_body):
+		sight_origin = _player_body.global_position + Vector3.UP * 0.4
+	var query := PhysicsRayQueryParameters3D.create(
+		sight_origin, target_position, WORLD_COLLISION_MASK
+	)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
+
+
+func _find_player_body() -> Node3D:
+	var ancestor := get_parent()
+	while ancestor != null:
+		if ancestor is Node3D and ancestor.is_in_group(PLAYER_GROUP):
+			return ancestor as Node3D
+		ancestor = ancestor.get_parent()
+	return null
 
 
 func _update_weapon_aim() -> void:

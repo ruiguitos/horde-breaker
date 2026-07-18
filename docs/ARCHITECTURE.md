@@ -101,6 +101,9 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - Assault Rifle, Pistol e Shotgun começam respetivamente com reservas de 90, 48 e 32 munições.
 - A Pistol reutiliza o hitscan, mas dispara apenas uma vez por clique e usa um carregador de 12 munições.
 - A Shotgun dispara oito raycasts com dispersão, consome uma munição por ataque e é semiautomática.
+- As três armas de fogo procuram em `enemy` o alvo mais próximo até 3 metros e disparam automaticamente apenas quando existe linha de visão; ataque manual, cadência e munição continuam ativos.
+- Um pedido manual de ataque tem prioridade sobre o alvo automático, mantendo a mira da câmara e a possibilidade de headshot deliberado.
+- A Worn Sword não participa nesta aquisição automática e mantém `MeleeWeapon` como sistema separado.
 - O `WeaponController` instancia o loadout indicado por `CharacterData`, desativa a arma guardada e troca os slots através de `weapon_primary` e `weapon_secondary`.
 - O multiplicador de recarga da classe é aplicado a todas as armas de fogo criadas pelo controlador.
 - `ShoulderOffset` desloca a câmara 0,9 m para a direita para o jogador não tapar a mira; o raycast continua a partir do centro ótico da câmara.
@@ -229,9 +232,21 @@ uma margem de segurança. O cálculo projeta também os volumes rodados de cada
 bairro na grelha. Esta solução mantém o protótipo simples e deverá ser substituída por uma navmesh feita
 no editor quando a geometria deixar de ser composta por caixas alinhadas aos eixos.
 
-Esta grelha global fica limitada ao mapa atual. A proposta de mundo aberto em
-`docs/OPEN_WORLD_PLAN.md` substitui-a por uma `NavigationRegion3D` por setor e
-carregamento assíncrono de cenas; nenhum streaming foi implementado neste milestone.
+O setor persistente usa uma extensão de 32 metros e o protótipo leste possui uma
+segunda `NavigationRegion3D` com a mesma dimensão. As margens coincidem em `x = 32`,
+permitindo ao mapa de navegação combinar as duas regiões enquanto ambas estão
+carregadas.
+
+`LoadedSectors` usa `WorldStreamer` para instanciar `east_sector.tscn` em
+`(64, 0, 0)` quando o jogador ultrapassa `x = 18` e removê-lo depois de regressar
+a `x = 8`. O jogador, o acampamento, `WaveManager`, `CampEconomy` e a progressão
+permanecem fora deste contentor. A diferença entre os dois limites impede
+carregamentos repetidos junto à fronteira.
+
+O setor leste contém um `ExpeditionBeacon`. `WorldStreamer` guarda em memória o
+estado ativado e volta a aplicá-lo quando a cena é criada novamente. Este primeiro
+slice usa um `PackedScene` já carregado; carregamento assíncrono, estado de loot e
+estado de encontros continuam pendentes.
 
 `FortificationSite` também pertence a `navigation_blocker`, mas começa com a
 colisão desativada. Construir ou destruir a barricada volta a gerar a grelha para

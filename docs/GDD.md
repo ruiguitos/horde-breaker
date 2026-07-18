@@ -136,6 +136,14 @@ Valores provisórios após o primeiro balanceamento conjunto de vida e dano:
 | Shotgun | 12 por pellet | 24 por pellet | Oito pellets; máximo teórico de 96 no corpo. |
 | Worn Sword | 50 | 100 | Pode atingir vários inimigos no mesmo golpe. |
 
+### Disparo automático por proximidade
+
+- Assault Rifle, Pistol e Shotgun procuram o inimigo mais próximo até 3 metros.
+- O disparo automático só acontece com linha de visão e continua a respeitar munição, recarga, cadência, dispersão e dano por zonas.
+- O automático aponta ao corpo; premir o ataque dá prioridade à mira manual e permite procurar headshots.
+- O disparo manual permanece disponível durante o protótipo para permitir comparar os dois estilos em playtest.
+- A Worn Sword mantém ataque manual e o seu volume corpo a corpo próprio.
+
 ## Progressão
 
 ### Character XP
@@ -192,7 +200,7 @@ Moeda temporária da expedição. O protótipo atual separa:
 Existem provisoriamente onze caches de 25 Scrap em simultâneo: oito são estáticos
 no exterior, um pertence ao armazém e dois pertencem à estação de combustível.
 As três caches interiores são repostas após cada ciclo de três ataques apenas se
-tiverem sido recolhidos. `F` recolhe uma cache próxima e, junto do núcleo, deposita
+tiverem sido recolhidas. `F` recolhe uma cache próxima e, junto do núcleo, deposita
 todo o Scrap transportado.
 
 Durante uma fase de exploração, `F` junto do núcleo também permite reparar até
@@ -287,6 +295,10 @@ devem ser ajustados após playtests. Antes do primeiro ataque existem 30 segundo
 de exploração; entre ataques existem provisoriamente 45 segundos para explorar,
 recolher recursos e reparar o núcleo.
 
+Para o futuro mapa aberto foi escolhida a regra de ataques agendados com aviso
+longo e tempo para regressar ao acampamento. Os temporizadores atuais permanecem
+inalterados até existir um sistema de aviso próprio.
+
 ## Exploração provisória
 
 - O mapa de teste mede 64 × 64 metros e usa uma grelha modular de estradas.
@@ -307,9 +319,12 @@ recolher recursos e reparar o núcleo.
 - As duas caches da estação reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar loot ainda presente.
 - O tamanho final do mapa e a distribuição de futuros POIs ficam para etapas posteriores.
 
-Uma evolução para mundo aberto compacto está em análise. A proposta em
-`docs/OPEN_WORLD_PLAN.md` usa setores de 64 × 64 metros, mantém o acampamento como
-âncora e exige rever a frequência dos ataques antes de aumentar o mapa.
+O primeiro protótipo de mundo aberto compacto acrescenta um setor leste graybox
+de 64 × 64 metros. Este setor é carregado ao aproximar-se da fronteira e removido
+depois do regresso ao acampamento, enquanto jogador, base e sistemas globais
+permanecem na cena. Um farol de reconhecimento funciona como primeiro objetivo
+de expedição e mantém o estado ativado durante a sessão mesmo após recarregar o
+setor.
 
 ## Direção visual
 

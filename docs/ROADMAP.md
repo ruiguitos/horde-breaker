@@ -267,12 +267,10 @@ Pendente:
 
 - validar o hospital, o posto militar e os respetivos pickups com as três classes;
 - validar a estação de combustível e o respetivo encontro com as três classes;
-- decidir a regra dos ataques quando o jogador está longe do acampamento;
-- aprovar ou rejeitar a proposta de setores em `docs/OPEN_WORLD_PLAN.md`.
 
 ## Milestone 18 — Compact Open World Prototype
 
-Estado: proposto, não iniciado.
+Estado: primeiro vertical slice funcional concluído.
 
 Objetivo:
 
@@ -282,5 +280,20 @@ Objetivo:
 - usar uma região de navegação por setor;
 - guardar em memória o estado de loot e encontros do setor descarregado.
 
-Este milestone só começa depois de concluir o Milestone 17 e decidir como funcionam
-os ataques enquanto o jogador explora longe do acampamento.
+Implementado neste slice:
+
+- ataques agendados com aviso longo escolhidos como regra para exploração distante, sem alterar ainda os temporizadores;
+- segundo setor graybox de 64 × 64 metros ligado a leste;
+- `WorldStreamer` com limites distintos para carregar e descarregar sem duplicar a cena;
+- jogador, acampamento e sistemas da partida preservados durante a transição;
+- uma região de navegação por setor, com caminho contínuo através da fronteira;
+- farol de reconhecimento como primeiro objetivo e estado preservado em memória;
+- disparo automático das armas de fogo contra o alvo mais próximo até 3 metros, com linha de visão.
+
+Pendente:
+
+- extrair o mapa inicial para uma cena de setor independente;
+- trocar o `PackedScene` pré-carregado por carregamento em background;
+- preservar loot, encontros e inimigos locais ao descarregar;
+- implementar o aviso longo e o calendário dos ataques ao acampamento;
+- validar transição, farol e disparo automático com Recruit, Renegade e Medic.
