@@ -1,10 +1,12 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=45 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/vehicles/Vehicle_Truck_Armored.gltf" id="3_armored_truck"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf" id="4_water_tower"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="5_traffic_barrier"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="6_scrap_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="7_ammo_pickup"]
 
 [sub_resource type="StandardMaterial3D" id="Material_hospital"]
 albedo_color = Color(0.72, 0.76, 0.78, 1)
@@ -66,16 +68,49 @@ size = Vector3(0.48, 2.4, 0.24)
 material = SubResource("Material_hospital_accent")
 size = Vector3(5, 0.32, 1.5)
 
-[sub_resource type="BoxMesh" id="Mesh_warehouse"]
+[sub_resource type="BoxMesh" id="Mesh_warehouse_back"]
 material = SubResource("Material_warehouse")
-size = Vector3(11, 5.5, 8)
+size = Vector3(11, 5.5, 0.4)
 
-[sub_resource type="BoxShape3D" id="Shape_warehouse"]
-size = Vector3(11, 5.5, 8)
+[sub_resource type="BoxShape3D" id="Shape_warehouse_back"]
+size = Vector3(11, 5.5, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_side"]
+material = SubResource("Material_warehouse")
+size = Vector3(0.4, 5.5, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_warehouse_side"]
+size = Vector3(0.4, 5.5, 8)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_front"]
+material = SubResource("Material_warehouse")
+size = Vector3(3, 5.5, 0.4)
+
+[sub_resource type="BoxShape3D" id="Shape_warehouse_front"]
+size = Vector3(3, 5.5, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_roof"]
+material = SubResource("Material_warehouse")
+size = Vector3(11, 0.4, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_warehouse_roof"]
+size = Vector3(11, 0.4, 8)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_floor"]
+material = SubResource("Material_warehouse")
+size = Vector3(10.6, 0.08, 7.6)
 
 [sub_resource type="BoxMesh" id="Mesh_warehouse_door"]
 material = SubResource("Material_warehouse_door")
-size = Vector3(5.5, 3.2, 0.18)
+size = Vector3(5.5, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_shelf_horizontal"]
+material = SubResource("Material_warehouse_door")
+size = Vector3(5, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_warehouse_shelf_vertical"]
+material = SubResource("Material_warehouse_door")
+size = Vector3(0.12, 2.4, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_military"]
 material = SubResource("Material_military")
@@ -161,18 +196,106 @@ position = Vector3(0, 0, 5.5)
 [node name="WarehousePOI" type="Node3D" parent="." groups=["point_of_interest"]]
 position = Vector3(19, 0, -17)
 
-[node name="Building" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
-position = Vector3(0, 2.75, 0)
+[node name="BackWall" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
+position = Vector3(0, 2.75, -3.8)
 
-[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/Building"]
-mesh = SubResource("Mesh_warehouse")
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/BackWall"]
+mesh = SubResource("Mesh_warehouse_back")
 
-[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/Building"]
-shape = SubResource("Shape_warehouse")
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/BackWall"]
+shape = SubResource("Shape_warehouse_back")
+
+[node name="LeftWall" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
+position = Vector3(-5.3, 2.75, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/LeftWall"]
+mesh = SubResource("Mesh_warehouse_side")
+
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/LeftWall"]
+shape = SubResource("Shape_warehouse_side")
+
+[node name="RightWall" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
+position = Vector3(5.3, 2.75, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/RightWall"]
+mesh = SubResource("Mesh_warehouse_side")
+
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/RightWall"]
+shape = SubResource("Shape_warehouse_side")
+
+[node name="FrontLeftWall" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
+position = Vector3(-4, 2.75, 3.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/FrontLeftWall"]
+mesh = SubResource("Mesh_warehouse_front")
+
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/FrontLeftWall"]
+shape = SubResource("Shape_warehouse_front")
+
+[node name="FrontRightWall" type="StaticBody3D" parent="WarehousePOI" groups=["navigation_blocker"]]
+position = Vector3(4, 2.75, 3.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/FrontRightWall"]
+mesh = SubResource("Mesh_warehouse_front")
+
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/FrontRightWall"]
+shape = SubResource("Shape_warehouse_front")
+
+[node name="Roof" type="StaticBody3D" parent="WarehousePOI"]
+position = Vector3(0, 5.3, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WarehousePOI/Roof"]
+mesh = SubResource("Mesh_warehouse_roof")
+
+[node name="Collision" type="CollisionShape3D" parent="WarehousePOI/Roof"]
+shape = SubResource("Shape_warehouse_roof")
+
+[node name="InteriorFloor" type="MeshInstance3D" parent="WarehousePOI"]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("Mesh_warehouse_floor")
 
 [node name="RollerDoor" type="MeshInstance3D" parent="WarehousePOI"]
-position = Vector3(0, 1.8, 4.08)
+position = Vector3(0, 4.7, 4.08)
 mesh = SubResource("Mesh_warehouse_door")
+
+[node name="StorageRack" type="Node3D" parent="WarehousePOI"]
+position = Vector3(0, 0, -2.9)
+
+[node name="BottomShelf" type="MeshInstance3D" parent="WarehousePOI/StorageRack"]
+position = Vector3(0, 0.45, 0)
+mesh = SubResource("Mesh_warehouse_shelf_horizontal")
+
+[node name="MiddleShelf" type="MeshInstance3D" parent="WarehousePOI/StorageRack"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("Mesh_warehouse_shelf_horizontal")
+
+[node name="TopShelf" type="MeshInstance3D" parent="WarehousePOI/StorageRack"]
+position = Vector3(0, 2.05, 0)
+mesh = SubResource("Mesh_warehouse_shelf_horizontal")
+
+[node name="LeftSupport" type="MeshInstance3D" parent="WarehousePOI/StorageRack"]
+position = Vector3(-2.44, 1.25, 0)
+mesh = SubResource("Mesh_warehouse_shelf_vertical")
+
+[node name="RightSupport" type="MeshInstance3D" parent="WarehousePOI/StorageRack"]
+position = Vector3(2.44, 1.25, 0)
+mesh = SubResource("Mesh_warehouse_shelf_vertical")
+
+[node name="InteriorLight" type="OmniLight3D" parent="WarehousePOI"]
+position = Vector3(0, 4.4, -0.5)
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 2.2
+omni_range = 8.0
+shadow_enabled = true
+
+[node name="InteriorScrap" parent="WarehousePOI" instance=ExtResource("6_scrap_pickup")]
+position = Vector3(-1.2, 0.35, -1.6)
+
+[node name="InteriorAmmo" parent="WarehousePOI" instance=ExtResource("7_ammo_pickup")]
+position = Vector3(1.2, 0.25, -1.6)
+
+[node name="InteriorPoint" type="Marker3D" parent="WarehousePOI" groups=["poi_interior_point"]]
+position = Vector3(0, 0, 0)
 
 [node name="GreenContainer" parent="WarehousePOI" instance=ExtResource("1_container_green")]
 position = Vector3(-7, 0, 1)

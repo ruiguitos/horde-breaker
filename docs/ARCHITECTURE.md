@@ -183,6 +183,12 @@ arena. O piso graybox continua a fornecer a colisão, mas a sua malha está ocul
 no grupo `poi_access_point`. Os contentores, camião e torre de água importados são
 reutilizados uma única vez como elementos específicos destas zonas.
 
+O `WarehousePOI` é o primeiro edifício explorável. O antigo volume fechado foi
+substituído por paredes segmentadas, teto e uma entrada central de cinco metros.
+As paredes continuam no grupo `navigation_blocker`, enquanto o ponto navegável
+interior pertence a `poi_interior_point`. O interior reutiliza as cenas existentes
+de `ScrapPickup` e `AmmoPickup`, sem criar regras especiais de recolha.
+
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
 caia para fora da arena enquanto o mapa não possuir limites definitivos. As
@@ -220,7 +226,7 @@ a usar cápsulas provisórias com materiais distintos.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
 - O painel de derrota também permite regressar ao menu através do `GameManager`.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
-- Existem oito `ScrapPickup` estáticos e sem respawn nas zonas exteriores do mapa.
+- Existem nove `ScrapPickup` estáticos e sem respawn: oito nas zonas exteriores e um no interior do armazém.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
 - `FortificationSite` começa vazio, custa 30 Scrap, tem 200 pontos de vida quando construído e reutiliza a mesma taxa de reparação do núcleo.
 - A barricada é um `StaticBody3D` na layer 1/2, pelo que bloqueia jogador, disparos e zombies e é detetada pelas áreas de ataque inimigas.

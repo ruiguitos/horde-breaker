@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: primeiro vertical slice do Milestone 17 concluído com quatro POIs únicos.
+Fase: segundo vertical slice do Milestone 17 concluído com o primeiro interior explorável.
 
 Última atualização: 2026-07-18.
 
@@ -215,16 +215,21 @@ Fase: primeiro vertical slice do Milestone 17 concluído com quatro POIs únicos
 - [x] Edifícios e adereços principais configurados como `navigation_blocker` com colisão na layer `World`.
 - [x] Cada POI recebeu um `AccessPoint` navegável e manteve pelo menos uma cache de Scrap a menos de 10 metros.
 - [x] Estradas, oito caches, seis spawns, núcleo e fortificação preservados sem adicionar novos assets ou controlos.
+- [x] Armazém convertido de bloco fechado para um edifício com paredes segmentadas, teto e entrada central aberta.
+- [x] Interior graybox do armazém equipado com iluminação e uma prateleira simples, sem descarregar novos assets.
+- [x] `InteriorPoint` adicionado ao grupo `poi_interior_point` para validar a navegação para dentro do edifício.
+- [x] Uma cache de 25 Scrap e um pickup de 12 munições reutilizados como loot funcional no interior.
+- [x] Hospital, posto militar e estação de combustível preservados fechados para limitar este slice ao primeiro interior.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (primeiro slice concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (segundo slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual do percurso completo pelos quatro POIs com as três classes.
-Depois, tornar apenas o armazém explorável, com entrada, interior graybox e loot
-de teste, antes de criar interiores nos restantes edifícios ou aumentar o mapa.
+Fazer playtest manual da entrada, câmara e recolha de loot no armazém com as três
+classes. Depois, definir o primeiro encontro e a regra de reposição de loot por
+zona antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 
 ## Validação
 
@@ -370,6 +375,11 @@ de teste, antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 - Teste integrado confirmou os oito caches preservados, alcançáveis e com uma cache a menos de 10 metros de cada POI.
 - Captura OpenGL frontal confirmou hospital e armazém legíveis a partir do acampamento sem bloquear a área central.
 - Captura OpenGL aérea confirmou as quatro silhuetas distintas, distribuição por quadrantes e rotas abertas entre zonas.
+- Importação headless após a abertura do armazém concluída sem erros de parsing ou de recursos.
+- Arena com o interior do armazém executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou 3468 polígonos navegáveis, caminho do acampamento até ao interior, quatro acessos e seis rotas de spawn preservadas.
+- Teste integrado confirmou nove caches de Scrap e recolha funcional do loot interior: 25 Scrap e 12 munições.
+- Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, o interior iluminado, a prateleira e os dois pickups legíveis.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -383,7 +393,7 @@ de teste, antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
-- Os oito caches de Scrap são estáticos e não reaparecem; ainda só existe um recurso, sem loot aleatório ou inventário.
+- Os nove caches de Scrap são estáticos e não reaparecem; ainda só existe um recurso, sem loot aleatório ou inventário.
 - Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
@@ -391,7 +401,7 @@ de teste, antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições já existe, mas usa um pickup genérico; tipos de munição, feedback contextual e respawn ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Os quatro POIs já têm silhuetas únicas, mas continuam a ser volumes graybox fechados sem interiores, loot específico ou encontros próprios.
+- Apenas o armazém tem interior; hospital, posto militar e estação de combustível continuam fechados, e ainda não existem encontros próprios por zona.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.

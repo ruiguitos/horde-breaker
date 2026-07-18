@@ -189,8 +189,9 @@ Moeda temporária da expedição. O protótipo atual separa:
 - **Scrap transportado**: encontrado em caches espalhados pelo mapa e ainda na posse do jogador;
 - **Scrap na base**: depositado no núcleo do acampamento e disponível para utilização.
 
-Existem provisoriamente oito caches estáticos de 25 Scrap. `F` recolhe uma cache
-próxima e, junto do núcleo, deposita todo o Scrap transportado.
+Existem provisoriamente nove caches estáticos de 25 Scrap: oito no exterior e
+um no interior do armazém. `F` recolhe uma cache próxima e, junto do núcleo,
+deposita todo o Scrap transportado.
 
 Durante uma fase de exploração, `F` junto do núcleo também permite reparar até
 50 pontos de vida por interação. Cada unidade de Scrap repara 5 pontos de vida,
@@ -291,7 +292,8 @@ recolher recursos e reparar o núcleo.
 - Cada POI tem um acesso navegável e pelo menos uma cache de Scrap próxima.
 - Os pontos de aparecimento dos inimigos continuam distribuídos nas zonas exteriores.
 - As ruas mantêm caminhos contínuos até ao núcleo e permitem testar deslocações mais longas.
-- Os edifícios ainda não têm interiores; o primeiro interior explorável será validado antes de repetir a solução nos restantes POIs.
+- O armazém é o primeiro interior explorável, com entrada aberta, iluminação graybox, uma cache de Scrap e um pickup de munições.
+- Hospital, posto militar e estação de combustível permanecem fechados até a solução do armazém ser validada em playtest.
 - O tamanho final do mapa, loot próprio por zona e encontros específicos ficam para etapas posteriores.
 
 ## Direção visual

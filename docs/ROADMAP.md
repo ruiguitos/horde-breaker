@@ -235,7 +235,7 @@ Implementado neste slice:
 
 ## Milestone 17 — Exploration Map and Points of Interest
 
-Estado: primeiro vertical slice funcional concluído.
+Estado: segundo vertical slice funcional concluído.
 
 Objetivo:
 
@@ -251,10 +251,10 @@ Implementado neste slice:
 - hospital, armazém, posto militar e estação de combustível com silhuetas distintas;
 - colisões e exclusão de navegação para os volumes principais de cada POI;
 - um acesso navegável e uma cache de Scrap próxima por POI;
+- primeiro interior explorável no armazém, com entrada, iluminação, Scrap e munições;
 - composição validada sem descarregar novos modelos.
 
 Pendente:
 
-- tornar o primeiro edifício realmente explorável;
 - definir loot e encontros específicos por zona;
 - decidir se a arena deve crescer além dos 64 × 64 metros após playtest.
