@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/city_test_map.tscn" id="16_city_map"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="17_scrap_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
+[ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -79,7 +80,7 @@ rotation = Vector3(-0.872665, -0.523599, 0)
 light_color = Color(1, 0.94, 0.84, 1)
 shadow_enabled = true
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." groups=["arena_navigation"]]
 script = ExtResource("2_navigation_script")
 navigation_half_extent = 31.5
 
@@ -193,6 +194,9 @@ script = ExtResource("1_player_spawner")
 
 [node name="CampCore" parent="." instance=ExtResource("6_camp_core")]
 position = Vector3(-3.5, 0, 5.5)
+
+[node name="FortificationSite" parent="." instance=ExtResource("19_fortification_site")]
+position = Vector3(-3.5, 0, 1.5)
 
 [node name="Pickups" type="Node3D" parent="."]
 

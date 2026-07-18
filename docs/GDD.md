@@ -196,6 +196,9 @@ Durante uma fase de exploração, `F` junto do núcleo também permite reparar a
 50 pontos de vida por interação. Cada unidade de Scrap repara 5 pontos de vida,
 pelo que uma reparação completa custa no máximo 10 Scrap.
 
+O primeiro ponto fixo de defesa permite construir uma barricada por 30 Scrap.
+A barricada também usa a proporção de 5 pontos de vida por Scrap nas reparações.
+
 Futuramente também poderá servir para melhorias temporárias entre ataques:
 
 - dano;
@@ -216,7 +219,7 @@ O Scrap é reiniciado no fim da partida.
 - lento;
 - 100 pontos de vida;
 - vida e dano médios;
-- persegue o alvo vivo mais próximo entre jogador e núcleo do acampamento;
+- persegue o alvo vivo mais próximo entre jogador, núcleo e fortificações construídas;
 - inimigo base.
 
 ### Runner
@@ -256,6 +259,16 @@ Planeado para uma fase posterior.
 - A partida termina se o núcleo for destruído, mesmo que o jogador continue vivo.
 - Durante a exploração, aceita o depósito de Scrap e reparações de 5 pontos de vida por Scrap.
 - Melhorias, construção livre e persistência da base ficam para etapas posteriores.
+
+## Fortificação provisória
+
+- Existe um único ponto fixo de defesa junto do núcleo.
+- Só pode ser construída ou reparada durante uma fase de exploração.
+- A construção custa 30 Scrap armazenado e cria uma barricada com 200 pontos de vida.
+- A reparação recupera até 50 pontos de vida por interação, à razão de 5 pontos por Scrap.
+- Enquanto está construída, bloqueia movimento e torna-se um alvo possível para os zombies.
+- Quando é destruída, o ponto fica novamente disponível para reconstrução na exploração seguinte.
+- Posicionamento livre, rotação, múltiplas estruturas e persistência ficam fora deste slice.
 
 ## Ataques provisórios
 

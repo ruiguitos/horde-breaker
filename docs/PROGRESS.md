@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: primeiro vertical slice de exploração, Scrap e reparação do Milestone 16 concluído.
+Fase: Milestone 16 concluído com exploração, Scrap, reparação e primeira fortificação fixa.
 
 Última atualização: 2026-07-18.
 
@@ -201,17 +201,23 @@ Fase: primeiro vertical slice de exploração, Scrap e reparação do Milestone 
 - [x] Núcleo reparável durante a exploração a 5 pontos de vida por Scrap, até 50 pontos por interação.
 - [x] Preparação inicial de 30 segundos e exploração de 45 segundos entre ataques, ambas com contagem decrescente.
 - [x] HUD atualizado com recursos da expedição e feedback curto para recolha, depósito e reparação.
+- [x] Primeiro ponto fixo de defesa adicionado junto do núcleo, sem introduzir construção livre.
+- [x] Barricada configurada com custo de 30 Scrap armazenado e 200 pontos de vida.
+- [x] Construção e reparação limitadas às fases de exploração; reparação mantém a taxa de 5 pontos por Scrap e máximo de 50 por interação.
+- [x] Barricada construída adicionada a `enemy_target`, permitindo aos zombies escolhê-la e causar-lhe dano real.
+- [x] Destruição remove a barricada como alvo, desativa a colisão e disponibiliza novamente o ponto para reconstrução.
+- [x] Navegação regenerada em runtime quando a barricada é construída ou destruída.
+- [x] Modelo provisório legível criado com primitivas, marcador de construção e estado/vida apresentados no mundo.
 
 ## Milestone atual
 
-**Milestone 16 — Camp Resources and Repair (primeiro slice concluído)**
+**Milestone 16 — Camp Resources and Repair (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual dos percursos do mapa, da duração de 30/45 segundos e do
-custo de reparação com as três classes. Depois, implementar um único ponto fixo
-de construção para uma barricada, sem iniciar ainda construção livre. Numa etapa
-visual posterior, substituir os quatro bairros repetidos por POIs maiores e únicos.
+Fazer playtest manual do custo, resistência e localização da barricada com as três
+classes. Depois, iniciar o Milestone 17 com um graybox de POIs maiores e únicos,
+sem importar ainda um conjunto grande de novos modelos.
 
 ## Validação
 
@@ -343,6 +349,13 @@ visual posterior, substituir os quatro bairros repetidos por POIs maiores e úni
 - Teste integrado confirmou recolha de 25 Scrap, depósito, reparação de 50 pontos por 10 Scrap e bloqueio da reparação durante um ataque.
 - Teste integrado confirmou o início do primeiro ataque após a fase de preparação.
 - Captura OpenGL a 1152 × 648 confirmou o centro desimpedido, maior distância visual, contagem de exploração e painéis de Scrap sem sobreposição.
+- Importação headless após a fortificação concluída sem erros de parsing ou de recursos.
+- Arena com a fortificação executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou construção por 30 Scrap, 200 pontos de vida e reparação de 50 pontos por 10 Scrap.
+- Teste integrado confirmou bloqueio da construção durante ataques e reconstrução durante a exploração.
+- Teste integrado confirmou atualização da navegação de `3344` para `3332` polígonos ao construir e reposição para `3344` ao destruir.
+- Teste integrado confirmou que um Normal Zombie real escolhe a barricada próxima e lhe causa dano.
+- Captura OpenGL a 1152 × 648 confirmou marcador, barricada construída, etiqueta no mundo e feedback sem sobreposição crítica com o HUD.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -350,13 +363,13 @@ visual posterior, substituir os quatro bairros repetidos por POIs maiores e úni
 - resolução inicial;
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
-- afinação final dos 30/45 segundos, custo e limites da reparação e construção do acampamento no modo survival contínuo.
+- afinação final dos 30/45 segundos, custo de 30 Scrap, 200 pontos de vida e limites da reparação/construção no modo survival contínuo.
 
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
 - Os oito caches de Scrap são estáticos e não reaparecem; ainda só existe um recurso, sem loot aleatório ou inventário.
-- O núcleo pode ser reparado, mas ainda não existem melhorias, fortificações colocáveis ou persistência da base.
+- Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.

@@ -25,6 +25,7 @@ scenes/
   world/
     test_arena.tscn
     camp_core.tscn
+    fortification_site.tscn
     arena.tscn
     spawn_point.tscn
   characters/
@@ -119,6 +120,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - O `WeaponController` tenta primeiro a arma ativa e depois o outro slot; o pickup só desaparece quando alguma reserva recebe pelo menos uma munição.
 - `ScrapPickup` acrescenta 25 unidades ao Scrap transportado e só desaparece após uma recolha válida.
 - A área de interação do `CampCore` deposita primeiro todo o Scrap transportado; sem Scrap transportado, tenta reparar o núcleo durante a exploração.
+- `FortificationInteraction` delega a ação do volume interagível no `FortificationSite`, que constrói ou repara conforme o seu estado.
 
 ## Cena de inimigo provisória
 
@@ -161,6 +163,7 @@ TestArena (Node3D)
   NavigationRegion3D
   PlayerSpawn
   CampCore
+  FortificationSite
   Pickups
   EnemySpawns
   Gameplay
@@ -189,6 +192,10 @@ uma margem de segurança. O cálculo projeta também os volumes rodados de cada
 bairro na grelha. Esta solução mantém o protótipo simples e deverá ser substituída por uma navmesh feita
 no editor quando a geometria deixar de ser composta por caixas alinhadas aos eixos.
 
+`FortificationSite` também pertence a `navigation_blocker`, mas começa com a
+colisão desativada. Construir ou destruir a barricada volta a gerar a grelha para
+adicionar ou remover as células bloqueadas.
+
 `PlayerSpawn` usa `player_spawner.gd` para instanciar a cena indicada pelo
 `CharacterData` da personagem selecionada e configura vida, regeneração, recarga e
 loadout antes de adicionar o jogador à árvore. Recruit, Renegade e Medic continuam
@@ -198,7 +205,7 @@ a usar cápsulas provisórias com materiais distintos.
 
 - O jogador mantém a sua vida em execução e emite `health_changed` e `died`.
 - `CampCore` é um `StaticBody3D` com 500 pontos de vida, sinais `health_changed` e `destroyed` e um volume físico legível na arena.
-- Jogador e núcleo pertencem ao grupo `enemy_target`; cada zombie escolhe por distância o alvo vivo mais próximo.
+- Jogador, núcleo e barricada construída pertencem ao grupo `enemy_target`; cada zombie escolhe por distância o alvo vivo mais próximo.
 - O núcleo recebe `take_enemy_damage` dos zombies; continua a bloquear tiros como geometria de mundo, mas não aceita dano das armas do jogador.
 - Ao morrer, o jogador sai do grupo de alvos; ao chegar a zero, o núcleo faz o mesmo e emite `destroyed`.
 - O painel local de game over escuta `died` e `destroyed`, apresenta a causa, liberta o rato e pausa a árvore.
@@ -207,6 +214,9 @@ a usar cápsulas provisórias com materiais distintos.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
 - Existem oito `ScrapPickup` estáticos e sem respawn nas zonas exteriores do mapa.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
+- `FortificationSite` começa vazio, custa 30 Scrap, tem 200 pontos de vida quando construído e reutiliza a mesma taxa de reparação do núcleo.
+- A barricada é um `StaticBody3D` na layer 1/2, pelo que bloqueia jogador, disparos e zombies e é detetada pelas áreas de ataque inimigas.
+- Aos zero pontos de vida, remove-se de `enemy_target`, desativa a colisão e regressa ao estado de ponto de construção.
 
 ## Pausa
 
@@ -227,7 +237,7 @@ a usar cápsulas provisórias com materiais distintos.
 
 ## HUD provisório
 
-- O HUD local descobre jogador, núcleo, arma opcional e `WaveManager` através de grupos estáveis.
+- O HUD local descobre jogador, núcleo, `CampEconomy`, arma opcional e `WaveManager` através de grupos estáveis.
 - Sinais atualizam vida do jogador, vida do núcleo, munição, ataque, inimigos restantes, contagem da exploração e Scrap sem polling por frame.
 - A barra de vida e os contadores não controlam gameplay; apenas apresentam o estado.
 - O HUD mostra a arma ativa, os dois slots e as teclas `1`/`2`.
@@ -268,6 +278,7 @@ signal intermission_started(next_wave: int, duration: float)
 signal preparation_time_changed(seconds_remaining: int)
 signal cycle_completed(cycle_number: int)
 signal scrap_changed(carried_scrap: int, stored_scrap: int)
+signal built
 signal destroyed
 signal xp_gained(amount: int)
 signal level_up(new_level: int)

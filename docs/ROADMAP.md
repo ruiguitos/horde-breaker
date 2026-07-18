@@ -214,7 +214,7 @@ Objetivo:
 
 ## Milestone 16 — Camp Resources and Repair
 
-Estado: primeiro vertical slice funcional concluído; fortificação colocável ainda pendente.
+Estado: concluído.
 
 Objetivo:
 
@@ -230,3 +230,17 @@ Implementado neste slice:
 - reparação do núcleo apenas durante fases de exploração;
 - preparação inicial de 30 segundos e exploração de 45 segundos entre ataques;
 - HUD de recursos, contagem decrescente e feedback contextual.
+- primeiro ponto fixo de defesa com construção, 200 pontos de vida, reparação e reconstrução;
+- atualização dinâmica da navegação quando a barricada é construída ou destruída.
+
+## Milestone 17 — Exploration Map and Points of Interest
+
+Estado: planeado.
+
+Objetivo:
+
+- substituir a repetição dos quatro bairros por zonas com identidade própria;
+- criar POIs maiores, como hospital, armazém, posto militar e estação de combustível;
+- distribuir recursos e encontros por rotas de exploração legíveis;
+- manter caminhos alternativos entre o exterior e o acampamento;
+- medir o tamanho final do mapa e desempenho antes de importar mais modelos.

@@ -7,6 +7,7 @@
 - [x] Integrar modelos CC0 de teste para as três classes, dois tipos de zombie e as três armas de fogo, preservando colisões e mecânicas.
 - [x] Criar a primeira expansão graybox da arena com três obstáculos, navegação que os contorna e seis pontos de spawn validados.
 - [ ] Evoluir o graybox para um mapa totalmente jogável, afinando rotas, zonas de combate, coberturas e spawns através de playtests com Recruit, Renegade e Medic.
+- [ ] Substituir os quatro bairros repetidos por POIs maiores e únicos no Milestone 17.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.
@@ -17,7 +18,8 @@
 - [ ] Adicionar feedback visual no próprio inimigo e feedback sonoro distinto para impacto no corpo e headshot.
 - [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração.
 - [ ] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.
-- [ ] Decidir se a estrutura final continua baseada em rondas ou evolui para survival contínuo com construção de um acampamento; não iniciar sistemas de base antes desta decisão.
+- [x] Adotar survival contínuo com núcleo, exploração, Scrap e construção progressiva do acampamento.
+- [x] Criar o primeiro ponto fixo para construir, reparar e reconstruir uma barricada com Scrap.
 
 ## Regra
 
