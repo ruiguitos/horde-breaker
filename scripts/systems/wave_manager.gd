@@ -35,6 +35,35 @@ func is_preparation_active() -> bool:
 	return _is_preparing
 
 
+func spawn_exploration_enemies(
+	enemy_scene: PackedScene, spawn_points: Array[Marker3D]
+) -> Array[Node3D]:
+	var spawned_enemies: Array[Node3D] = []
+	if not _is_preparing:
+		return spawned_enemies
+	if enemy_scene == null or spawn_points.is_empty():
+		push_error("Exploration encounters require an enemy scene and spawn points.")
+		return spawned_enemies
+
+	for spawn_point in spawn_points:
+		if spawn_point == null:
+			push_error("Exploration encounter spawn points must be Marker3D nodes.")
+			continue
+		var enemy := enemy_scene.instantiate() as Node3D
+		if enemy == null:
+			push_error("Exploration encounter scenes must use Node3D roots.")
+			continue
+		if not enemy.has_signal(&"died"):
+			push_error("Exploration enemies must expose a died signal.")
+			enemy.queue_free()
+			continue
+		enemies.add_child(enemy)
+		enemy.global_position = spawn_point.global_position
+		enemy.connect(&"died", _on_exploration_enemy_died)
+		spawned_enemies.append(enemy)
+	return spawned_enemies
+
+
 func _start_initial_preparation() -> void:
 	await _run_preparation(1, initial_preparation_delay)
 	_start_next_wave()
@@ -130,6 +159,11 @@ func _on_enemy_died(enemy: Node) -> void:
 	enemy_count_changed.emit(alive_enemy_count)
 	if alive_enemy_count == 0 and not _is_spawning:
 		_complete_current_wave()
+
+
+func _on_exploration_enemy_died(enemy: Node) -> void:
+	var xp_reward := int(enemy.get("xp_reward")) if enemy != null else 0
+	enemy_defeated.emit(maxi(xp_reward, 0))
 
 
 func _complete_current_wave() -> void:

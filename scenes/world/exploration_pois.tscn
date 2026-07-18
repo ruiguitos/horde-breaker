@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3]
+[gd_scene load_steps=48 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="5_traffic_barrier"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="6_scrap_pickup"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="7_ammo_pickup"]
+[ext_resource type="Script" path="res://scripts/systems/warehouse_encounter.gd" id="8_warehouse_encounter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="9_normal_zombie"]
 
 [sub_resource type="StandardMaterial3D" id="Material_hospital"]
 albedo_color = Color(0.72, 0.76, 0.78, 1)
@@ -111,6 +113,9 @@ size = Vector3(5, 0.12, 1)
 [sub_resource type="BoxMesh" id="Mesh_warehouse_shelf_vertical"]
 material = SubResource("Material_warehouse_door")
 size = Vector3(0.12, 2.4, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_warehouse_encounter"]
+size = Vector3(8.5, 3, 5.8)
 
 [sub_resource type="BoxMesh" id="Mesh_military"]
 material = SubResource("Material_military")
@@ -288,14 +293,38 @@ light_energy = 2.2
 omni_range = 8.0
 shadow_enabled = true
 
-[node name="InteriorScrap" parent="WarehousePOI" instance=ExtResource("6_scrap_pickup")]
-position = Vector3(-1.2, 0.35, -1.6)
-
-[node name="InteriorAmmo" parent="WarehousePOI" instance=ExtResource("7_ammo_pickup")]
-position = Vector3(1.2, 0.25, -1.6)
-
 [node name="InteriorPoint" type="Marker3D" parent="WarehousePOI" groups=["poi_interior_point"]]
 position = Vector3(0, 0, 0)
+
+[node name="WarehouseEncounter" type="Area3D" parent="WarehousePOI" groups=["warehouse_encounter"]]
+position = Vector3(0, 1.5, 0.5)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("8_warehouse_encounter")
+enemy_scene = ExtResource("9_normal_zombie")
+scrap_pickup_scene = ExtResource("6_scrap_pickup")
+ammunition_pickup_scene = ExtResource("7_ammo_pickup")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WarehousePOI/WarehouseEncounter"]
+shape = SubResource("Shape_warehouse_encounter")
+
+[node name="WarehouseEnemySpawns" type="Node3D" parent="WarehousePOI"]
+unique_name_in_owner = true
+
+[node name="LeftSpawn" type="Marker3D" parent="WarehousePOI/WarehouseEnemySpawns"]
+position = Vector3(-2.7, 1, -0.2)
+
+[node name="RightSpawn" type="Marker3D" parent="WarehousePOI/WarehouseEnemySpawns"]
+position = Vector3(2.7, 1, -1.1)
+
+[node name="WarehouseScrapSpawn" type="Marker3D" parent="WarehousePOI"]
+unique_name_in_owner = true
+position = Vector3(-1.2, 0.35, -1.6)
+
+[node name="WarehouseAmmunitionSpawn" type="Marker3D" parent="WarehousePOI"]
+unique_name_in_owner = true
+position = Vector3(1.2, 0.25, -1.6)
 
 [node name="GreenContainer" parent="WarehousePOI" instance=ExtResource("1_container_green")]
 position = Vector3(-7, 0, 1)

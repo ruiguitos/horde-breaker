@@ -186,8 +186,11 @@ reutilizados uma única vez como elementos específicos destas zonas.
 O `WarehousePOI` é o primeiro edifício explorável. O antigo volume fechado foi
 substituído por paredes segmentadas, teto e uma entrada central de cinco metros.
 As paredes continuam no grupo `navigation_blocker`, enquanto o ponto navegável
-interior pertence a `poi_interior_point`. O interior reutiliza as cenas existentes
-de `ScrapPickup` e `AmmoPickup`, sem criar regras especiais de recolha.
+interior pertence a `poi_interior_point`. `WarehouseEncounter` observa apenas a
+layer 2 (`Player`), ativa dois Normal Zombies durante a exploração e mantém a
+emboscada disponível uma vez por ciclo. O mesmo componente instancia as cenas
+existentes de `ScrapPickup` e `AmmoPickup` e repõe apenas pickups já recolhidos
+quando recebe `cycle_completed`.
 
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
@@ -226,7 +229,7 @@ a usar cápsulas provisórias com materiais distintos.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
 - O painel de derrota também permite regressar ao menu através do `GameManager`.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
-- Existem nove `ScrapPickup` estáticos e sem respawn: oito nas zonas exteriores e um no interior do armazém.
+- Existem oito `ScrapPickup` estáticos nas zonas exteriores e um no armazém, reposto após cada ciclo se tiver sido recolhido.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
 - `FortificationSite` começa vazio, custa 30 Scrap, tem 200 pontos de vida quando construído e reutiliza a mesma taxa de reparação do núcleo.
 - A barricada é um `StaticBody3D` na layer 1/2, pelo que bloqueia jogador, disparos e zombies e é detetada pelas áreas de ataque inimigas.
@@ -247,6 +250,7 @@ a usar cápsulas provisórias com materiais distintos.
 - Os temporizadores de preparação respeitam a pausa da árvore; terminado o intervalo, o índice seguinte reutiliza ciclicamente os três `WaveData` existentes.
 - Cada ciclo acrescenta dois Normal Zombies a todas as composições e emite `cycle_completed` após o terceiro ataque.
 - `CharacterProgression` atribui 100 Credits em cada `cycle_completed`; já não existe vitória automática após três ataques.
+- `WaveManager.spawn_exploration_enemies` coloca ameaças locais no contentor comum e emite a recompensa de XP quando morrem, sem alterar `alive_enemy_count` ou a conclusão da vaga.
 - O Runner herda a cena do Normal Zombie e altera apenas atributos e material provisório.
 
 ## HUD provisório

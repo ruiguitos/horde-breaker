@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: segundo vertical slice do Milestone 17 concluído com o primeiro interior explorável.
+Fase: terceiro vertical slice do Milestone 17 concluído com a primeira emboscada de exploração.
 
 Última atualização: 2026-07-18.
 
@@ -220,16 +220,22 @@ Fase: segundo vertical slice do Milestone 17 concluído com o primeiro interior 
 - [x] `InteriorPoint` adicionado ao grupo `poi_interior_point` para validar a navegação para dentro do edifício.
 - [x] Uma cache de 25 Scrap e um pickup de 12 munições reutilizados como loot funcional no interior.
 - [x] Hospital, posto militar e estação de combustível preservados fechados para limitar este slice ao primeiro interior.
+- [x] `WarehouseEncounter` adicionado ao interior, ativando dois Normal Zombies quando o jogador entra durante a exploração.
+- [x] Emboscada limitada a uma ativação por ciclo e impedida de duplicar enquanto os inimigos anteriores estiverem vivos.
+- [x] Zombies da exploração ligados à recompensa normal de XP sem alterar a contagem ou conclusão das vagas.
+- [x] Scrap e munições do armazém repostos após cada ciclo apenas quando já foram recolhidos.
+- [x] Mensagens do HUD reutilizadas para comunicar a emboscada e a reposição do loot.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (segundo slice concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (terceiro slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual da entrada, câmara e recolha de loot no armazém com as três
-classes. Depois, definir o primeiro encontro e a regra de reposição de loot por
-zona antes de criar interiores nos restantes edifícios ou aumentar o mapa.
+Fazer playtest manual da emboscada do armazém com Recruit, Renegade e Medic,
+incluindo uma entrada perto do fim da contagem de exploração. Depois, decidir se
+o segundo interior será o hospital, com loot de recuperação próprio, antes de
+aumentar o mapa ou abrir os restantes POIs em conjunto.
 
 ## Validação
 
@@ -380,6 +386,11 @@ zona antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 - Teste integrado confirmou 3468 polígonos navegáveis, caminho do acampamento até ao interior, quatro acessos e seis rotas de spawn preservadas.
 - Teste integrado confirmou nove caches de Scrap e recolha funcional do loot interior: 25 Scrap e 12 munições.
 - Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, o interior iluminado, a prateleira e os dois pickups legíveis.
+- Importação headless após a emboscada do armazém concluída sem erros de parsing ou de recursos.
+- Arena com `WarehouseEncounter` executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou dois Normal Zombies por ativação, 10 XP total e `alive_enemy_count` inalterado em zero.
+- Teste integrado confirmou uma ativação por ciclo, reposição de Scrap e munições após `cycle_completed` e ausência de duplicação quando o loot permanece por recolher.
+- Captura OpenGL a 1152 × 648 confirmou os dois zombies separados, no chão e legíveis em redor do loot interior.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -393,15 +404,16 @@ zona antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
-- Os nove caches de Scrap são estáticos e não reaparecem; ainda só existe um recurso, sem loot aleatório ou inventário.
+- Os oito caches exteriores são estáticos; apenas o Scrap do armazém reaparece por ciclo, ainda sem loot aleatório ou inventário.
 - Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
-- A reserva de munições já existe, mas usa um pickup genérico; tipos de munição, feedback contextual e respawn ainda não existem.
+- A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Apenas o armazém tem interior; hospital, posto militar e estação de combustível continuam fechados, e ainda não existem encontros próprios por zona.
+- Apenas o armazém tem interior e emboscada; hospital, posto militar e estação de combustível continuam fechados e sem regras próprias.
+- Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.
