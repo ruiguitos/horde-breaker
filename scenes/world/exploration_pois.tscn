@@ -1,4 +1,4 @@
-[gd_scene load_steps=69 format=3]
+[gd_scene load_steps=79 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/pickups/health_pickup.tscn" id="10_health_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/military_outpost_encounter.gd" id="11_military_encounter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="12_runner_zombie"]
+[ext_resource type="Script" path="res://scripts/systems/fuel_station_encounter.gd" id="13_fuel_encounter"]
 
 [sub_resource type="StandardMaterial3D" id="Material_hospital"]
 albedo_color = Color(0.72, 0.76, 0.78, 1)
@@ -199,12 +200,44 @@ size = Vector3(2.8, 7, 2.8)
 [sub_resource type="BoxShape3D" id="Shape_military_tower"]
 size = Vector3(2.8, 7, 2.8)
 
-[sub_resource type="BoxMesh" id="Mesh_fuel_building"]
+[sub_resource type="BoxMesh" id="Mesh_fuel_back"]
 material = SubResource("Material_fuel")
-size = Vector3(7, 3, 5)
+size = Vector3(7, 3, 0.4)
 
-[sub_resource type="BoxShape3D" id="Shape_fuel_building"]
-size = Vector3(7, 3, 5)
+[sub_resource type="BoxShape3D" id="Shape_fuel_back"]
+size = Vector3(7, 3, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_fuel_side"]
+material = SubResource("Material_fuel")
+size = Vector3(0.4, 3, 5)
+
+[sub_resource type="BoxShape3D" id="Shape_fuel_side"]
+size = Vector3(0.4, 3, 5)
+
+[sub_resource type="BoxMesh" id="Mesh_fuel_front"]
+material = SubResource("Material_fuel")
+size = Vector3(1.7, 3, 0.4)
+
+[sub_resource type="BoxShape3D" id="Shape_fuel_front"]
+size = Vector3(1.7, 3, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_fuel_roof"]
+material = SubResource("Material_fuel")
+size = Vector3(7, 0.4, 5)
+
+[sub_resource type="BoxShape3D" id="Shape_fuel_roof"]
+size = Vector3(7, 0.4, 5)
+
+[sub_resource type="BoxMesh" id="Mesh_fuel_floor"]
+material = SubResource("Material_fuel")
+size = Vector3(6.6, 0.08, 4.6)
+
+[sub_resource type="BoxMesh" id="Mesh_fuel_counter"]
+material = SubResource("Material_fuel_accent")
+size = Vector3(3.8, 1.1, 0.65)
+
+[sub_resource type="BoxShape3D" id="Shape_fuel_encounter"]
+size = Vector3(10, 3, 10)
 
 [sub_resource type="BoxMesh" id="Mesh_fuel_canopy"]
 material = SubResource("Material_fuel_accent")
@@ -664,14 +697,110 @@ position = Vector3(0, 0, -5.5)
 [node name="FuelStationPOI" type="Node3D" parent="." groups=["point_of_interest"]]
 position = Vector3(19, 0, 18)
 
-[node name="Building" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
-position = Vector3(0, 1.5, 0)
+[node name="BackWall" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
+position = Vector3(0, 1.5, 2.3)
 
-[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/Building"]
-mesh = SubResource("Mesh_fuel_building")
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/BackWall"]
+mesh = SubResource("Mesh_fuel_back")
 
-[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/Building"]
-shape = SubResource("Shape_fuel_building")
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/BackWall"]
+shape = SubResource("Shape_fuel_back")
+
+[node name="LeftWall" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
+position = Vector3(-3.3, 1.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/LeftWall"]
+mesh = SubResource("Mesh_fuel_side")
+
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/LeftWall"]
+shape = SubResource("Shape_fuel_side")
+
+[node name="RightWall" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
+position = Vector3(3.3, 1.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/RightWall"]
+mesh = SubResource("Mesh_fuel_side")
+
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/RightWall"]
+shape = SubResource("Shape_fuel_side")
+
+[node name="FrontLeftWall" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
+position = Vector3(-2.45, 1.5, -2.3)
+
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/FrontLeftWall"]
+mesh = SubResource("Mesh_fuel_front")
+
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/FrontLeftWall"]
+shape = SubResource("Shape_fuel_front")
+
+[node name="FrontRightWall" type="StaticBody3D" parent="FuelStationPOI" groups=["navigation_blocker"]]
+position = Vector3(2.45, 1.5, -2.3)
+
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/FrontRightWall"]
+mesh = SubResource("Mesh_fuel_front")
+
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/FrontRightWall"]
+shape = SubResource("Shape_fuel_front")
+
+[node name="Roof" type="StaticBody3D" parent="FuelStationPOI"]
+position = Vector3(0, 2.8, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="FuelStationPOI/Roof"]
+mesh = SubResource("Mesh_fuel_roof")
+
+[node name="Collision" type="CollisionShape3D" parent="FuelStationPOI/Roof"]
+shape = SubResource("Shape_fuel_roof")
+
+[node name="InteriorFloor" type="MeshInstance3D" parent="FuelStationPOI"]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("Mesh_fuel_floor")
+
+[node name="Counter" type="MeshInstance3D" parent="FuelStationPOI"]
+position = Vector3(0, 0.55, 1.65)
+mesh = SubResource("Mesh_fuel_counter")
+
+[node name="InteriorLight" type="OmniLight3D" parent="FuelStationPOI"]
+position = Vector3(0, 2.25, 0.3)
+light_color = Color(1, 0.58, 0.28, 1)
+light_energy = 2.2
+omni_range = 6.5
+shadow_enabled = true
+
+[node name="InteriorPoint" type="Marker3D" parent="FuelStationPOI" groups=["poi_interior_point"]]
+position = Vector3(0, 0, 0)
+
+[node name="FuelStationEncounter" type="Area3D" parent="FuelStationPOI" groups=["fuel_station_encounter"]]
+position = Vector3(0, 1.5, -3)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("13_fuel_encounter")
+runner_enemy_scene = ExtResource("12_runner_zombie")
+scrap_pickup_scene = ExtResource("6_scrap_pickup")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FuelStationPOI/FuelStationEncounter"]
+shape = SubResource("Shape_fuel_encounter")
+
+[node name="FuelStationEnemySpawns" type="Node3D" parent="FuelStationPOI"]
+unique_name_in_owner = true
+
+[node name="LeftRunnerSpawn" type="Marker3D" parent="FuelStationPOI/FuelStationEnemySpawns"]
+position = Vector3(-3.7, 1, -3.7)
+
+[node name="InteriorRunnerSpawn" type="Marker3D" parent="FuelStationPOI/FuelStationEnemySpawns"]
+position = Vector3(0, 1, 0.3)
+
+[node name="RightRunnerSpawn" type="Marker3D" parent="FuelStationPOI/FuelStationEnemySpawns"]
+position = Vector3(3.7, 1, -3.7)
+
+[node name="FuelStationScrapSpawns" type="Node3D" parent="FuelStationPOI"]
+unique_name_in_owner = true
+
+[node name="LeftScrapSpawn" type="Marker3D" parent="FuelStationPOI/FuelStationScrapSpawns"]
+position = Vector3(-1.3, 0.35, 0.9)
+
+[node name="RightScrapSpawn" type="Marker3D" parent="FuelStationPOI/FuelStationScrapSpawns"]
+position = Vector3(1.3, 0.35, 0.9)
 
 [node name="Canopy" type="MeshInstance3D" parent="FuelStationPOI"]
 position = Vector3(0, 4, -5.5)

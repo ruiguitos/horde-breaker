@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: quinto vertical slice do Milestone 17 concluído com o posto militar explorável.
+Fase: Milestone 17 concluído com os quatro POIs exploráveis.
 
 Última atualização: 2026-07-18.
 
@@ -233,19 +233,22 @@ Fase: quinto vertical slice do Milestone 17 concluído com o posto militar explo
 - [x] Duas caixas de 12 munições adicionadas como recompensa e repostas por ciclo apenas quando recolhidas.
 - [x] `MilitaryOutpostEncounter` criado com dois Normal Zombies e um Runner durante a exploração.
 - [x] Encontro militar limitado a uma ativação por ciclo, 18 XP total e separado da contagem das vagas.
+- [x] Estação de combustível convertida de bloco fechado para uma loja com entrada aberta, balcão e interior navegável.
+- [x] Duas caches de 25 Scrap adicionadas à estação e repostas por ciclo apenas quando recolhidas.
+- [x] `FuelStationEncounter` criado com três Runners, uma ativação por ciclo, 24 XP total e contagem das vagas inalterada.
 - [x] Proposta de mundo aberto compacto por setores documentada em `docs/OPEN_WORLD_PLAN.md`, sem implementar ainda streaming.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (quinto slice concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual do posto militar com Recruit, Renegade e Medic, confirmando
-a entrada com a câmara aproximada, a composição de inimigos e a recolha das duas
-caixas de munições. Em seguida, decidir como os ataques funcionam quando o jogador
-está longe do acampamento, abrir a estação de combustível e só depois aprovar ou
-rejeitar a implementação do protótipo de dois setores.
+Fazer playtest manual da estação de combustível com Recruit, Renegade e Medic,
+confirmando a entrada sob a cobertura, o combate contra três Runners e a recolha
+das duas caches. Em seguida, decidir como os ataques funcionam quando o jogador
+está longe do acampamento e aprovar ou rejeitar o protótipo de dois setores do
+Milestone 18.
 
 ## Validação
 
@@ -412,6 +415,11 @@ rejeitar a implementação do protótipo de dois setores.
 - Teste integrado confirmou dois Normal Zombies, um Runner, 18 XP total e `alive_enemy_count` inalterado em zero.
 - Teste integrado confirmou duas caixas de munições, reposição após `cycle_completed` e ausência de duplicação quando o loot permanece por recolher.
 - Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, bunker iluminado, duas caixas e elementos militares legíveis.
+- Importação headless após a abertura da estação de combustível concluída sem erros de parsing ou de recursos.
+- Arena com a estação de combustível explorável executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou 3522 polígonos navegáveis, percurso de 26 pontos do acampamento ao interior e os quatro acessos preservados.
+- Teste integrado confirmou três Runners, 24 XP total, `alive_enemy_count` inalterado em zero e reposição seletiva das duas caches sem duplicação.
+- Capturas OpenGL a 1152 × 648 confirmaram a loja aberta, iluminação quente, duas caches legíveis e Runners separados na zona das bombas.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -426,7 +434,7 @@ rejeitar a implementação do protótipo de dois setores.
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
-- Os oito caches exteriores são estáticos; apenas o Scrap do armazém reaparece por ciclo, ainda sem loot aleatório ou inventário.
+- Os oito caches exteriores são estáticos; o Scrap do armazém e da estação reaparece por ciclo, ainda sem loot aleatório ou inventário.
 - Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
@@ -434,9 +442,10 @@ rejeitar a implementação do protótipo de dois setores.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Armazém, hospital e posto militar têm interiores próprios; a estação de combustível continua fechada.
+- Os quatro POIs têm interiores próprios, mas continuam a usar geometria graybox e loot fixo.
 - O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
 - As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
+- As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
 - O mapa continua a ser uma única cena de 64 × 64 metros totalmente carregada; a divisão por setores está apenas documentada e não existe streaming.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.

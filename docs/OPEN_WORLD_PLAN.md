@@ -133,8 +133,8 @@ e desempenho. Referências: [Large world coordinates](https://docs.godotengine.o
 
 ### Fase 1 — concluir o mapa atual
 
-- validar hospital e posto militar;
-- abrir a estação de combustível;
+- [x] validar hospital e posto militar;
+- [x] abrir a estação de combustível;
 - confirmar densidade, rotas e duração da exploração a pé.
 
 ### Fase 2 — protótipo de dois setores
@@ -162,7 +162,7 @@ e desempenho. Referências: [Large world coordinates](https://docs.godotengine.o
 
 O protótipo de mundo aberto só deve começar quando:
 
-- os quatro POIs atuais forem jogáveis;
+- [x] os quatro POIs atuais forem jogáveis;
 - o posto militar e o hospital tiverem sido testados com as três classes;
 - existir uma decisão sobre ataques enquanto o jogador está longe;
 - a arena atual mantiver desempenho estável com as hordas previstas;
@@ -179,6 +179,7 @@ O protótipo de mundo aberto só deve começar quando:
 
 ## Recomendação atual
 
-Concluir o Milestone 17 no mapa de 64 × 64 metros e, depois, criar apenas um
-segundo setor graybox. Se a transição, navegação e persistência de sessão forem
-fiáveis, avançar para o mundo compacto de 256 × 256 metros.
+Com o Milestone 17 concluído no mapa de 64 × 64 metros, decidir primeiro a regra
+dos ataques quando o jogador está longe. Depois, criar apenas um segundo setor
+graybox. Se a transição, navegação e persistência de sessão forem fiáveis,
+avançar para o mundo compacto de 256 × 256 metros.

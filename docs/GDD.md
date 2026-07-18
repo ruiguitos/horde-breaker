@@ -189,9 +189,11 @@ Moeda temporária da expedição. O protótipo atual separa:
 - **Scrap transportado**: encontrado em caches espalhados pelo mapa e ainda na posse do jogador;
 - **Scrap na base**: depositado no núcleo do acampamento e disponível para utilização.
 
-Existem provisoriamente nove caches de 25 Scrap em simultâneo: oito são estáticos
-no exterior e o do armazém é reposto após cada ciclo de três ataques. `F` recolhe
-uma cache próxima e, junto do núcleo, deposita todo o Scrap transportado.
+Existem provisoriamente onze caches de 25 Scrap em simultâneo: oito são estáticos
+no exterior, um pertence ao armazém e dois pertencem à estação de combustível.
+As três caches interiores são repostas após cada ciclo de três ataques apenas se
+tiverem sido recolhidos. `F` recolhe uma cache próxima e, junto do núcleo, deposita
+todo o Scrap transportado.
 
 Durante uma fase de exploração, `F` junto do núcleo também permite reparar até
 50 pontos de vida por interação. Cada unidade de Scrap repara 5 pontos de vida,
@@ -300,8 +302,10 @@ recolher recursos e reparar o núcleo.
 - O posto militar é o terceiro interior explorável e representa uma zona de risco elevado, com duas caixas de 12 munições.
 - Entrar no posto militar durante a exploração ativa dois Normal Zombies e um Runner, uma vez por ciclo. Os três concedem 18 XP total sem alterar a contagem da vaga.
 - As munições do posto militar reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar caixas ainda presentes.
-- A estação de combustível permanece fechada até os três primeiros interiores serem validados em playtest.
-- O tamanho final do mapa e regras próprias para os restantes POIs ficam para etapas posteriores.
+- A estação de combustível é o quarto interior explorável, com entrada aberta, iluminação quente, balcão e duas caches de 25 Scrap.
+- Aproximar-se da estação durante a exploração ativa três Runners, uma vez por ciclo. Os três concedem 24 XP total sem alterar a contagem da vaga.
+- As duas caches da estação reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar loot ainda presente.
+- O tamanho final do mapa e a distribuição de futuros POIs ficam para etapas posteriores.
 
 Uma evolução para mundo aberto compacto está em análise. A proposta em
 `docs/OPEN_WORLD_PLAN.md` usa setores de 64 × 64 metros, mantém o acampamento como

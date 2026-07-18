@@ -205,6 +205,13 @@ mas acompanha os três como um único encontro disponível uma vez por ciclo. As
 instâncias de `AmmoPickup` são criadas nos marcadores locais, repostas apenas quando
 estão ausentes e nunca alteram `alive_enemy_count`.
 
+O `FuelStationPOI` é o quarto interior. `FuelStationEncounter` observa a zona da
+loja e das bombas durante a exploração e instancia três Runners através de
+`spawn_exploration_enemies`. O componente mantém dois slots estáveis de
+`ScrapPickup`: no fim de cada ciclo cria apenas as caches ausentes e preserva as
+que ainda não foram recolhidas. Os Runners concedem XP sem alterar
+`alive_enemy_count`.
+
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
 caia para fora da arena enquanto o mapa não possuir limites definitivos. As
@@ -246,7 +253,7 @@ a usar cápsulas provisórias com materiais distintos.
 - O botão de reinício repõe a pausa e recarrega a cena atual.
 - O painel de derrota também permite regressar ao menu através do `GameManager`.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
-- Existem oito `ScrapPickup` estáticos nas zonas exteriores e um no armazém, reposto após cada ciclo se tiver sido recolhido.
+- Existem oito `ScrapPickup` estáticos nas zonas exteriores, um no armazém e dois na estação de combustível; os três interiores são repostos após cada ciclo apenas se tiverem sido recolhidos.
 - Existe um `HealthPickup` no hospital; cura imediatamente até 40 pontos e é reposto no fim de cada ciclo se tiver sido utilizado.
 - Existem dois `AmmoPickup` no posto militar, repostos no fim de cada ciclo apenas quando já foram recolhidos.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.

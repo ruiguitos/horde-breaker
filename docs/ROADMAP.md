@@ -235,7 +235,7 @@ Implementado neste slice:
 
 ## Milestone 17 — Exploration Map and Points of Interest
 
-Estado: quinto vertical slice funcional concluído.
+Estado: concluído.
 
 Objetivo:
 
@@ -258,12 +258,15 @@ Implementado neste slice:
 - medkit do hospital com cura de até 40 pontos, rejeição com vida cheia e reposição após cada ciclo;
 - terceiro interior explorável no posto militar, com duas caixas de munições;
 - encontro do posto militar com dois Normal Zombies e um Runner, separado das vagas e reposto por ciclo;
+- quarto interior explorável na estação de combustível, com entrada, balcão e iluminação quente;
+- encontro de três Runners na estação, separado das vagas e disponível uma vez por ciclo;
+- duas caches de 25 Scrap na estação, repostas seletivamente por ciclo sem duplicação;
 - composição validada sem descarregar novos modelos.
 
 Pendente:
 
 - validar o hospital, o posto militar e os respetivos pickups com as três classes;
-- definir loot e encontro específico para a estação de combustível;
+- validar a estação de combustível e o respetivo encontro com as três classes;
 - decidir a regra dos ataques quando o jogador está longe do acampamento;
 - aprovar ou rejeitar a proposta de setores em `docs/OPEN_WORLD_PLAN.md`.
 
