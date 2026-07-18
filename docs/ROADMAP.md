@@ -235,7 +235,7 @@ Implementado neste slice:
 
 ## Milestone 17 — Exploration Map and Points of Interest
 
-Estado: planeado.
+Estado: primeiro vertical slice funcional concluído.
 
 Objetivo:
 
@@ -244,3 +244,17 @@ Objetivo:
 - distribuir recursos e encontros por rotas de exploração legíveis;
 - manter caminhos alternativos entre o exterior e o acampamento;
 - medir o tamanho final do mapa e desempenho antes de importar mais modelos.
+
+Implementado neste slice:
+
+- estradas separadas dos adereços repetidos numa cena modular própria;
+- hospital, armazém, posto militar e estação de combustível com silhuetas distintas;
+- colisões e exclusão de navegação para os volumes principais de cada POI;
+- um acesso navegável e uma cache de Scrap próxima por POI;
+- composição validada sem descarregar novos modelos.
+
+Pendente:
+
+- tornar o primeiro edifício realmente explorável;
+- definir loot e encontros específicos por zona;
+- decidir se a arena deve crescer além dos 64 × 64 metros após playtest.

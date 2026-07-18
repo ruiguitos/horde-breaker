@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Street_4Way.gltf" id="1_street_4way"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Street_Straight_Crack1.gltf" id="2_street_straight"]
+
+[node name="CityRoadGrid" type="Node3D"]
+
+[node name="NorthWest" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-12, -0.1, -12)
+
+[node name="NorthMiddleWest" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-4, -0.1, -12)
+
+[node name="NorthMiddleEast" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(4, -0.1, -12)
+
+[node name="NorthEast" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(12, -0.1, -12)
+
+[node name="WestNorth" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-12, -0.1, -4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="CenterNorthWest" parent="." instance=ExtResource("1_street_4way")]
+position = Vector3(-4, -0.08, -4)
+
+[node name="CenterNorthEast" parent="." instance=ExtResource("1_street_4way")]
+position = Vector3(4, -0.08, -4)
+
+[node name="EastNorth" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(12, -0.1, -4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="WestSouth" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-12, -0.1, 4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="CenterSouthWest" parent="." instance=ExtResource("1_street_4way")]
+position = Vector3(-4, -0.08, 4)
+
+[node name="CenterSouthEast" parent="." instance=ExtResource("1_street_4way")]
+position = Vector3(4, -0.08, 4)
+
+[node name="EastSouth" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(12, -0.1, 4)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="SouthWest" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-12, -0.1, 12)
+
+[node name="SouthMiddleWest" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(-4, -0.1, 12)
+
+[node name="SouthMiddleEast" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(4, -0.1, 12)
+
+[node name="SouthEast" parent="." instance=ExtResource("2_street_straight")]
+position = Vector3(12, -0.1, 12)

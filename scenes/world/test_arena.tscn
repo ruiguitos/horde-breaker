@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -15,10 +15,11 @@
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
-[ext_resource type="PackedScene" path="res://scenes/world/city_test_map.tscn" id="16_city_map"]
+[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="16_city_roads"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="17_scrap_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
 [ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
+[ext_resource type="PackedScene" path="res://scenes/world/exploration_pois.tscn" id="20_exploration_pois"]
 
 [sub_resource type="Environment" id="Environment_test_arena"]
 background_mode = 1
@@ -84,20 +85,22 @@ shadow_enabled = true
 script = ExtResource("2_navigation_script")
 navigation_half_extent = 31.5
 
-[node name="CityNorthWest" parent="." instance=ExtResource("16_city_map")]
+[node name="RoadNorthWest" parent="." instance=ExtResource("16_city_roads")]
 position = Vector3(-16, 0, -16)
 
-[node name="CityNorthEast" parent="." instance=ExtResource("16_city_map")]
+[node name="RoadNorthEast" parent="." instance=ExtResource("16_city_roads")]
 position = Vector3(16, 0, -16)
 rotation = Vector3(0, -1.5708, 0)
 
-[node name="CitySouthWest" parent="." instance=ExtResource("16_city_map")]
+[node name="RoadSouthWest" parent="." instance=ExtResource("16_city_roads")]
 position = Vector3(-16, 0, 16)
 rotation = Vector3(0, 1.5708, 0)
 
-[node name="CitySouthEast" parent="." instance=ExtResource("16_city_map")]
+[node name="RoadSouthEast" parent="." instance=ExtResource("16_city_roads")]
 position = Vector3(16, 0, 16)
 rotation = Vector3(0, 3.14159, 0)
+
+[node name="ExplorationPOIs" parent="." instance=ExtResource("20_exploration_pois")]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)

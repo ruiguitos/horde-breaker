@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: Milestone 16 concluído com exploração, Scrap, reparação e primeira fortificação fixa.
+Fase: primeiro vertical slice do Milestone 17 concluído com quatro POIs únicos.
 
 Última atualização: 2026-07-18.
 
@@ -208,16 +208,23 @@ Fase: Milestone 16 concluído com exploração, Scrap, reparação e primeira fo
 - [x] Destruição remove a barricada como alvo, desativa a colisão e disponibiliza novamente o ponto para reconstrução.
 - [x] Navegação regenerada em runtime quando a barricada é construída ou destruída.
 - [x] Modelo provisório legível criado com primitivas, marcador de construção e estado/vida apresentados no mundo.
+- [x] Grelha modular de 16 estradas extraída para `city_road_grid.tscn`, sem adereços repetidos.
+- [x] Quatro instâncias repetidas de `city_test_map.tscn` removidas da arena; a cena original foi preservada como referência.
+- [x] `exploration_pois.tscn` criado com hospital, armazém, posto militar e estação de combustível.
+- [x] Quatro POIs diferenciados por escala, cor, silhueta, etiqueta e elementos ambientais já disponíveis.
+- [x] Edifícios e adereços principais configurados como `navigation_blocker` com colisão na layer `World`.
+- [x] Cada POI recebeu um `AccessPoint` navegável e manteve pelo menos uma cache de Scrap a menos de 10 metros.
+- [x] Estradas, oito caches, seis spawns, núcleo e fortificação preservados sem adicionar novos assets ou controlos.
 
 ## Milestone atual
 
-**Milestone 16 — Camp Resources and Repair (concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (primeiro slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual do custo, resistência e localização da barricada com as três
-classes. Depois, iniciar o Milestone 17 com um graybox de POIs maiores e únicos,
-sem importar ainda um conjunto grande de novos modelos.
+Fazer playtest manual do percurso completo pelos quatro POIs com as três classes.
+Depois, tornar apenas o armazém explorável, com entrada, interior graybox e loot
+de teste, antes de criar interiores nos restantes edifícios ou aumentar o mapa.
 
 ## Validação
 
@@ -356,6 +363,13 @@ sem importar ainda um conjunto grande de novos modelos.
 - Teste integrado confirmou atualização da navegação de `3344` para `3332` polígonos ao construir e reposição para `3344` ao destruir.
 - Teste integrado confirmou que um Normal Zombie real escolhe a barricada próxima e lhe causa dano.
 - Captura OpenGL a 1152 × 648 confirmou marcador, barricada construída, etiqueta no mundo e feedback sem sobreposição crítica com o HUD.
+- Importação headless do primeiro slice do Milestone 17 concluída sem erros de parsing ou de recursos.
+- Arena com os quatro POIs executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou quatro grelhas de estrada, quatro POIs e ausência das antigas instâncias repetidas na arena.
+- Teste integrado confirmou 3424 polígonos navegáveis, caminhos dos seis spawns ao núcleo e caminhos do acampamento aos quatro acessos.
+- Teste integrado confirmou os oito caches preservados, alcançáveis e com uma cache a menos de 10 metros de cada POI.
+- Captura OpenGL frontal confirmou hospital e armazém legíveis a partir do acampamento sem bloquear a área central.
+- Captura OpenGL aérea confirmou as quatro silhuetas distintas, distribuição por quadrantes e rotas abertas entre zonas.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -364,6 +378,7 @@ sem importar ainda um conjunto grande de novos modelos.
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
 - afinação final dos 30/45 segundos, custo de 30 Scrap, 200 pontos de vida e limites da reparação/construção no modo survival contínuo.
+- tamanho final do mapa depois do playtest dos quatro POIs em 64 × 64 metros.
 
 ## Problemas conhecidos
 
@@ -376,7 +391,7 @@ sem importar ainda um conjunto grande de novos modelos.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições já existe, mas usa um pickup genérico; tipos de munição, feedback contextual e respawn ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Os modelos ambientais repetem o mesmo bairro quatro vezes e ainda não formam edifícios exploráveis ou POIs únicos de grande escala.
+- Os quatro POIs já têm silhuetas únicas, mas continuam a ser volumes graybox fechados sem interiores, loot específico ou encontros próprios.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.

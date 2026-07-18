@@ -286,10 +286,13 @@ recolher recursos e reparar o núcleo.
 
 ## Exploração provisória
 
-- O mapa de teste mede 64 × 64 metros e combina quatro bairros modulares rodados.
-- Os pontos de aparecimento dos inimigos e os caches de Scrap ficam distribuídos nas zonas exteriores.
+- O mapa de teste mede 64 × 64 metros e usa uma grelha modular de estradas.
+- Os quatro bairros repetidos foram substituídos por silhuetas graybox próprias: hospital, armazém, posto militar e estação de combustível.
+- Cada POI tem um acesso navegável e pelo menos uma cache de Scrap próxima.
+- Os pontos de aparecimento dos inimigos continuam distribuídos nas zonas exteriores.
 - As ruas mantêm caminhos contínuos até ao núcleo e permitem testar deslocações mais longas.
-- Os modelos atuais continuam provisórios e repetidos; edifícios exploráveis, POIs únicos e um mapa final maior ficam para uma etapa posterior.
+- Os edifícios ainda não têm interiores; o primeiro interior explorável será validado antes de repetir a solução nos restantes POIs.
+- O tamanho final do mapa, loot próprio por zona e encontros específicos ficam para etapas posteriores.
 
 ## Direção visual
 

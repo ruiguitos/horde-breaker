@@ -7,7 +7,7 @@
 - [x] Integrar modelos CC0 de teste para as três classes, dois tipos de zombie e as três armas de fogo, preservando colisões e mecânicas.
 - [x] Criar a primeira expansão graybox da arena com três obstáculos, navegação que os contorna e seis pontos de spawn validados.
 - [ ] Evoluir o graybox para um mapa totalmente jogável, afinando rotas, zonas de combate, coberturas e spawns através de playtests com Recruit, Renegade e Medic.
-- [ ] Substituir os quatro bairros repetidos por POIs maiores e únicos no Milestone 17.
+- [x] Substituir os quatro bairros repetidos pelo primeiro graybox de hospital, armazém, posto militar e estação de combustível.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.

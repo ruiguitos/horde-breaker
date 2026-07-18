@@ -26,6 +26,8 @@ scenes/
     test_arena.tscn
     camp_core.tscn
     fortification_site.tscn
+    city_road_grid.tscn
+    exploration_pois.tscn
     arena.tscn
     spawn_point.tscn
   characters/
@@ -153,10 +155,11 @@ colisão física de deteção de dano. O Runner herda as duas zonas da cena base
 TestArena (Node3D)
   Environment
   DirectionalLight3D
-  CityNorthWest
-  CityNorthEast
-  CitySouthWest
-  CitySouthEast
+  RoadNorthWest
+  RoadNorthEast
+  RoadSouthWest
+  RoadSouthEast
+  ExplorationPOIs
   Floor
   Walls
   Obstacles
@@ -170,19 +173,24 @@ TestArena (Node3D)
 ```
 
 A arena mede 64 × 64 metros e instancia quatro cópias rodadas de
-`city_test_map.tscn`. Cada bairro usa módulos CC0 de estrada, contentores,
-iluminação, barreiras, uma torre de água e um camião blindado do Quaternius Zombie
-Apocalypse Kit. O piso graybox continua a fornecer a colisão, mas a sua malha está
-oculta.
+`city_road_grid.tscn`, que contém apenas os 16 módulos CC0 de estrada. A antiga
+`city_test_map.tscn` fica preservada como referência, mas já não é instanciada na
+arena. O piso graybox continua a fornecer a colisão, mas a sua malha está oculta.
+
+`exploration_pois.tscn` reúne quatro zonas identificadas pelo grupo
+`point_of_interest`: `HospitalPOI`, `WarehousePOI`, `MilitaryOutpostPOI` e
+`FuelStationPOI`. Cada uma possui uma silhueta, cor, etiqueta e um `AccessPoint`
+no grupo `poi_access_point`. Os contentores, camião e torre de água importados são
+reutilizados uma única vez como elementos específicos destas zonas.
 
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
 caia para fora da arena enquanto o mapa não possuir limites definitivos. As
 barreiras internas duplicadas dos módulos estão ocultas.
 
-Os contentores, o camião e a torre de água mantêm coberturas estáticas na layer 1
-(`World`). As três colisões graybox anteriores foram desativadas, mas os nós foram
-preservados. Os obstáculos que devem bloquear caminhos pertencem ao grupo
+Os edifícios graybox, contentores, camião e torre de água mantêm coberturas
+estáticas na layer 1 (`World`). As três colisões graybox anteriores foram
+desativadas, mas os nós foram preservados. Os obstáculos que devem bloquear caminhos pertencem ao grupo
 `navigation_blocker` e usam um `CollisionShape3D` com `BoxShape3D` chamado
 `Collision`.
 
