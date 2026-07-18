@@ -235,7 +235,7 @@ Implementado neste slice:
 
 ## Milestone 17 — Exploration Map and Points of Interest
 
-Estado: terceiro vertical slice funcional concluído.
+Estado: quarto vertical slice funcional concluído.
 
 Objetivo:
 
@@ -254,10 +254,12 @@ Implementado neste slice:
 - primeiro interior explorável no armazém, com entrada, iluminação, Scrap e munições;
 - emboscada de dois Normal Zombies no armazém, separada da contagem das vagas;
 - reposição do loot do armazém após cada ciclo, sem duplicar pickups ainda presentes;
+- segundo interior explorável no hospital, com entrada, iluminação fria e duas camas graybox;
+- medkit do hospital com cura de até 40 pontos, rejeição com vida cheia e reposição após cada ciclo;
 - composição validada sem descarregar novos modelos.
 
 Pendente:
 
-- validar a emboscada do armazém com as três classes antes de repetir a regra noutro POI;
-- definir loot e encontros específicos para hospital, posto militar e estação de combustível;
+- validar o hospital e o medkit com as três classes antes de abrir outro POI;
+- definir loot e encontros específicos para posto militar e estação de combustível;
 - decidir se a arena deve crescer além dos 64 × 64 metros após playtest.

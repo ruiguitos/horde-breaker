@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: terceiro vertical slice do Milestone 17 concluído com a primeira emboscada de exploração.
+Fase: quarto vertical slice do Milestone 17 concluído com o hospital explorável.
 
 Última atualização: 2026-07-18.
 
@@ -225,17 +225,21 @@ Fase: terceiro vertical slice do Milestone 17 concluído com a primeira emboscad
 - [x] Zombies da exploração ligados à recompensa normal de XP sem alterar a contagem ou conclusão das vagas.
 - [x] Scrap e munições do armazém repostos após cada ciclo apenas quando já foram recolhidos.
 - [x] Mensagens do HUD reutilizadas para comunicar a emboscada e a reposição do loot.
+- [x] Hospital convertido de bloco fechado para um edifício com entrada central de cinco metros e interior navegável.
+- [x] Interior do hospital distinguido com iluminação fria, duas camas graybox e sinalização exterior preservada.
+- [x] `HealthPickup` reutilizável criado com interação por `F`, cura máxima de 40 pontos e rejeição segura com vida cheia.
+- [x] Medkit ocultado após uma cura válida e reposto na mesma instância após `cycle_completed`, sem duplicação.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (terceiro slice concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (quarto slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual da emboscada do armazém com Recruit, Renegade e Medic,
-incluindo uma entrada perto do fim da contagem de exploração. Depois, decidir se
-o segundo interior será o hospital, com loot de recuperação próprio, antes de
-aumentar o mapa ou abrir os restantes POIs em conjunto.
+Fazer playtest manual do hospital e do medkit com Recruit, Renegade e Medic,
+confirmando a entrada com a câmara aproximada, a rejeição com vida cheia e a cura
+depois de sofrer dano. Depois, abrir apenas o posto militar com uma recompensa e
+um risco próprios, sem aumentar ainda o mapa.
 
 ## Validação
 
@@ -391,6 +395,11 @@ aumentar o mapa ou abrir os restantes POIs em conjunto.
 - Teste integrado confirmou dois Normal Zombies por ativação, 10 XP total e `alive_enemy_count` inalterado em zero.
 - Teste integrado confirmou uma ativação por ciclo, reposição de Scrap e munições após `cycle_completed` e ausência de duplicação quando o loot permanece por recolher.
 - Captura OpenGL a 1152 × 648 confirmou os dois zombies separados, no chão e legíveis em redor do loot interior.
+- Importação headless após a abertura do hospital concluída sem erros de parsing ou de recursos.
+- Arena com o hospital explorável executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou 3498 polígonos navegáveis, percurso de 29 pontos do acampamento ao interior e os quatro acessos dos POIs preservados.
+- Teste integrado confirmou uma única instância do medkit, rejeição com vida cheia, cura de 40 pontos, limite na vida máxima e reposição após `cycle_completed`.
+- Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, sinalização, duas camas, iluminação fria e medkit legível no interior.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -412,7 +421,8 @@ aumentar o mapa ou abrir os restantes POIs em conjunto.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Apenas o armazém tem interior e emboscada; hospital, posto militar e estação de combustível continuam fechados e sem regras próprias.
+- Armazém e hospital têm interiores próprios, mas apenas o armazém possui uma emboscada; posto militar e estação de combustível continuam fechados.
+- O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.

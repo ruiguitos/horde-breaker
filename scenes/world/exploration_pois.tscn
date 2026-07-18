@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3]
+[gd_scene load_steps=58 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="7_ammo_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/warehouse_encounter.gd" id="8_warehouse_encounter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="9_normal_zombie"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/health_pickup.tscn" id="10_health_pickup"]
 
 [sub_resource type="StandardMaterial3D" id="Material_hospital"]
 albedo_color = Color(0.72, 0.76, 0.78, 1)
@@ -51,12 +52,45 @@ emission = Color(0.35, 0.04, 0.01, 1)
 emission_energy_multiplier = 0.5
 roughness = 0.58
 
-[sub_resource type="BoxMesh" id="Mesh_hospital"]
+[sub_resource type="BoxMesh" id="Mesh_hospital_back"]
 material = SubResource("Material_hospital")
-size = Vector3(10, 5, 7)
+size = Vector3(10, 5, 0.4)
 
-[sub_resource type="BoxShape3D" id="Shape_hospital"]
-size = Vector3(10, 5, 7)
+[sub_resource type="BoxShape3D" id="Shape_hospital_back"]
+size = Vector3(10, 5, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_side"]
+material = SubResource("Material_hospital")
+size = Vector3(0.4, 5, 7)
+
+[sub_resource type="BoxShape3D" id="Shape_hospital_side"]
+size = Vector3(0.4, 5, 7)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_front"]
+material = SubResource("Material_hospital")
+size = Vector3(2.5, 5, 0.4)
+
+[sub_resource type="BoxShape3D" id="Shape_hospital_front"]
+size = Vector3(2.5, 5, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_roof"]
+material = SubResource("Material_hospital")
+size = Vector3(10, 0.4, 7)
+
+[sub_resource type="BoxShape3D" id="Shape_hospital_roof"]
+size = Vector3(10, 0.4, 7)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_floor"]
+material = SubResource("Material_hospital")
+size = Vector3(9.6, 0.08, 6.6)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_bed"]
+material = SubResource("Material_hospital_accent")
+size = Vector3(0.95, 0.45, 2.2)
+
+[sub_resource type="BoxMesh" id="Mesh_hospital_mattress"]
+material = SubResource("Material_hospital")
+size = Vector3(0.88, 0.2, 2.08)
 
 [sub_resource type="BoxMesh" id="Mesh_hospital_cross_horizontal"]
 material = SubResource("Material_hospital_accent")
@@ -68,7 +102,7 @@ size = Vector3(0.48, 2.4, 0.24)
 
 [sub_resource type="BoxMesh" id="Mesh_hospital_awning"]
 material = SubResource("Material_hospital_accent")
-size = Vector3(5, 0.32, 1.5)
+size = Vector3(4.6, 0.28, 1.1)
 
 [sub_resource type="BoxMesh" id="Mesh_warehouse_back"]
 material = SubResource("Material_warehouse")
@@ -164,14 +198,98 @@ size = Vector3(2.7, 9.4, 2.7)
 [node name="HospitalPOI" type="Node3D" parent="." groups=["point_of_interest"]]
 position = Vector3(-20, 0, -18)
 
-[node name="Building" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
-position = Vector3(0, 2.5, 0)
+[node name="BackWall" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
+position = Vector3(0, 2.5, -3.3)
 
-[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/Building"]
-mesh = SubResource("Mesh_hospital")
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/BackWall"]
+mesh = SubResource("Mesh_hospital_back")
 
-[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/Building"]
-shape = SubResource("Shape_hospital")
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/BackWall"]
+shape = SubResource("Shape_hospital_back")
+
+[node name="LeftWall" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
+position = Vector3(-4.8, 2.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/LeftWall"]
+mesh = SubResource("Mesh_hospital_side")
+
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/LeftWall"]
+shape = SubResource("Shape_hospital_side")
+
+[node name="RightWall" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
+position = Vector3(4.8, 2.5, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/RightWall"]
+mesh = SubResource("Mesh_hospital_side")
+
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/RightWall"]
+shape = SubResource("Shape_hospital_side")
+
+[node name="FrontLeftWall" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
+position = Vector3(-3.75, 2.5, 3.3)
+
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/FrontLeftWall"]
+mesh = SubResource("Mesh_hospital_front")
+
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/FrontLeftWall"]
+shape = SubResource("Shape_hospital_front")
+
+[node name="FrontRightWall" type="StaticBody3D" parent="HospitalPOI" groups=["navigation_blocker"]]
+position = Vector3(3.75, 2.5, 3.3)
+
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/FrontRightWall"]
+mesh = SubResource("Mesh_hospital_front")
+
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/FrontRightWall"]
+shape = SubResource("Shape_hospital_front")
+
+[node name="Roof" type="StaticBody3D" parent="HospitalPOI"]
+position = Vector3(0, 4.8, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="HospitalPOI/Roof"]
+mesh = SubResource("Mesh_hospital_roof")
+
+[node name="Collision" type="CollisionShape3D" parent="HospitalPOI/Roof"]
+shape = SubResource("Shape_hospital_roof")
+
+[node name="InteriorFloor" type="MeshInstance3D" parent="HospitalPOI"]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("Mesh_hospital_floor")
+
+[node name="LeftBed" type="Node3D" parent="HospitalPOI"]
+position = Vector3(-3.25, 0, -1)
+
+[node name="Frame" type="MeshInstance3D" parent="HospitalPOI/LeftBed"]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("Mesh_hospital_bed")
+
+[node name="Mattress" type="MeshInstance3D" parent="HospitalPOI/LeftBed"]
+position = Vector3(0, 0.55, 0)
+mesh = SubResource("Mesh_hospital_mattress")
+
+[node name="RightBed" type="Node3D" parent="HospitalPOI"]
+position = Vector3(3.25, 0, -1)
+
+[node name="Frame" type="MeshInstance3D" parent="HospitalPOI/RightBed"]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("Mesh_hospital_bed")
+
+[node name="Mattress" type="MeshInstance3D" parent="HospitalPOI/RightBed"]
+position = Vector3(0, 0.55, 0)
+mesh = SubResource("Mesh_hospital_mattress")
+
+[node name="InteriorLight" type="OmniLight3D" parent="HospitalPOI"]
+position = Vector3(0, 4, -0.4)
+light_color = Color(0.78, 0.9, 1, 1)
+light_energy = 2.4
+omni_range = 7.5
+shadow_enabled = true
+
+[node name="HealthPickup" parent="HospitalPOI" instance=ExtResource("10_health_pickup")]
+position = Vector3(0, 0.3, -1.7)
+
+[node name="InteriorPoint" type="Marker3D" parent="HospitalPOI" groups=["poi_interior_point"]]
+position = Vector3(0, 0, 0.5)
 
 [node name="CrossHorizontal" type="MeshInstance3D" parent="HospitalPOI"]
 position = Vector3(0, 4, 3.58)
@@ -182,7 +300,7 @@ position = Vector3(0, 4, 3.58)
 mesh = SubResource("Mesh_hospital_cross_vertical")
 
 [node name="Awning" type="MeshInstance3D" parent="HospitalPOI"]
-position = Vector3(0, 2.2, 4.05)
+position = Vector3(0, 3.15, 3.85)
 mesh = SubResource("Mesh_hospital_awning")
 
 [node name="Label" type="Label3D" parent="HospitalPOI"]

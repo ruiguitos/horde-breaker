@@ -295,7 +295,9 @@ recolher recursos e reparar o núcleo.
 - O armazém é o primeiro interior explorável, com entrada aberta, iluminação graybox, uma cache de Scrap e um pickup de munições.
 - Entrar no armazém durante uma fase de exploração ativa uma emboscada de dois Normal Zombies, uma vez por ciclo.
 - Os zombies da emboscada concedem XP, mas não pertencem à contagem da vaga; o loot do armazém é reposto no ciclo seguinte sem duplicar pickups não recolhidos.
-- Hospital, posto militar e estação de combustível permanecem fechados até a solução do armazém ser validada em playtest.
+- O hospital é o segundo interior explorável e funciona como ponto de apoio, com entrada aberta, iluminação fria, duas camas e um medkit.
+- `F` junto do medkit recupera até 40 pontos de vida. O pickup não é consumido com a vida cheia e reaparece após cada ciclo de três ataques.
+- O posto militar e a estação de combustível permanecem fechados até os dois primeiros interiores serem validados em playtest.
 - O tamanho final do mapa e regras próprias para os restantes POIs ficam para etapas posteriores.
 
 ## Direção visual

@@ -121,6 +121,7 @@ O combate deve ficar num componente ou controlador próprio quando começar a cr
 - O pickup de teste acrescenta munições à reserva de uma arma de fogo do loadout, mesmo quando a personagem tem uma arma melee ativa.
 - O `WeaponController` tenta primeiro a arma ativa e depois o outro slot; o pickup só desaparece quando alguma reserva recebe pelo menos uma munição.
 - `ScrapPickup` acrescenta 25 unidades ao Scrap transportado e só desaparece após uma recolha válida.
+- `HealthPickup` chama `heal` no jogador, recupera até 40 pontos de vida e só fica indisponível após uma cura real. Escuta `cycle_completed` para voltar a mostrar o visual e reativar a colisão.
 - A área de interação do `CampCore` deposita primeiro todo o Scrap transportado; sem Scrap transportado, tenta reparar o núcleo durante a exploração.
 - `FortificationInteraction` delega a ação do volume interagível no `FortificationSite`, que constrói ou repara conforme o seu estado.
 
@@ -192,6 +193,12 @@ emboscada disponível uma vez por ciclo. O mesmo componente instancia as cenas
 existentes de `ScrapPickup` e `AmmoPickup` e repõe apenas pickups já recolhidos
 quando recebe `cycle_completed`.
 
+O `HospitalPOI` reutiliza a mesma construção por paredes segmentadas e possui um
+segundo `InteriorPoint` no grupo `poi_interior_point`. Não tem encontro hostil
+nesta etapa: contém duas camas graybox e uma instância única de `HealthPickup` na
+layer 4, alcançável pela interação do jogador. A reposição altera a mesma instância
+em vez de criar pickups adicionais.
+
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
 caia para fora da arena enquanto o mapa não possuir limites definitivos. As
@@ -230,6 +237,7 @@ a usar cápsulas provisórias com materiais distintos.
 - O painel de derrota também permite regressar ao menu através do `GameManager`.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
 - Existem oito `ScrapPickup` estáticos nas zonas exteriores e um no armazém, reposto após cada ciclo se tiver sido recolhido.
+- Existe um `HealthPickup` no hospital; cura imediatamente até 40 pontos e é reposto no fim de cada ciclo se tiver sido utilizado.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
 - `FortificationSite` começa vazio, custa 30 Scrap, tem 200 pontos de vida quando construído e reutiliza a mesma taxa de reparação do núcleo.
 - A barricada é um `StaticBody3D` na layer 1/2, pelo que bloqueia jogador, disparos e zombies e é detetada pelas áreas de ataque inimigas.
