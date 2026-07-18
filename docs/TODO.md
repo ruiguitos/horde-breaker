@@ -11,6 +11,9 @@
 - [x] Tornar o armazém no primeiro edifício explorável, com entrada, interior graybox e loot funcional de teste.
 - [x] Adicionar ao armazém uma emboscada por ciclo e reposição controlada de Scrap e munições.
 - [x] Abrir o hospital como segundo interior explorável e adicionar um medkit de 40 pontos reposto por ciclo.
+- [x] Abrir o posto militar com duas caixas de munições e um encontro de dois Normal Zombies mais um Runner.
+- [ ] Abrir a estação de combustível com uma recompensa e um risco próprios depois do playtest do posto militar.
+- [ ] Decidir como funcionam os ataques quando o jogador está longe e aprovar o protótipo de mundo aberto por setores descrito em `docs/OPEN_WORLD_PLAN.md`.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.

@@ -235,7 +235,7 @@ Implementado neste slice:
 
 ## Milestone 17 — Exploration Map and Points of Interest
 
-Estado: quarto vertical slice funcional concluído.
+Estado: quinto vertical slice funcional concluído.
 
 Objetivo:
 
@@ -256,10 +256,28 @@ Implementado neste slice:
 - reposição do loot do armazém após cada ciclo, sem duplicar pickups ainda presentes;
 - segundo interior explorável no hospital, com entrada, iluminação fria e duas camas graybox;
 - medkit do hospital com cura de até 40 pontos, rejeição com vida cheia e reposição após cada ciclo;
+- terceiro interior explorável no posto militar, com duas caixas de munições;
+- encontro do posto militar com dois Normal Zombies e um Runner, separado das vagas e reposto por ciclo;
 - composição validada sem descarregar novos modelos.
 
 Pendente:
 
-- validar o hospital e o medkit com as três classes antes de abrir outro POI;
-- definir loot e encontros específicos para posto militar e estação de combustível;
-- decidir se a arena deve crescer além dos 64 × 64 metros após playtest.
+- validar o hospital, o posto militar e os respetivos pickups com as três classes;
+- definir loot e encontro específico para a estação de combustível;
+- decidir a regra dos ataques quando o jogador está longe do acampamento;
+- aprovar ou rejeitar a proposta de setores em `docs/OPEN_WORLD_PLAN.md`.
+
+## Milestone 18 — Compact Open World Prototype
+
+Estado: proposto, não iniciado.
+
+Objetivo:
+
+- preservar o mapa atual como setor inicial de 64 × 64 metros;
+- carregar um segundo setor graybox sem trocar a cena principal;
+- manter jogador, acampamento e sistemas globais durante a transição;
+- usar uma região de navegação por setor;
+- guardar em memória o estado de loot e encontros do setor descarregado.
+
+Este milestone só começa depois de concluir o Milestone 17 e decidir como funcionam
+os ataques enquanto o jogador explora longe do acampamento.

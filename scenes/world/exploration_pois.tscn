@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3]
+[gd_scene load_steps=69 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="1_container_green"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="2_container_red"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/systems/warehouse_encounter.gd" id="8_warehouse_encounter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="9_normal_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/health_pickup.tscn" id="10_health_pickup"]
+[ext_resource type="Script" path="res://scripts/systems/military_outpost_encounter.gd" id="11_military_encounter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="12_runner_zombie"]
 
 [sub_resource type="StandardMaterial3D" id="Material_hospital"]
 albedo_color = Color(0.72, 0.76, 0.78, 1)
@@ -151,12 +153,44 @@ size = Vector3(0.12, 2.4, 1)
 [sub_resource type="BoxShape3D" id="Shape_warehouse_encounter"]
 size = Vector3(8.5, 3, 5.8)
 
-[sub_resource type="BoxMesh" id="Mesh_military"]
+[sub_resource type="BoxMesh" id="Mesh_military_back"]
 material = SubResource("Material_military")
-size = Vector3(8, 3.2, 6)
+size = Vector3(8, 3.2, 0.4)
 
-[sub_resource type="BoxShape3D" id="Shape_military"]
-size = Vector3(8, 3.2, 6)
+[sub_resource type="BoxShape3D" id="Shape_military_back"]
+size = Vector3(8, 3.2, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_military_side"]
+material = SubResource("Material_military")
+size = Vector3(0.4, 3.2, 6)
+
+[sub_resource type="BoxShape3D" id="Shape_military_side"]
+size = Vector3(0.4, 3.2, 6)
+
+[sub_resource type="BoxMesh" id="Mesh_military_front"]
+material = SubResource("Material_military")
+size = Vector3(2, 3.2, 0.4)
+
+[sub_resource type="BoxShape3D" id="Shape_military_front"]
+size = Vector3(2, 3.2, 0.4)
+
+[sub_resource type="BoxMesh" id="Mesh_military_roof"]
+material = SubResource("Material_military")
+size = Vector3(8, 0.4, 6)
+
+[sub_resource type="BoxShape3D" id="Shape_military_roof"]
+size = Vector3(8, 0.4, 6)
+
+[sub_resource type="BoxMesh" id="Mesh_military_floor"]
+material = SubResource("Material_military")
+size = Vector3(7.6, 0.08, 5.6)
+
+[sub_resource type="BoxMesh" id="Mesh_military_crate"]
+material = SubResource("Material_military_dark")
+size = Vector3(1.2, 0.8, 1.2)
+
+[sub_resource type="BoxShape3D" id="Shape_military_encounter"]
+size = Vector3(6.5, 3, 4.5)
 
 [sub_resource type="BoxMesh" id="Mesh_military_tower"]
 material = SubResource("Material_military_dark")
@@ -480,14 +514,115 @@ position = Vector3(0, 0, 5.8)
 [node name="MilitaryOutpostPOI" type="Node3D" parent="." groups=["point_of_interest"]]
 position = Vector3(-19, 0, 18)
 
-[node name="Bunker" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
-position = Vector3(0, 1.6, 0)
+[node name="BackWall" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
+position = Vector3(0, 1.6, 2.8)
 
-[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/Bunker"]
-mesh = SubResource("Mesh_military")
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/BackWall"]
+mesh = SubResource("Mesh_military_back")
 
-[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/Bunker"]
-shape = SubResource("Shape_military")
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/BackWall"]
+shape = SubResource("Shape_military_back")
+
+[node name="LeftWall" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
+position = Vector3(-3.8, 1.6, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/LeftWall"]
+mesh = SubResource("Mesh_military_side")
+
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/LeftWall"]
+shape = SubResource("Shape_military_side")
+
+[node name="RightWall" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
+position = Vector3(3.8, 1.6, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/RightWall"]
+mesh = SubResource("Mesh_military_side")
+
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/RightWall"]
+shape = SubResource("Shape_military_side")
+
+[node name="FrontLeftWall" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
+position = Vector3(-3, 1.6, -2.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/FrontLeftWall"]
+mesh = SubResource("Mesh_military_front")
+
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/FrontLeftWall"]
+shape = SubResource("Shape_military_front")
+
+[node name="FrontRightWall" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
+position = Vector3(3, 1.6, -2.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/FrontRightWall"]
+mesh = SubResource("Mesh_military_front")
+
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/FrontRightWall"]
+shape = SubResource("Shape_military_front")
+
+[node name="Roof" type="StaticBody3D" parent="MilitaryOutpostPOI"]
+position = Vector3(0, 3, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="MilitaryOutpostPOI/Roof"]
+mesh = SubResource("Mesh_military_roof")
+
+[node name="Collision" type="CollisionShape3D" parent="MilitaryOutpostPOI/Roof"]
+shape = SubResource("Shape_military_roof")
+
+[node name="InteriorFloor" type="MeshInstance3D" parent="MilitaryOutpostPOI"]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("Mesh_military_floor")
+
+[node name="LeftSupplyCrate" type="MeshInstance3D" parent="MilitaryOutpostPOI"]
+position = Vector3(-2.6, 0.4, 1.75)
+mesh = SubResource("Mesh_military_crate")
+
+[node name="RightSupplyCrate" type="MeshInstance3D" parent="MilitaryOutpostPOI"]
+position = Vector3(2.6, 0.4, 1.75)
+mesh = SubResource("Mesh_military_crate")
+
+[node name="InteriorLight" type="OmniLight3D" parent="MilitaryOutpostPOI"]
+position = Vector3(0, 2.35, 0.5)
+light_color = Color(0.68, 0.9, 0.48, 1)
+light_energy = 2.2
+omni_range = 6.5
+shadow_enabled = true
+
+[node name="InteriorPoint" type="Marker3D" parent="MilitaryOutpostPOI" groups=["poi_interior_point"]]
+position = Vector3(0, 0, 0)
+
+[node name="MilitaryOutpostEncounter" type="Area3D" parent="MilitaryOutpostPOI" groups=["military_outpost_encounter"]]
+position = Vector3(0, 1.5, 0)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("11_military_encounter")
+normal_enemy_scene = ExtResource("9_normal_zombie")
+runner_enemy_scene = ExtResource("12_runner_zombie")
+ammunition_pickup_scene = ExtResource("7_ammo_pickup")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MilitaryOutpostPOI/MilitaryOutpostEncounter"]
+shape = SubResource("Shape_military_encounter")
+
+[node name="MilitaryEnemySpawns" type="Node3D" parent="MilitaryOutpostPOI"]
+unique_name_in_owner = true
+
+[node name="NormalLeftSpawn" type="Marker3D" parent="MilitaryOutpostPOI/MilitaryEnemySpawns" groups=["military_normal_spawn"]]
+position = Vector3(-2.4, 1, 1)
+
+[node name="NormalRightSpawn" type="Marker3D" parent="MilitaryOutpostPOI/MilitaryEnemySpawns" groups=["military_normal_spawn"]]
+position = Vector3(2.4, 1, 1)
+
+[node name="RunnerSpawn" type="Marker3D" parent="MilitaryOutpostPOI/MilitaryEnemySpawns" groups=["military_runner_spawn"]]
+position = Vector3(0, 1, 1.7)
+
+[node name="MilitaryAmmunitionSpawns" type="Node3D" parent="MilitaryOutpostPOI"]
+unique_name_in_owner = true
+
+[node name="LeftAmmunitionSpawn" type="Marker3D" parent="MilitaryOutpostPOI/MilitaryAmmunitionSpawns"]
+position = Vector3(-1, 0.25, 0)
+
+[node name="RightAmmunitionSpawn" type="Marker3D" parent="MilitaryOutpostPOI/MilitaryAmmunitionSpawns"]
+position = Vector3(1, 0.25, 0)
 
 [node name="WatchTower" type="StaticBody3D" parent="MilitaryOutpostPOI" groups=["navigation_blocker"]]
 position = Vector3(-6, 3.5, -1)

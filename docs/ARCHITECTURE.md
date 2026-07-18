@@ -199,6 +199,12 @@ nesta etapa: contém duas camas graybox e uma instância única de `HealthPickup
 layer 4, alcançável pela interação do jogador. A reposição altera a mesma instância
 em vez de criar pickups adicionais.
 
+O `MilitaryOutpostPOI` é o terceiro interior. `MilitaryOutpostEncounter` chama
+`spawn_exploration_enemies` separadamente para dois Normal Zombies e um Runner,
+mas acompanha os três como um único encontro disponível uma vez por ciclo. As duas
+instâncias de `AmmoPickup` são criadas nos marcadores locais, repostas apenas quando
+estão ausentes e nunca alteram `alive_enemy_count`.
+
 As quatro paredes graybox deixaram de ter representação visual. As colisões de
 segurança permanecem temporariamente em ±32,5 metros para impedir que o jogador
 caia para fora da arena enquanto o mapa não possuir limites definitivos. As
@@ -215,6 +221,10 @@ metros do centro e exclui as células ocupadas pelas coberturas ativas, incluind
 uma margem de segurança. O cálculo projeta também os volumes rodados de cada
 bairro na grelha. Esta solução mantém o protótipo simples e deverá ser substituída por uma navmesh feita
 no editor quando a geometria deixar de ser composta por caixas alinhadas aos eixos.
+
+Esta grelha global fica limitada ao mapa atual. A proposta de mundo aberto em
+`docs/OPEN_WORLD_PLAN.md` substitui-a por uma `NavigationRegion3D` por setor e
+carregamento assíncrono de cenas; nenhum streaming foi implementado neste milestone.
 
 `FortificationSite` também pertence a `navigation_blocker`, mas começa com a
 colisão desativada. Construir ou destruir a barricada volta a gerar a grelha para
@@ -238,6 +248,7 @@ a usar cápsulas provisórias com materiais distintos.
 - `CampEconomy` começa com zero Scrap transportado e armazenado; ambos são estado apenas da partida atual.
 - Existem oito `ScrapPickup` estáticos nas zonas exteriores e um no armazém, reposto após cada ciclo se tiver sido recolhido.
 - Existe um `HealthPickup` no hospital; cura imediatamente até 40 pontos e é reposto no fim de cada ciclo se tiver sido utilizado.
+- Existem dois `AmmoPickup` no posto militar, repostos no fim de cada ciclo apenas quando já foram recolhidos.
 - `CampCoreInteraction` converte 1 Scrap armazenado em 5 pontos de vida, até 50 por interação, apenas durante a exploração.
 - `FortificationSite` começa vazio, custa 30 Scrap, tem 200 pontos de vida quando construído e reutiliza a mesma taxa de reparação do núcleo.
 - A barricada é um `StaticBody3D` na layer 1/2, pelo que bloqueia jogador, disparos e zombies e é detetada pelas áreas de ataque inimigas.

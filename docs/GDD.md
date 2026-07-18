@@ -297,8 +297,15 @@ recolher recursos e reparar o núcleo.
 - Os zombies da emboscada concedem XP, mas não pertencem à contagem da vaga; o loot do armazém é reposto no ciclo seguinte sem duplicar pickups não recolhidos.
 - O hospital é o segundo interior explorável e funciona como ponto de apoio, com entrada aberta, iluminação fria, duas camas e um medkit.
 - `F` junto do medkit recupera até 40 pontos de vida. O pickup não é consumido com a vida cheia e reaparece após cada ciclo de três ataques.
-- O posto militar e a estação de combustível permanecem fechados até os dois primeiros interiores serem validados em playtest.
+- O posto militar é o terceiro interior explorável e representa uma zona de risco elevado, com duas caixas de 12 munições.
+- Entrar no posto militar durante a exploração ativa dois Normal Zombies e um Runner, uma vez por ciclo. Os três concedem 18 XP total sem alterar a contagem da vaga.
+- As munições do posto militar reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar caixas ainda presentes.
+- A estação de combustível permanece fechada até os três primeiros interiores serem validados em playtest.
 - O tamanho final do mapa e regras próprias para os restantes POIs ficam para etapas posteriores.
+
+Uma evolução para mundo aberto compacto está em análise. A proposta em
+`docs/OPEN_WORLD_PLAN.md` usa setores de 64 × 64 metros, mantém o acampamento como
+âncora e exige rever a frequência dos ataques antes de aumentar o mapa.
 
 ## Direção visual
 

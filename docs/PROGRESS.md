@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-Fase: quarto vertical slice do Milestone 17 concluído com o hospital explorável.
+Fase: quinto vertical slice do Milestone 17 concluído com o posto militar explorável.
 
 Última atualização: 2026-07-18.
 
@@ -229,17 +229,23 @@ Fase: quarto vertical slice do Milestone 17 concluído com o hospital exploráve
 - [x] Interior do hospital distinguido com iluminação fria, duas camas graybox e sinalização exterior preservada.
 - [x] `HealthPickup` reutilizável criado com interação por `F`, cura máxima de 40 pontos e rejeição segura com vida cheia.
 - [x] Medkit ocultado após uma cura válida e reposto na mesma instância após `cycle_completed`, sem duplicação.
+- [x] Posto militar convertido de bloco fechado para um bunker com entrada aberta e interior navegável.
+- [x] Duas caixas de 12 munições adicionadas como recompensa e repostas por ciclo apenas quando recolhidas.
+- [x] `MilitaryOutpostEncounter` criado com dois Normal Zombies e um Runner durante a exploração.
+- [x] Encontro militar limitado a uma ativação por ciclo, 18 XP total e separado da contagem das vagas.
+- [x] Proposta de mundo aberto compacto por setores documentada em `docs/OPEN_WORLD_PLAN.md`, sem implementar ainda streaming.
 
 ## Milestone atual
 
-**Milestone 17 — Exploration Map and Points of Interest (quarto slice concluído)**
+**Milestone 17 — Exploration Map and Points of Interest (quinto slice concluído)**
 
 ## Próxima tarefa
 
-Fazer playtest manual do hospital e do medkit com Recruit, Renegade e Medic,
-confirmando a entrada com a câmara aproximada, a rejeição com vida cheia e a cura
-depois de sofrer dano. Depois, abrir apenas o posto militar com uma recompensa e
-um risco próprios, sem aumentar ainda o mapa.
+Fazer playtest manual do posto militar com Recruit, Renegade e Medic, confirmando
+a entrada com a câmara aproximada, a composição de inimigos e a recolha das duas
+caixas de munições. Em seguida, decidir como os ataques funcionam quando o jogador
+está longe do acampamento, abrir a estação de combustível e só depois aprovar ou
+rejeitar a implementação do protótipo de dois setores.
 
 ## Validação
 
@@ -400,6 +406,12 @@ um risco próprios, sem aumentar ainda o mapa.
 - Teste integrado confirmou 3498 polígonos navegáveis, percurso de 29 pontos do acampamento ao interior e os quatro acessos dos POIs preservados.
 - Teste integrado confirmou uma única instância do medkit, rejeição com vida cheia, cura de 40 pontos, limite na vida máxima e reposição após `cycle_completed`.
 - Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, sinalização, duas camas, iluminação fria e medkit legível no interior.
+- Importação headless após a abertura do posto militar concluída sem erros de parsing ou de recursos.
+- Arena com o posto militar explorável executada diretamente durante 120 frames em modo headless com código de saída 0.
+- Teste integrado confirmou 3516 polígonos navegáveis, percurso de 25 pontos do acampamento ao interior e os quatro acessos preservados.
+- Teste integrado confirmou dois Normal Zombies, um Runner, 18 XP total e `alive_enemy_count` inalterado em zero.
+- Teste integrado confirmou duas caixas de munições, reposição após `cycle_completed` e ausência de duplicação quando o loot permanece por recolher.
+- Capturas OpenGL a 1152 × 648 confirmaram a entrada aberta, bunker iluminado, duas caixas e elementos militares legíveis.
 - Não foram encontrados erros de parsing ou de carregamento.
 
 ## Decisões pendentes
@@ -408,7 +420,8 @@ um risco próprios, sem aumentar ainda o mapa.
 - layout definitivo de controlos.
 - arma ou ferramenta secundária definitiva do Medic.
 - afinação final dos 30/45 segundos, custo de 30 Scrap, 200 pontos de vida e limites da reparação/construção no modo survival contínuo.
-- tamanho final do mapa depois do playtest dos quatro POIs em 64 × 64 metros.
+- regra dos ataques quando o jogador está longe do acampamento num mapa aberto.
+- aprovação do protótipo de mundo aberto com setores e tamanho inicial de 256 × 256 metros.
 
 ## Problemas conhecidos
 
@@ -421,8 +434,10 @@ um risco próprios, sem aumentar ainda o mapa.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Armazém e hospital têm interiores próprios, mas apenas o armazém possui uma emboscada; posto militar e estação de combustível continuam fechados.
+- Armazém, hospital e posto militar têm interiores próprios; a estação de combustível continua fechada.
 - O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
+- As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
+- O mapa continua a ser uma única cena de 64 × 64 metros totalmente carregada; a divisão por setores está apenas documentada e não existe streaming.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
