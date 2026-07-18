@@ -26,21 +26,33 @@ maior.
 Preparar o acampamento
 -> escolher uma direção de exploração
 -> encontrar recursos, ameaças e POIs
+-> sobreviver às hordas que perseguem o jogador
 -> decidir quanto risco aceitar e quanto transportar
--> regressar ao acampamento
--> construir, reparar e preparar defesas
--> resistir ao ataque seguinte
+-> regressar ao acampamento quando for vantajoso
+-> construir e melhorar a base
 ```
 
 O acampamento continua a ser a âncora da partida. O mapa aberto serve o ciclo de
 explorar, transportar recursos e melhorar a base; não deve tornar-se espaço vazio
 sem decisões.
 
-## Decisão de design mais importante
+### Direção aprovada para os inimigos
 
-O intervalo atual de 45 segundos entre ataques funciona numa arena de 64 × 64 m,
-mas não permite explorar um mapa aberto. Antes da expansão real é necessário
-escolher uma destas regras:
+- Os inimigos perseguem o jogador através dos setores carregados.
+- O núcleo, o acampamento e as fortificações não são alvos diretos.
+- Uma horda pode acompanhar o jogador até à zona do acampamento, mas a pressão e
+  a condição de derrota permanecem centradas no jogador.
+- Os avisos futuros anunciam a chegada de uma horda ao jogador; não obrigam a
+  regressar à base para a defender.
+
+Esta decisão substitui a escolha anterior de ataques agendados ao acampamento
+descrita abaixo. O protótipo atual ainda implementa jogador, núcleo e barricada
+como alvos possíveis, pelo que a alteração funcional permanece pendente.
+
+## Decisão anterior sobre ataques ao acampamento
+
+Antes da decisão de centrar os inimigos no jogador, foram consideradas estas
+regras para compatibilizar o intervalo atual de 45 segundos com o mapa aberto:
 
 1. **Ataques agendados com aviso longo — recomendado:** exploração livre durante
    vários minutos, seguida de um aviso claro e tempo suficiente para regressar.
@@ -49,9 +61,9 @@ escolher uma destas regras:
 3. **Acampamento atacável à distância:** mantém o tempo contínuo, mas exige mapa,
    alertas, defesas autónomas e uma forma justa de regressar rapidamente.
 
-A primeira opção foi escolhida. Preserva melhor a sensação de mundo contínuo e
-mantém o jogador responsável pela preparação da base sem o punir com ataques
-impossíveis de alcançar. O aviso longo ainda não está implementado.
+A primeira opção chegou a ser escolhida, mas foi posteriormente substituída pela
+regra de perseguição do jogador registada acima. O aviso de horda ainda não está
+implementado.
 
 ## Arquitetura proposta
 
@@ -119,9 +131,9 @@ sem duplicar loot ou inimigos.
 
 ### IA e hordas
 
-- Só existem inimigos simulados perto do jogador, do acampamento ou de um encontro ativo.
+- Só existem inimigos simulados perto do jogador ou de um encontro ativo.
 - Inimigos distantes são representados por estado simples, não por nós com física.
-- Ataques ao acampamento usam spawns e navegação dos setores próximos da base.
+- As hordas usam spawns dos setores próximos do jogador e perseguem-no entre setores carregados.
 - A quantidade de IA ativa deve ser limitada por um orçamento central.
 
 ### Apresentação e desempenho
@@ -161,8 +173,8 @@ e desempenho. Referências: [Large world coordinates](https://docs.godotengine.o
 
 - guardar alterações dos setores;
 - permitir mais estruturas em redor do acampamento;
-- adicionar mapa, marcadores e avisos de ataque;
-- afinar o intervalo entre exploração e defesa.
+- adicionar mapa, marcadores e avisos de chegada de hordas;
+- afinar o intervalo entre exploração e pressão sobre o jogador.
 
 ## Critérios para avançar
 

@@ -233,6 +233,12 @@ Implementado neste slice:
 - primeiro ponto fixo de defesa com construção, 200 pontos de vida, reparação e reconstrução;
 - atualização dinâmica da navegação quando a barricada é construída ou destruída.
 
+Direção aprovada após este slice:
+
+- substituir a seleção entre jogador, núcleo e fortificações por perseguição exclusiva do jogador;
+- remover a destruição do núcleo como condição de derrota;
+- manter o acampamento como centro de recursos, evolução e construção, não como alvo direto.
+
 ## Milestone 17 — Exploration Map and Points of Interest
 
 Estado: concluído.
@@ -292,8 +298,9 @@ Implementado neste slice:
 
 Pendente:
 
+- adaptar a IA e o game over à regra de que apenas o jogador é alvo dos inimigos;
 - extrair o mapa inicial para uma cena de setor independente;
 - trocar o `PackedScene` pré-carregado por carregamento em background;
 - preservar loot, encontros e inimigos locais ao descarregar;
-- implementar o aviso longo e o calendário dos ataques ao acampamento;
+- implementar avisos de chegada de hordas que perseguem o jogador, sem ataques ao acampamento;
 - validar transição, farol e disparo automático com Recruit, Renegade e Medic.

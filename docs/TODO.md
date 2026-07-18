@@ -25,6 +25,7 @@
 - [x] Adicionar números de dano pequenos, com cor distinta para impacto no corpo e headshot.
 - [x] Adicionar disparo automático das armas de fogo contra inimigos com linha de visão até 3 metros.
 - [ ] Afinar entre 2 e 3 metros e decidir se o disparo manual permanece depois do playtest das três classes.
+- [ ] Alterar a IA para perseguir apenas o jogador e remover núcleo, acampamento e fortificações da seleção de alvos e das condições de derrota.
 - [ ] Adicionar feedback visual no próprio inimigo e feedback sonoro distinto para impacto no corpo e headshot.
 - [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração.
 - [ ] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.

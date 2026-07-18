@@ -27,13 +27,14 @@ A experiência deve ser:
 ```text
 Selecionar personagem e arma
 -> entrar na arena
--> defender o núcleo do acampamento durante um ataque
+-> explorar e melhorar o acampamento
+-> enfrentar hordas que perseguem o operacional
 -> eliminar inimigos
 -> receber Scrap, Credits e XP
 -> escolher melhorias
 -> iniciar ataque mais difícil
--> sobreviver enquanto o operacional e o núcleo resistirem
--> terminar a partida por queda do operacional ou destruição do núcleo
+-> sobreviver enquanto o operacional resistir
+-> terminar a partida por queda do operacional
 -> guardar progressão permanente
 ```
 
@@ -230,7 +231,7 @@ O Scrap é reiniciado no fim da partida.
 - lento;
 - 100 pontos de vida;
 - vida e dano médios;
-- persegue o alvo vivo mais próximo entre jogador, núcleo e fortificações construídas;
+- persegue o jogador e não escolhe o núcleo ou as fortificações como alvos;
 - inimigo base.
 
 ### Runner
@@ -264,12 +265,13 @@ Planeado para uma fase posterior.
 
 ## Núcleo do acampamento
 
-- É o primeiro objetivo defensável do modo survival.
+- É a âncora da exploração, depósito de recursos e ponto de evolução do acampamento.
 - Começa provisoriamente com 500 pontos de vida.
-- Os zombies podem escolhê-lo como alvo e causar-lhe dano.
-- A partida termina se o núcleo for destruído, mesmo que o jogador continue vivo.
+- Na direção aprovada, os zombies perseguem o jogador e não atacam diretamente o núcleo.
+- A derrota deve resultar da morte do jogador, não da destruição do acampamento.
 - Durante a exploração, aceita o depósito de Scrap e reparações de 5 pontos de vida por Scrap.
 - Melhorias, construção livre e persistência da base ficam para etapas posteriores.
+- O protótipo atual ainda permite dano no núcleo; a remoção desse comportamento fica pendente para uma alteração funcional própria.
 
 ## Fortificação provisória
 
@@ -277,7 +279,7 @@ Planeado para uma fase posterior.
 - Só pode ser construída ou reparada durante uma fase de exploração.
 - A construção custa 30 Scrap armazenado e cria uma barricada com 200 pontos de vida.
 - A reparação recupera até 50 pontos de vida por interação, à razão de 5 pontos por Scrap.
-- Enquanto está construída, bloqueia movimento e torna-se um alvo possível para os zombies.
+- Enquanto está construída, bloqueia movimento, mas não deve tornar-se um alvo escolhido pelos zombies.
 - Quando é destruída, o ponto fica novamente disponível para reconstrução na exploração seguinte.
 - Posicionamento livre, rotação, múltiplas estruturas e persistência ficam fora deste slice.
 
@@ -295,9 +297,10 @@ devem ser ajustados após playtests. Antes do primeiro ataque existem 30 segundo
 de exploração; entre ataques existem provisoriamente 45 segundos para explorar,
 recolher recursos e reparar o núcleo.
 
-Para o futuro mapa aberto foi escolhida a regra de ataques agendados com aviso
-longo e tempo para regressar ao acampamento. Os temporizadores atuais permanecem
-inalterados até existir um sistema de aviso próprio.
+Para o futuro mapa aberto, as hordas devem surgir com aviso e perseguir o jogador
+através dos setores carregados. O jogador não é obrigado a regressar para defender
+o acampamento, porque a base não é um alvo direto. Os temporizadores atuais
+permanecem inalterados até existir um sistema de aviso próprio.
 
 ## Exploração provisória
 

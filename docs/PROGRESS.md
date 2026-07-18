@@ -246,6 +246,8 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 - [x] Jogador, acampamento e sistemas globais mantidos fora de `LoadedSectors` durante a transição.
 - [x] Segunda região de navegação alinhada com o setor persistente através da fronteira em `x = 32`.
 - [x] Farol de reconhecimento adicionado como primeiro objetivo do setor, com estado preservado em memória após recarregar.
+- [x] Direção futura da IA registada: os inimigos devem perseguir apenas o jogador
+  e não atacar diretamente o acampamento, o núcleo ou as fortificações.
 
 ## Milestone atual
 
@@ -256,7 +258,9 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 Fazer playtest manual com Recruit, Renegade e Medic, atravessando a saída leste,
 ativando o farol e regressando ao acampamento. Confirmar também se 3 metros dão
 tempo de reação suficiente ao disparo automático e se o ataque manual deve
-permanecer. Em seguida, extrair o mapa inicial para uma cena de setor própria.
+permanecer. Antes de expandir o mundo, adaptar a IA e a condição de derrota à
+nova regra de perseguição exclusiva do jogador. Em seguida, extrair o mapa inicial
+para uma cena de setor própria.
 
 ## Validação
 
@@ -466,6 +470,9 @@ permanecer. Em seguida, extrair o mapa inicial para uma cena de setor própria.
 - O setor leste usa um `PackedScene` pré-carregado; background loading e medição de pausas maiores ainda não estão implementados.
 - Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
 - O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
+- Apesar da direção agora aprovada, o protótipo ainda permite aos zombies escolher
+  o núcleo e a barricada como alvos e terminar a partida pela destruição do núcleo;
+  a alteração funcional ainda não foi implementada.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
