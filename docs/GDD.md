@@ -357,6 +357,8 @@ Durante a partida:
 - inimigos restantes;
 - Scrap da sessão;
 - XP ganho na sessão.
+- mapa tático aberto com `Tab`, mostrando setores, jogador, acampamento, POIs e
+  inimigos ativos.
 
 Menu principal:
 
@@ -366,6 +368,12 @@ Menu principal:
 - classe, passivo e loadout principal/secundário;
 - armas disponíveis, bloqueadas e compradas quando existirem alternativas;
 - iniciar partida.
+
+Definições:
+
+- o modo Janela ou Ecrã completo deve refletir e guardar o estado escolhido;
+- em Ecrã completo, a resolução apresentada corresponde à resolução real do monitor;
+- em Janela, a resolução selecionada redimensiona e centra imediatamente a janela.
 
 ## Princípios de design
 

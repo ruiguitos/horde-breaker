@@ -4,7 +4,7 @@
 
 Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disparo automático por proximidade.
 
-Última atualização: 2026-07-18.
+Última atualização: 2026-07-20.
 
 ## Concluído
 
@@ -248,19 +248,68 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 - [x] Farol de reconhecimento adicionado como primeiro objetivo do setor, com estado preservado em memória após recarregar.
 - [x] Direção futura da IA registada: os inimigos devem perseguir apenas o jogador
   e não atacar diretamente o acampamento, o núcleo ou as fortificações.
+- [x] `SettingsManager` criado como Autoload com definições persistidas em `user://horde_breaker_settings.cfg`, separadas do save de progresso.
+- [x] Menu de definições criado com modo de janela, resolução, VSync, MSAA, qualidade das sombras, sensibilidade do rato e volume geral, aplicados e guardados de imediato.
+- [x] Definições acessíveis a partir do menu principal e como sobreposição no menu de pausa, sem sair da partida.
+- [x] Sensibilidade do rato aplicada como multiplicador à câmara em terceira pessoa.
+- [x] Transição de fade entre cenas centralizada no `GameManager`.
+- [x] Animações de entrada adicionadas ao menu principal, seleção de personagens, pausa e derrota através do helper partilhado `UiAnimations`.
+- [x] Barras de vida do jogador e do núcleo mudam de cor consoante o rácio (verde, laranja, vermelho).
+- [x] Vinheta de dano adicionada ao HUD com pulso ao sofrer dano e intensidade base quando a vida está baixa.
+- [x] Hit-marker no retículo ao acertar em inimigos, tanto com armas de fogo como com a Worn Sword.
+- [x] Barra de progresso de recarga adicionada sob o retículo, sincronizada com a duração real da recarga.
+- [x] Banner central animado no início de cada ataque e de cada fase de exploração.
+- [x] Feedback do HUD convertido num feed empilhável de até quatro mensagens com desvanecimento individual.
+- [x] Tema partilhado alargado a `OptionButton` e `CheckButton` para consistência do menu de definições.
+- [x] Tema partilhado reescrito com identidade de horde-shooter inspirada em `docs/INSPIRATIONS.md`: painéis enviesados (`skew`), cantos retos, acentos âmbar sobre aço escuro e nova variação `HudValueLabel` para números grandes.
+- [x] Menu principal refeito com coluna de comando à esquerda (título grande e botões enviesados) e cartão do operacional ativo à direita com emblema de classe.
+- [x] Seleção de personagens refeita como ecrã de classes com emblemas em losango nas cores de cada classe, cartões compactos centrados e loadout na base.
+- [x] Menu de pausa refeito como painel lateral esquerdo com slide-in, mantendo continuar, definições, menu principal e sair.
+- [x] Painel de derrota refeito com barras superiores/inferiores vermelhas e título em destaque.
+- [x] HUD refeito em módulos flutuantes: placas enviesadas para núcleo e recursos, módulo de vaga central com número grande e contagem de ameaças, vida com número grande e barra fina, e munição em números grandes com sublinhado âmbar.
+- [x] Emblemas de classe construídos apenas com `ColorRect` rodados, sem assets externos.
+- [x] Resolução por defeito alterada para 1920 × 1080 em ecrã completo, com stretch `canvas_items` para o UI escalar de forma consistente em qualquer resolução.
+- [x] Aplicação das definições de ecrã corrigida: o tamanho da janela é aplicado de forma diferida após a troca de modo, evitando que a mudança se perca.
+- [x] Secção de gráficos (MSAA e sombras) removida do menu de definições e do `SettingsManager` por não fazer sentido nesta fase.
+- [x] `WorldStreamer` generalizado para um registo de setores (chunks) com carregamento em background através de `ResourceLoader.load_threaded_request`, mantendo a instanciação na thread principal.
+- [x] Gatilhos de carregamento convertidos de limiares em `x` para distância ao centro do setor, preparando uma futura grelha de chunks em qualquer direção.
+- [x] Tempo de carregamento de cada setor medido e impresso em milissegundos, conforme pedia o plano de mundo aberto.
+- [x] Céu procedural de entardecer adicionado à arena com `ProceduralSkyMaterial`, luz ambiente derivada do céu e nevoeiro subtil de profundidade, sem assets externos.
+- [x] Estado híbrido janela/ecrã completo no arranque corrigido: o projeto arranca em janela 1920 × 1080 e o `SettingsManager` muda para ecrã completo no primeiro frame, contornando a limitação do Godot no Windows que impede sair de fullscreen quando o jogo arranca nativamente em fullscreen com o viewport igual à resolução do monitor.
+- [x] Modo de janela corrigido para ser carregado e persistido; o jogo já não
+  força ecrã completo quando a preferência guardada é Janela.
+- [x] Aplicação de modo e tamanho da janela reescrita como corrotina por passos sobre o nó `Window`, com fila para pedidos repetidos.
+- [x] Menu de definições sincronizado com o estado ativo: em fullscreen mostra a
+  resolução real do monitor e, em Janela, aplica, centra e apresenta a resolução
+  selecionada após a transição.
+- [x] IA alterada para perseguir apenas o jogador: núcleo, acampamento e barricada removidos da seleção de alvos dos zombies.
+- [x] Derrota reduzida à morte do jogador; a destruição do núcleo deixou de terminar a partida.
+- [x] Flash aditivo no modelo do inimigo ao receber dano, aplicado por overlay de material sem assets externos.
+- [x] Sons de impacto sintetizados em runtime (`AudioStreamWAV`): tom grave para corpo e tom agudo para headshot, tocados no ponto de impacto pelos números de dano.
+- [x] Primeira escolha de melhoria entre rondas: painel com três vantagens aleatórias em cada exploração (dano +20%, +25 vida máxima, velocidade +10%, recarga −20%, cura total), aplicadas apenas à sessão.
+- [x] `RunUpgrades` criado como sistema local da arena com feedback no HUD ao ativar cada vantagem.
+- [x] Mapa tático 2D adicionado à cena base do jogador e alternado com `Tab`, com
+  grelha 4 × 4, setores carregados, jogador orientado, acampamento, POIs e inimigos.
+- [x] Mundo aberto compacto 4 × 4 (256 × 256 m) implementado: acampamento persistente em (0, 0), setor leste desenhado à mão em (1, 0) e catorze setores gerados proceduralmente por seed.
+- [x] `SectorGenerator` criado: estradas modulares com rotação de quarto de volta por setor, marcos primitivos como `navigation_blocker`, contentores CC0 decorativos, caches de Scrap e muros invisíveis apenas na borda exterior do mundo.
+- [x] Estado de sessão por setor: seed determinística por partida e caches recolhidas que não reaparecem ao recarregar o setor.
+- [x] Navegação por setor alinhada nas fronteiras, com regiões fundidas pelo mapa de navegação e caminhos contínuos entre acampamento e setores gerados.
+- [x] Fronteiras norte, sul e oeste do acampamento abertas e muros do setor leste removidos para ligar a grelha completa.
+- [x] `ScrapPickup` passou a emitir `collected`, permitindo registar loot por setor.
 
 ## Milestone atual
 
-**Milestone 18 — Compact Open World Prototype (primeiro slice concluído)**
+**Milestone 18 — Compact Open World Prototype (grelha 4 × 4 gerada por seed implementada)**
 
 ## Próxima tarefa
 
-Fazer playtest manual com Recruit, Renegade e Medic, atravessando a saída leste,
-ativando o farol e regressando ao acampamento. Confirmar também se 3 metros dão
-tempo de reação suficiente ao disparo automático e se o ataque manual deve
-permanecer. Antes de expandir o mundo, adaptar a IA e a condição de derrota à
-nova regra de perseguição exclusiva do jogador. Em seguida, extrair o mapa inicial
-para uma cena de setor própria.
+Playtest manual do mundo aberto com as três classes: atravessar as quatro
+fronteiras do acampamento, verificar a sensação da transição (pausa de
+~140 ms na primeira geração de cada setor), recolher caches distantes e
+regressar. Depois: reduzir a pausa de geração (distribuir a instanciação das
+estradas por vários frames ou pool de setores), adicionar POIs, encontros e
+spawns próprios aos setores gerados, e decidir as questões pendentes do
+disparo automático e da segunda arma do Medic.
 
 ## Validação
 
@@ -441,6 +490,31 @@ para uma cena de setor própria.
 - Teste integrado confirmou preservação das instâncias do jogador e do acampamento e do estado ativado do farol.
 - Capturas OpenGL a 1152 × 648 confirmaram os dois setores alinhados, estrada contínua e farol visualmente destacado no graybox leste.
 - Não foram encontrados erros de parsing ou de carregamento.
+- Importação headless após as melhorias de UI concluída sem erros e com registo da classe `UiAnimations`.
+- Menu principal, menu de definições, seleção de personagens, menu de pausa e arena executados em modo headless com código de saída 0.
+- Capturas OpenGL a 1152 × 648 confirmaram o menu principal com o botão de definições, o painel de definições completo sem cortes e o banner de exploração do HUD legível sem sobreposição com os painéis existentes.
+- O pulso da vinheta de dano, o hit-marker e a barra de recarga ainda não foram exercitados num playtest manual com combate real.
+- Importação headless após o redesign visual concluída sem erros de parsing ou de recursos.
+- Menu principal, seleção de personagens, definições, pausa e arena executados em modo headless com código de saída 0 após o redesign.
+- Capturas OpenGL a 1152 × 648 confirmaram o menu principal com botões enviesados, a seleção de classes com emblemas e cartões centrados, o menu de definições com o novo tema e o HUD modular sem sobreposição de elementos.
+- O painel de vitória (`wave_complete_panel.tscn`) continua fora de uso e mantém o estilo antigo; será atualizado se voltar a ser necessário.
+- Importação headless e cena de definições executadas sem erros após remover a secção de gráficos.
+- Teste integrado do streamer confirmou: zero setores no arranque, carregamento em background do setor leste em 15 ms (3 frames físicos após o gatilho), descarregamento ao afastar e recarregamento em 9 ms sem duplicação.
+- Captura OpenGL a 1920 × 1080 confirmou o céu de entardecer, o nevoeiro no horizonte e o HUD corretamente escalado com o novo stretch.
+- Teste com janela real confirmou o ciclo completo: arranque em ecrã completo 1920 × 1080, mudança para janela 1600 × 900 centrada, regresso a ecrã completo e nova mudança para janela, tudo com o modo e o tamanho corretos.
+- Diagnóstico frame a frame confirmou a causa original: pedir modo janela com o jogo arrancado em fullscreen nativo deixava a janela presa em exclusive fullscreen e a ignorar redimensionamentos.
+- Teste integrado confirmou o núcleo fora do grupo de alvos, o painel de melhorias aberto durante a preparação inicial e um zombie a 10 metros a perseguir o jogador até aos 3,17 metros, onde o disparo automático o abateu, com a vida do núcleo intacta.
+- Teste integrado confirmou o flash de dano ativo após `take_damage`, os dois sons sintetizados com dados válidos e as cinco melhorias a aplicar os efeitos numéricos exatos (dano ×1,2, +25 vida, velocidade ×1,1, recarga ×0,8 e cura total).
+- Captura OpenGL confirmou o painel de três vantagens legível sobre o HUD durante a exploração.
+- Teste integrado do mundo aberto confirmou: zero setores no acampamento, geração do setor norte com três caches e muro exterior, caminho de navegação contínuo de 51 pontos do acampamento até ao interior do setor gerado, layout determinístico após descarregar e recarregar, cache recolhida sem reaparecer e dois setores vizinhos carregados num canto.
+- Geração de um setor medida em 134–144 ms (dominada pela instanciação das estradas) e carregamento do setor leste em background em 12–20 ms.
+- Capturas com janela real confirmaram ruas contínuas, marcos, contentores e caches legíveis nos setores gerados sob o céu de entardecer.
+- Teste automatizado confirmou que o modo guardado é apresentado corretamente,
+  que uma janela muda realmente para `1280 × 720` e que o estado anterior é reposto.
+- Teste automatizado confirmou a ação `toggle_map`, o mapa inicialmente oculto e
+  a abertura através de `Tab` na arena real.
+- Captura OpenGL a `1152 × 648` confirmou o mapa legível e centrado sobre o HUD,
+  com grelha, setor da base, orientação do jogador e marcadores de POI.
 
 ## Decisões pendentes
 
@@ -467,13 +541,18 @@ para uma cena de setor própria.
 - As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
 - As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
 - O setor persistente ainda faz parte de `test_arena.tscn`; apenas o setor leste está isolado numa cena própria.
-- O setor leste usa um `PackedScene` pré-carregado; background loading e medição de pausas maiores ainda não estão implementados.
+- O setor leste já usa background loading medido (9–15 ms no graybox); falta repetir a medição com setores de geometria real.
+- A primeira geração de cada setor pausa ~140 ms (instanciação das estradas na thread principal); distribuir por frames ou usar um pool de setores fica para a otimização seguinte.
+- Os setores gerados ainda não têm POIs, encontros, spawns de inimigos nem pickups de munição próprios; as hordas continuam a nascer no setor do acampamento.
+- O estado por setor cobre apenas as caches de Scrap; encontros e estruturas locais ainda não têm estado.
 - Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
 - O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
-- Apesar da direção agora aprovada, o protótipo ainda permite aos zombies escolher
-  o núcleo e a barricada como alvos e terminar a partida pela destruição do núcleo;
-  a alteração funcional ainda não foi implementada.
+- Com a perseguição exclusiva do jogador, a vida do núcleo e a barricada perderam
+  a função defensiva original; reparação e construção continuam funcionais e devem
+  ganhar novo propósito na fase de mundo aberto.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
-- Os números distinguem corpo e headshot, mas ainda não existe reação visual no modelo nem feedback sonoro de impacto.
+- O flash de dano e os sons sintetizados são provisórios; arte de reação (animações de hit) e áudio final ficam para milestones de arte.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.
+- O mapa tático ainda não possui fog of war, nomes próprios para todos os POIs,
+  filtros de marcadores, zoom ou navegação por cursor.

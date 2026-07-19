@@ -12,6 +12,8 @@
 ## Sistemas globais e locais
 
 - `SaveManager` persiste progresso, desbloqueios e seleções com `ConfigFile`.
+- `SettingsManager` persiste modo de janela, resolução de janela, VSync,
+  sensibilidade e volume num ficheiro separado do progresso.
 - `GameManager` centraliza as mudanças entre menu principal, seleção e arena.
 - `WaveManager` controla localmente ataques contínuos, spawns, ciclos e inimigos vivos.
 - `CampEconomy` mantém o Scrap transportado e armazenado durante a partida e emite alterações para o HUD.
@@ -48,6 +50,7 @@ scenes/
     bullet.tscn
   ui/
     game_hud.tscn
+    tactical_map.tscn
     pause_menu.tscn
     wave_complete_panel.tscn
     game_over_panel.tscn
@@ -302,6 +305,11 @@ a usar cápsulas provisórias com materiais distintos.
 - O HUD mostra a arma ativa, os dois slots e as teclas `1`/`2`.
 - A mira é apresentada com armas de fogo e com a Worn Sword, permitindo apontar ataques melee à cabeça.
 - Um painel de recursos distingue Scrap transportado de Scrap na base e mensagens curtas confirmam recolha, depósito e reparação.
+- `TacticalMap` é composto na cena base do jogador através de um `CanvasLayer` e
+  alternado pela ação `toggle_map` em `Tab`, sem depender da cena concreta da classe.
+- O mapa desenha a grelha 4 × 4 em 2D e consulta grupos estáveis para apresentar
+  jogador, núcleo, POIs e inimigos; setores carregados são consultados no
+  `WorldStreamer`. Não usa uma segunda câmara 3D.
 
 ## Menus e seleção
 
@@ -311,6 +319,12 @@ a usar cápsulas provisórias com materiais distintos.
 - A compra de personagens e armas passa sempre pelo `SaveManager`.
 - `WeaponData.is_playable` impede equipar uma arma que ainda só exista como dado estático.
 - A cena principal é o menu; `GameManager` abre a seleção, inicia a arena ou regressa ao menu.
+- `settings_menu.tscn` apresenta o estado pedido pelo `SettingsManager` e volta a
+  sincronizar os controlos após a aplicação assíncrona do modo e do tamanho.
+- Em fullscreen, a resolução corresponde ao tamanho real do monitor e o seletor
+  fica desativado. Em modo janela, a resolução ativa é aplicada ao nó `Window`,
+  a janela é centrada e ambos os valores ficam persistidos em
+  `user://horde_breaker_settings.cfg`.
 
 ## Layers de física propostas
 

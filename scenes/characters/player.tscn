@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/player.gd" id="1_player_script"]
 [ext_resource type="Script" path="res://scripts/characters/third_person_camera.gd" id="2_camera_script"]
 [ext_resource type="Script" path="res://scripts/weapons/weapon_controller.gd" id="3_weapon_controller"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/characters/Characters_Matt.gltf" id="4_recruit_model"]
 [ext_resource type="Script" path="res://scripts/characters/imported_model_animation.gd" id="5_model_animation"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tactical_map.tscn" id="6_tactical_map"]
 
 [sub_resource type="StandardMaterial3D" id="Material_player"]
 albedo_color = Color(0.12, 0.48, 0.9, 1)
@@ -93,3 +94,8 @@ shape = SubResource("Shape_camera_collision")
 unique_name_in_owner = true
 current = true
 fov = 70.0
+
+[node name="TacticalMapLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="TacticalMap" parent="TacticalMapLayer" instance=ExtResource("6_tactical_map")]
