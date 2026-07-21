@@ -12,44 +12,44 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 const UPGRADE_POOL: Array[Dictionary] = [
 	{
 		"id": &"maximum_health",
-		"title": "BLINDAGEM IMPROVISADA",
-		"description": "+25 de vida máxima e cura imediata de 25 pontos.",
+		"title": "MAKESHIFT ARMOR",
+		"description": "+25 maximum health and an immediate 25 point heal.",
 		"required_level": 1,
 	},
 	{
 		"id": &"move_speed",
-		"title": "PERNAS FRESCAS",
-		"description": "+10% de velocidade a andar e a correr.",
+		"title": "FRESH LEGS",
+		"description": "+10% walking and sprinting speed.",
 		"required_level": 1,
 	},
 	{
 		"id": &"full_heal",
-		"title": "KIT DE CAMPANHA",
-		"description": "Recupera imediatamente toda a vida.",
+		"title": "FIELD KIT",
+		"description": "Instantly restores all health.",
 		"required_level": 1,
 	},
 	{
 		"id": &"reload_speed",
-		"title": "MÃOS RÁPIDAS",
-		"description": "Recarga 20% mais rápida em todas as armas.",
+		"title": "FAST HANDS",
+		"description": "20% faster reloads on every weapon.",
 		"required_level": 3,
 	},
 	{
 		"id": &"weapon_damage",
-		"title": "MUNIÇÕES REFORÇADAS",
-		"description": "+20% de dano em todas as armas do loadout.",
+		"title": "REINFORCED ROUNDS",
+		"description": "+20% damage on every loadout weapon.",
 		"required_level": 5,
 	},
 	{
 		"id": &"magazine_size",
-		"title": "CARREGADORES ALARGADOS",
-		"description": "+25% de capacidade do carregador nas armas de fogo.",
+		"title": "EXTENDED MAGS",
+		"description": "+25% magazine capacity on firearms.",
 		"required_level": 7,
 	},
 	{
 		"id": &"fire_rate",
-		"title": "ADRENALINA",
-		"description": "+15% de cadência de tiro e golpes corpo a corpo mais rápidos.",
+		"title": "ADRENALINE",
+		"description": "+15% fire rate and faster melee swings.",
 		"required_level": 9,
 	},
 ]
@@ -105,7 +105,7 @@ func apply_upgrade(upgrade_id: StringName) -> bool:
 		upgrade_applied.emit(upgrade_id, title)
 		var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 		if camp_economy != null and camp_economy.has_method(&"request_feedback"):
-			camp_economy.call(&"request_feedback", "MELHORIA ATIVA  •  %s" % title)
+			camp_economy.call(&"request_feedback", "UPGRADE ACTIVE  •  %s" % title)
 	return applied
 
 

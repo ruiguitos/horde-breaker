@@ -10,5 +10,5 @@ display_name = "Recruit"
 primary_weapon_id = &"assault_rifle"
 secondary_weapon_id = &"pistol"
 reload_duration_multiplier = 0.7
-class_description = "Especialista em armas automáticas. Recarrega armas 30% mais depressa."
+class_description = "Automatic weapons specialist. Reloads weapons 30% faster."
 character_scene = ExtResource("2_player_scene")

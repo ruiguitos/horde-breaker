@@ -26,7 +26,7 @@ func activate() -> bool:
 		return false
 	_is_activated = true
 	_apply_state()
-	_request_feedback("FAROL DE RECONHECIMENTO ATIVADO")
+	_request_feedback("RECON BEACON ACTIVATED")
 	activated.emit()
 	return true
 
@@ -44,7 +44,7 @@ func _apply_state() -> void:
 	if not is_node_ready():
 		return
 	status_label.text = (
-		"FAROL ATIVO" if _is_activated else "FAROL DE RECONHECIMENTO"
+		"BEACON ACTIVE" if _is_activated else "RECON BEACON"
 	)
 	status_label.modulate = (
 		Color(0.35, 1.0, 0.55, 1.0)

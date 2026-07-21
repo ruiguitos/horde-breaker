@@ -96,20 +96,20 @@ func _configure_character(
 	var is_selected := SaveManager.get_selected_character() == character_id
 	panel.theme_type_variation = &"SelectedCard" if is_selected else &"CardPanel"
 	if is_selected:
-		status_label.text = "SELECIONADO"
+		status_label.text = "SELECTED"
 		status_label.add_theme_color_override(&"font_color", SELECTED_COLOR)
-		button.text = "SELECIONADO"
+		button.text = "SELECTED"
 		button.disabled = true
 		return
 	if is_unlocked:
-		status_label.text = "DESBLOQUEADO"
+		status_label.text = "UNLOCKED"
 		status_label.add_theme_color_override(&"font_color", UNLOCKED_COLOR)
-		button.text = "SELECIONAR"
+		button.text = "SELECT"
 		button.disabled = false
 		return
-	status_label.text = "BLOQUEADO  •  %d CREDITS" % character_data.unlock_cost
+	status_label.text = "LOCKED  •  %d CREDITS" % character_data.unlock_cost
 	status_label.add_theme_color_override(&"font_color", LOCKED_COLOR)
-	button.text = "DESBLOQUEAR  ·  %d" % character_data.unlock_cost
+	button.text = "UNLOCK  ·  %d" % character_data.unlock_cost
 	button.disabled = not SaveManager.can_purchase_character(character_data)
 
 
@@ -117,8 +117,8 @@ func _get_progress_text(character_data: CharacterData) -> String:
 	var level := SaveManager.get_character_level(character_data.character_id)
 	var xp := SaveManager.get_character_xp(character_data.character_id)
 	if level >= character_data.maximum_level:
-		return "NÍVEL %d  •  MÁXIMO" % level
-	return "NÍVEL %d  •  XP %d / %d" % [
+		return "LEVEL %d  •  MAX" % level
+	return "LEVEL %d  •  XP %d / %d" % [
 		level, xp, SaveManager.get_xp_required_for_next_level(level)
 	]
 

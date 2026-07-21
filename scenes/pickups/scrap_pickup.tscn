@@ -42,7 +42,7 @@ modulate = Color(0.55, 1, 0.82, 1)
 outline_modulate = Color(0.02, 0.06, 0.05, 1)
 billboard = 1
 no_depth_test = true
-text = "SCRAP 25\n[F]"
+text = "SCRAP\n[F]"
 font_size = 30
 outline_size = 8
 

@@ -12,5 +12,5 @@ unlock_cost = 500
 base_health = 140.0
 primary_weapon_id = &"shotgun"
 secondary_weapon_id = &"worn_sword"
-class_description = "Combatente resistente. Tem 140 de vida e alterna entre Shotgun e Worn Sword."
+class_description = "Tough front-line fighter. Has 140 health and switches between Shotgun and Worn Sword."
 character_scene = ExtResource("2_renegade_scene")

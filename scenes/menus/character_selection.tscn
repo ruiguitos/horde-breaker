@@ -67,7 +67,7 @@ theme_override_constants/separation = 18
 unique_name_in_owner = true
 custom_minimum_size = Vector2(132, 46)
 layout_mode = 2
-text = "‹  VOLTAR"
+text = "‹  BACK"
 
 [node name="Heading" type="VBoxContainer" parent="PageMargin/Content/TopBar"]
 layout_mode = 2
@@ -77,14 +77,14 @@ theme_override_constants/separation = 0
 [node name="Eyebrow" type="Label" parent="PageMargin/Content/TopBar/Heading"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "GESTÃO DE OPERACIONAIS"
+text = "OPERATIVE MANAGEMENT"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="PageMargin/Content/TopBar/Heading"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
 theme_override_font_sizes/font_size = 30
-text = "SELEÇÃO DE CLASSE"
+text = "CLASS SELECTION"
 horizontal_alignment = 1
 
 [node name="CreditsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
@@ -165,7 +165,7 @@ theme_override_constants/separation = 0
 [node name="Role" type="Label" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "ASSALTO"
+text = "ASSAULT"
 
 [node name="Name" type="Label" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
@@ -185,7 +185,7 @@ custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Assault Rifle + Pistol
-Recarga 30% mais rápida."
+30% faster reloads."
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
@@ -198,20 +198,20 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 14
-text = "NÍVEL 1  •  XP 0 / 100"
+text = "LEVEL 1  •  XP 0 / 100"
 
 [node name="RecruitStatusLabel" type="Label" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Desbloqueado e selecionado"
+text = "Unlocked and selected"
 
 [node name="RecruitButton" type="Button" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "SELECIONADO"
+text = "SELECTED"
 
 [node name="RenegadePanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
 unique_name_in_owner = true
@@ -270,7 +270,7 @@ theme_override_constants/separation = 0
 [node name="Role" type="Label" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "VANGUARDA"
+text = "VANGUARD"
 
 [node name="Name" type="Label" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
@@ -290,7 +290,7 @@ custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Shotgun + Worn Sword
-140 pontos de vida."
+140 health points."
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
@@ -303,20 +303,20 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 14
-text = "NÍVEL 1  •  XP 0 / 100"
+text = "LEVEL 1  •  XP 0 / 100"
 
 [node name="RenegadeStatusLabel" type="Label" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Bloqueado  •  500 Credits"
+text = "Locked  •  500 Credits"
 
 [node name="RenegadeButton" type="Button" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "DESBLOQUEAR  ·  500"
+text = "UNLOCK  ·  500"
 
 [node name="MedicPanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
 unique_name_in_owner = true
@@ -375,7 +375,7 @@ theme_override_constants/separation = 0
 [node name="Role" type="Label" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "SUPORTE"
+text = "SUPPORT"
 
 [node name="Name" type="Label" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content/EmblemRow/Titles"]
 layout_mode = 2
@@ -395,7 +395,7 @@ custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Pistol
-Regenera 4 de vida/s após 3 s."
+Regenerates 4 HP/s after 3 s."
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
@@ -408,20 +408,20 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 14
-text = "NÍVEL 1  •  XP 0 / 100"
+text = "LEVEL 1  •  XP 0 / 100"
 
 [node name="MedicStatusLabel" type="Label" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Bloqueado  •  750 Credits"
+text = "Locked  •  750 Credits"
 
 [node name="MedicButton" type="Button" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "DESBLOQUEAR  ·  750"
+text = "UNLOCK  ·  750"
 
 [node name="LoadoutPanel" type="PanelContainer" parent="PageMargin/Content"]
 custom_minimum_size = Vector2(0, 112)
@@ -447,13 +447,13 @@ theme_override_constants/separation = 4
 [node name="WeaponHeading" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/Context"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "LOADOUT DA CLASSE"
+text = "CLASS LOADOUT"
 
 [node name="WeaponContextLabel" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/Context"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Recruit  —  especialista em armas automáticas."
+text = "Recruit  —  automatic weapons specialist."
 autowrap_mode = 2
 
 [node name="PrimaryWeaponPanel" type="PanelContainer" parent="PageMargin/Content/LoadoutPanel/Margin/Content"]
@@ -468,7 +468,7 @@ alignment = 1
 [node name="Caption" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/PrimaryWeaponPanel/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "PRINCIPAL  [1]"
+text = "PRIMARY  [1]"
 horizontal_alignment = 1
 
 [node name="PrimaryWeaponLabel" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/PrimaryWeaponPanel/Content"]
@@ -490,7 +490,7 @@ alignment = 1
 [node name="Caption" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/SecondaryWeaponPanel/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "SECUNDÁRIA  [2]"
+text = "SECONDARY  [2]"
 horizontal_alignment = 1
 
 [node name="SecondaryWeaponLabel" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/SecondaryWeaponPanel/Content"]

@@ -55,13 +55,13 @@ theme_override_constants/separation = 12
 [node name="Eyebrow" type="Label" parent="PausePanel/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "OPERAÇÃO EM ESPERA"
+text = "OPERATION ON HOLD"
 
 [node name="Title" type="Label" parent="PausePanel/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
 theme_override_font_sizes/font_size = 52
-text = "PAUSA"
+text = "PAUSED"
 
 [node name="AccentLine" type="ColorRect" parent="PausePanel/Margin/Content"]
 custom_minimum_size = Vector2(72, 4)
@@ -73,8 +73,8 @@ color = Color(0.906, 0.566, 0.239, 1)
 [node name="Hint" type="Label" parent="PausePanel/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "A arena está parada.
-Prime ESC para retomar imediatamente."
+text = "The world is on hold.
+Press ESC to resume immediately."
 
 [node name="Spacer" type="Control" parent="PausePanel/Margin/Content"]
 layout_mode = 2
@@ -86,28 +86,28 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "CONTINUAR"
+text = "RESUME"
 
 [node name="SettingsButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "DEFINIÇÕES"
+text = "SETTINGS"
 
 [node name="MainMenuButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "VOLTAR AO MENU PRINCIPAL"
+text = "BACK TO MAIN MENU"
 
 [node name="QuitButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_type_variation = &"DangerButton"
-text = "SAIR DO JOGO"
+text = "QUIT GAME"
 
 [node name="Footer" type="Label" parent="PausePanel/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "ESC  •  CONTINUAR"
+text = "ESC  •  RESUME"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
 [ext_resource type="PackedScene" path="res://scenes/world/exploration_pois.tscn" id="20_exploration_pois"]
 [ext_resource type="Script" path="res://scripts/systems/world_streamer.gd" id="21_world_streamer"]
+[ext_resource type="Script" path="res://scripts/systems/pickup_randomizer.gd" id="25_pickup_randomizer"]
 [ext_resource type="Script" path="res://scripts/systems/run_upgrades.gd" id="23_run_upgrades"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="24_upgrade_panel"]
 
@@ -223,6 +224,7 @@ position = Vector3(-3.5, 0, 5.5)
 position = Vector3(-3.5, 0, 1.5)
 
 [node name="Pickups" type="Node3D" parent="."]
+script = ExtResource("25_pickup_randomizer")
 
 [node name="AmmoPickup" parent="Pickups" instance=ExtResource("15_ammo_pickup")]
 position = Vector3(1, 0.25, 7.5)

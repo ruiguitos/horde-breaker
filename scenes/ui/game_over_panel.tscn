@@ -73,14 +73,14 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.45, 0.4, 1)
 theme_override_font_sizes/font_size = 12
-text = "OPERAÇÃO INTERROMPIDA"
+text = "OPERATION TERMINATED"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.965, 0.88, 0.84, 1)
 theme_override_font_sizes/font_size = 56
-text = "DERROTA"
+text = "DEFEAT"
 horizontal_alignment = 1
 
 [node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
@@ -95,8 +95,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "A horda derrubou o teu operacional.
-Reagrupa e volta a tentar."
+text = "The horde took your operative down.
+Regroup and try again."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -105,16 +105,16 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "TENTAR NOVAMENTE"
+text = "TRY AGAIN"
 
 [node name="MainMenuButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "VOLTAR AO MENU PRINCIPAL"
+text = "BACK TO MAIN MENU"
 
 [node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "A progressão permanente mantém-se guardada."
+text = "Permanent progression is kept safe."
 horizontal_alignment = 1

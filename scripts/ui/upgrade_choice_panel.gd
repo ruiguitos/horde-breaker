@@ -64,11 +64,11 @@ func _update_hint() -> void:
 	var total_count: int = _run_upgrades.call(&"get_total_upgrade_count")
 	if unlocked_count < total_count:
 		hint_label.text = (
-			"Vantagens desbloqueadas %d / %d  •  Sobe o nível da classe para desbloquear mais.  •  Só nesta partida."
+			"Upgrades unlocked %d / %d  •  Level up your class to unlock more.  •  This run only."
 			% [unlocked_count, total_count]
 		)
 	else:
-		hint_label.text = "A vantagem aplica-se apenas a esta partida.  •  Também podes continuar a explorar e escolher depois."
+		hint_label.text = "The upgrade lasts for this run only.  •  You can keep exploring and choose later."
 
 
 func _on_choice_pressed(card_index: int) -> void:

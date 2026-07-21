@@ -27,7 +27,7 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @export_range(0.0, 20.0, 0.5) var spread_degrees: float = 0.0
 @export var automatic_fire: bool = true
 @export var proximity_auto_fire_enabled: bool = true
-@export_range(1.0, 10.0, 0.25) var proximity_auto_fire_range: float = 3.0
+@export_range(1.0, 12.0, 0.25) var proximity_auto_fire_range: float = 6.0
 @export var weapon_id: StringName = &"assault_rifle"
 @export var display_name: String = "Assault Rifle"
 

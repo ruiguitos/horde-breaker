@@ -14,6 +14,9 @@ const CONTAINER_SCENES: Array[PackedScene] = [
 	preload("res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf"),
 	preload("res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf"),
 ]
+const WATER_TOWER_SCENE := preload("res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf")
+const TRUCK_SCENE := preload("res://assets/models/quaternius_zombie_apocalypse/vehicles/Vehicle_Truck_Armored.gltf")
+const STREET_LIGHT_SCENE := preload("res://assets/models/quaternius_zombie_apocalypse/environment/StreetLights.gltf")
 
 const SECTOR_HALF_SIZE := 32.0
 const SPAWN_MARKER_COUNT := 3
@@ -81,6 +84,7 @@ static func add_content_stage(context: Dictionary) -> void:
 	var blocked_areas: Array[Rect2] = context["blocked_areas"]
 	_add_landmarks(sector, rng, blocked_areas)
 	_add_containers(sector, rng, blocked_areas)
+	_add_set_dressing(sector, rng, blocked_areas)
 	_add_caches(sector, rng, config, blocked_areas)
 	_add_ammo_box(sector, rng, config, blocked_areas)
 	_add_spawn_markers(sector, rng, blocked_areas)
@@ -175,6 +179,76 @@ static func _add_containers(
 		sector.add_child(container)
 		container.position = Vector3(placement.x, 0.0, placement.y)
 		container.rotation.y = rng.randi_range(0, 3) * (PI / 2.0)
+
+
+static func _add_set_dressing(
+	sector: Node3D, rng: RandomNumberGenerator, blocked_areas: Array[Rect2]
+) -> void:
+	# Larger CC0 props give each block a recognisable silhouette. Water tower
+	# and truck get collision blockers; street lights are decoration only.
+	if rng.randf() < 0.35:
+		_add_prop_with_blocker(
+			sector,
+			rng,
+			WATER_TOWER_SCENE,
+			"WaterTower",
+			Vector3(4.0, 12.0, 4.0),
+			blocked_areas
+		)
+	if rng.randf() < 0.45:
+		_add_prop_with_blocker(
+			sector,
+			rng,
+			TRUCK_SCENE,
+			"WreckedTruck",
+			Vector3(3.4, 3.0, 8.0),
+			blocked_areas
+		)
+	for corner_index in 4:
+		var corner := Vector2(
+			12.0 if corner_index % 2 == 0 else -12.0,
+			12.0 if corner_index / 2 == 0 else -12.0
+		)
+		var street_light := STREET_LIGHT_SCENE.instantiate() as Node3D
+		street_light.name = "StreetLight%d" % corner_index
+		sector.add_child(street_light)
+		street_light.position = Vector3(corner.x, 0.0, corner.y)
+		street_light.rotation.y = corner_index * (PI / 2.0)
+
+
+static func _add_prop_with_blocker(
+	sector: Node3D,
+	rng: RandomNumberGenerator,
+	prop_scene: PackedScene,
+	prop_name: String,
+	blocker_size: Vector3,
+	blocked_areas: Array[Rect2]
+) -> void:
+	var placement := _find_free_position(rng, blocker_size, blocked_areas)
+	if placement == Vector2.INF:
+		return
+	var prop_body := StaticBody3D.new()
+	prop_body.name = prop_name
+	prop_body.add_to_group(&"navigation_blocker")
+	prop_body.position = Vector3(placement.x, 0.0, placement.y)
+	prop_body.rotation.y = rng.randi_range(0, 3) * (PI / 2.0)
+	var visual := prop_scene.instantiate() as Node3D
+	visual.name = "Visual"
+	prop_body.add_child(visual)
+	var collision := CollisionShape3D.new()
+	collision.name = "Collision"
+	collision.position = Vector3(0.0, blocker_size.y * 0.5, 0.0)
+	var box_shape := BoxShape3D.new()
+	box_shape.size = blocker_size
+	collision.shape = box_shape
+	prop_body.add_child(collision)
+	sector.add_child(prop_body)
+	blocked_areas.append(
+		Rect2(
+			placement - Vector2(blocker_size.x, blocker_size.z) * 0.5,
+			Vector2(blocker_size.x, blocker_size.z)
+		)
+	)
 
 
 static func _add_caches(

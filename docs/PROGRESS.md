@@ -2,7 +2,8 @@
 
 ## Estado atual
 
-Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disparo automático por proximidade.
+Fase: mundo aberto compacto 4×4 com diretor de horda contínuo, acampamento como
+zona de reabastecimento e todo o jogo em inglês.
 
 Última atualização: 2026-07-20.
 
@@ -306,19 +307,26 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 - [x] Spawns das vagas tornados aleatórios por feedback do playtest: o conjunto dos seis pontos mais próximos é baralhado a cada vaga e cada inimigo nasce com desvio aleatório de ±1,5 m, evitando padrões e empilhamento.
 - [x] Vantagens entre rondas dependentes do nível permanente da classe: nível 1 desbloqueia as três básicas e os níveis 3, 5, 7 e 9 desbloqueiam recarga, dano, Carregadores Alargados (+25% carregador) e Adrenalina (+15% cadência e golpes mais rápidos).
 - [x] Painel de vantagens passou a indicar o progresso de desbloqueio (por exemplo, "Vantagens desbloqueadas 6 / 7").
+- [x] Rondas removidas e substituídas por um diretor de horda contínuo: os inimigos nascem em lotes à volta do jogador durante a viagem, com o nível de ameaça a subir a cada 75 s (mais zombies, mais Runners e intervalos de spawn mais curtos), limite simultâneo escalável e HUD com "THREAT LEVEL", "HOSTILES" e contagem para a próxima subida.
+- [x] Spawns garantidos a pelo menos 12 m do jogador para dar tempo de reação, mantendo os seis pontos mais próximos e o desvio aleatório.
+- [x] Alcance do disparo automático das armas de fogo aumentado de 3 para 6 metros.
+- [x] Posições do Scrap e das munições do acampamento randomizadas a cada partida por `PickupRandomizer`, evitando marcos e o centro e sem sobreposição.
+- [x] Setores gerados enriquecidos com torre de água e camião destroçado (com colisão e como `navigation_blocker`) e quatro postes de iluminação decorativos.
+- [x] Acampamento transformado em zona de reabastecimento: ficar a menos de 12 m do núcleo cura o jogador e repõe munição de reserva por segundo, com aviso no HUD.
+- [x] Mapa tático melhorado: setor atual destacado com moldura de acento, marcadores em losango para Scrap, munição e medkit, chip de acento no estilo do HUD e legenda alargada.
+- [x] Todo o texto do jogo convertido para inglês: menus, HUD, painéis, etiquetas do mundo, feedback e descrições das classes.
 
 ## Milestone atual
 
-**Milestone 18 — Compact Open World Prototype (grelha 4 × 4 gerada por seed implementada)**
+**Milestone 19 — Open World Sandbox (horda contínua, reabastecimento e localização em inglês)**
 
 ## Próxima tarefa
 
-Playtest manual do mundo aberto com as três classes: atravessar as quatro
-fronteiras, sentir a transição faseada, apanhar a emboscada de um setor,
-recolher caches e munições distantes e deixar uma vaga começar longe da base
-para ver a horda a nascer em redor. Com o feedback do playtest, decidir a
-ordem entre: POIs com interiores nos setores gerados, emboscadas repostas por
-ciclo, afinação do disparo automático (2–3 m) e a segunda arma do Medic.
+Playtest manual do sandbox: atravessar o mundo a sentir a horda contínua a
+crescer, usar o acampamento como ponto de reabastecimento entre incursões,
+recolher loot randomizado e ler o mapa tático. Depois: dar aos setores gerados
+POIs com interiores e balancear a curva do diretor de horda (intervalo de
+subida, dimensão dos lotes e limite simultâneo) com base na sensação de jogo.
 
 ## Validação
 
@@ -531,6 +539,11 @@ ciclo, afinação do disparo automático (2–3 m) e a segunda arma do Medic.
   a abertura através de `Tab` na arena real.
 - Captura OpenGL a `1152 × 648` confirmou o mapa legível e centrado sobre o HUD,
   com grelha, setor da base, orientação do jogador e marcadores de POI.
+- Importação e execução headless de menu e arena sem erros após o diretor de horda contínuo, o reabastecimento, os setores enriquecidos e a localização em inglês.
+- Testes integrados atualizados para o diretor contínuo confirmaram geração faseada, emboscadas por setor com estado, munições com estado, spawns aleatórios à volta do jogador e o pool de vantagens por nível (3 → 6 → 7).
+- Regressão dos testes de mundo aberto, mapa tático e funcionalidades anteriores sem falhas.
+- Pesquisa por caracteres acentuados confirmou zero strings em português nos scripts, cenas e dados do jogo.
+- Capturas com janela real a `1152 × 648` confirmaram o menu principal em inglês, o mapa tático com setor atual destacado e marcadores de Scrap/munição, e um setor gerado com postes de iluminação, camião e a zona de reabastecimento ativa.
 
 ## Decisões pendentes
 

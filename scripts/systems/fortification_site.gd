@@ -35,7 +35,7 @@ func interact(_player: Node) -> bool:
 		return false
 	if not bool(wave_manager.call(&"is_preparation_active")):
 		camp_economy.call(
-			&"request_feedback", "CONSTRUÇÃO APENAS DURANTE A EXPLORAÇÃO"
+			&"request_feedback", "BUILDING ONLY WHILE EXPLORING"
 		)
 		return false
 	if not is_built:
@@ -79,7 +79,7 @@ func _build_barricade(camp_economy: Node) -> bool:
 	_update_presentation()
 	call_deferred("_apply_collision_state", true)
 	camp_economy.call(
-		&"request_feedback", "BARRICADA CONSTRUÍDA  •  CUSTO %d SCRAP" % build_cost
+		&"request_feedback", "BARRICADE BUILT  •  COST %d SCRAP" % build_cost
 	)
 	built.emit()
 	return true
@@ -88,7 +88,7 @@ func _build_barricade(camp_economy: Node) -> bool:
 func _repair_barricade(camp_economy: Node) -> bool:
 	var missing_health := maximum_health - current_health
 	if missing_health <= 0.0:
-		camp_economy.call(&"request_feedback", "A BARRICADA JÁ ESTÁ REPARADA")
+		camp_economy.call(&"request_feedback", "THE BARRICADE IS ALREADY REPAIRED")
 		return false
 	var repair_amount := minf(missing_health, maximum_repair_per_interaction)
 	var scrap_cost := ceili(repair_amount / health_per_scrap)
@@ -98,7 +98,7 @@ func _repair_barricade(camp_economy: Node) -> bool:
 	var repaired_health := repair(repair_amount)
 	camp_economy.call(
 		&"request_feedback",
-		"BARRICADA REPARADA +%d  •  CUSTO %d SCRAP"
+		"BARRICADE REPAIRED +%d  •  COST %d SCRAP"
 		% [roundi(repaired_health), scrap_cost]
 	)
 	return repaired_health > 0.0
@@ -110,7 +110,7 @@ func _destroy_barricade() -> void:
 	call_deferred("_apply_collision_state", false)
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	if camp_economy != null:
-		camp_economy.call(&"request_feedback", "BARRICADA DESTRUÍDA")
+		camp_economy.call(&"request_feedback", "BARRICADE DESTROYED")
 	destroyed.emit()
 
 
@@ -130,11 +130,11 @@ func _request_insufficient_scrap_feedback(
 ) -> void:
 	if int(camp_economy.get("carried_scrap")) > 0:
 		camp_economy.call(
-			&"request_feedback", "DEPOSITA PRIMEIRO O SCRAP NO NÚCLEO"
+			&"request_feedback", "DEPOSIT YOUR SCRAP AT THE CORE FIRST"
 		)
 		return
 	camp_economy.call(
-		&"request_feedback", "SCRAP INSUFICIENTE: NECESSÁRIO %d" % required_scrap
+		&"request_feedback", "NOT ENOUGH SCRAP: %d NEEDED" % required_scrap
 	)
 
 
@@ -142,8 +142,8 @@ func _update_presentation() -> void:
 	barricade_visual.visible = is_built
 	site_marker.visible = not is_built
 	if is_built:
-		status_label.text = "BARRICADA\n%d / %d\n[F] REPARAR" % [
+		status_label.text = "BARRICADE\n%d / %d\n[F] REPAIR" % [
 			roundi(current_health), roundi(maximum_health)
 		]
 	else:
-		status_label.text = "PONTO DE DEFESA\n%d SCRAP\n[F] CONSTRUIR" % build_cost
+		status_label.text = "DEFENSE POINT\n%d SCRAP\n[F] BUILD" % build_cost

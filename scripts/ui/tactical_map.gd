@@ -25,6 +25,12 @@ const MUTED_TEXT_COLOR := Color(0.62, 0.68, 0.72, 1.0)
 const PLAYER_COLOR := Color(0.25, 0.78, 1.0, 1.0)
 const ENEMY_COLOR := Color(0.91, 0.27, 0.24, 1.0)
 const POI_COLOR := Color(0.95, 0.77, 0.30, 1.0)
+const SCRAP_COLOR := Color(0.44, 0.82, 0.59, 1.0)
+const AMMO_COLOR := Color(0.35, 0.72, 0.95, 1.0)
+const HEALTH_COLOR := Color(0.93, 0.45, 0.5, 1.0)
+const SCRAP_GROUP := &"scrap_pickup"
+const AMMO_GROUP := &"ammo_pickup"
+const HEALTH_GROUP := &"health_pickup"
 
 var _map_rect := Rect2()
 var _player: Node3D
@@ -83,8 +89,19 @@ func _draw() -> void:
 	draw_rect(
 		Rect2(panel_rect.position, Vector2(panel_rect.size.x, 4.0)), ACCENT_COLOR
 	)
+	# Skewed accent chip matching the HUD plate style.
+	var chip_origin := panel_rect.position + Vector2(18.0, 16.0)
+	draw_colored_polygon(
+		PackedVector2Array([
+			chip_origin + Vector2(6.0, 0.0),
+			chip_origin + Vector2(30.0, 0.0),
+			chip_origin + Vector2(24.0, 28.0),
+			chip_origin + Vector2(0.0, 28.0),
+		]),
+		ACCENT_COLOR
+	)
 	_draw_text(
-		"MAPA TÁTICO",
+		"TACTICAL MAP",
 		panel_rect.position + Vector2(0.0, 37.0),
 		26,
 		TEXT_COLOR,
@@ -92,7 +109,7 @@ func _draw() -> void:
 		panel_rect.size.x
 	)
 	_draw_text(
-		"TAB  ·  FECHAR",
+		"TAB  ·  CLOSE",
 		panel_rect.position + Vector2(0.0, 59.0),
 		13,
 		MUTED_TEXT_COLOR,
@@ -101,6 +118,7 @@ func _draw() -> void:
 	)
 	draw_rect(_map_rect, MAP_COLOR)
 	_draw_sectors()
+	_draw_loot()
 	_draw_points_of_interest()
 	_draw_enemies()
 	_draw_camp()
@@ -109,6 +127,7 @@ func _draw() -> void:
 
 
 func _draw_sectors() -> void:
+	var player_coords := _get_player_sector_coords()
 	for grid_z in range(GRID_MIN.y, GRID_MAX.y + 1):
 		for grid_x in range(GRID_MIN.x, GRID_MAX.x + 1):
 			var coords := Vector2i(grid_x, grid_z)
@@ -133,7 +152,10 @@ func _draw_sectors() -> void:
 			elif _is_sector_loaded(coords):
 				fill_color = LOADED_SECTOR_COLOR
 			draw_rect(sector_rect.grow(-3.0), fill_color)
-			draw_rect(sector_rect, BORDER_COLOR, false, 1.0)
+			if coords == player_coords:
+				draw_rect(sector_rect.grow(-1.0), ACCENT_COLOR, false, 2.0)
+			else:
+				draw_rect(sector_rect, BORDER_COLOR, false, 1.0)
 			var sector_label := "BASE" if coords == CAMP_COORDS else "%d · %d" % [grid_x, grid_z]
 			_draw_text(
 				sector_label,
@@ -141,6 +163,45 @@ func _draw_sectors() -> void:
 				11,
 				MUTED_TEXT_COLOR
 			)
+
+
+func _draw_loot() -> void:
+	_draw_loot_group(SCRAP_GROUP, SCRAP_COLOR)
+	_draw_loot_group(AMMO_GROUP, AMMO_COLOR)
+	_draw_loot_group(HEALTH_GROUP, HEALTH_COLOR)
+
+
+func _draw_loot_group(group_name: StringName, color: Color) -> void:
+	for pickup_value in get_tree().get_nodes_in_group(group_name):
+		var pickup := pickup_value as Node3D
+		if (
+			pickup == null
+			or not pickup.visible
+			or not _is_inside_world(pickup.global_position)
+		):
+			continue
+		_draw_diamond(_world_to_map(pickup.global_position), 4.5, color)
+
+
+func _draw_diamond(center: Vector2, radius: float, color: Color) -> void:
+	draw_colored_polygon(
+		PackedVector2Array([
+			center + Vector2(0.0, -radius),
+			center + Vector2(radius, 0.0),
+			center + Vector2(0.0, radius),
+			center + Vector2(-radius, 0.0),
+		]),
+		color
+	)
+
+
+func _get_player_sector_coords() -> Vector2i:
+	if not is_instance_valid(_player):
+		return Vector2i.ZERO
+	return Vector2i(
+		floori((_player.global_position.x + SECTOR_HALF_SIZE) / SECTOR_SIZE),
+		floori((_player.global_position.z + SECTOR_HALF_SIZE) / SECTOR_SIZE)
+	)
 
 
 func _draw_points_of_interest() -> void:
@@ -188,15 +249,10 @@ func _draw_player() -> void:
 
 
 func _draw_footer(panel_rect: Rect2) -> void:
-	var player_coords := Vector2i.ZERO
-	if is_instance_valid(_player):
-		player_coords = Vector2i(
-			floori((_player.global_position.x + SECTOR_HALF_SIZE) / SECTOR_SIZE),
-			floori((_player.global_position.z + SECTOR_HALF_SIZE) / SECTOR_SIZE)
-		)
+	var player_coords := _get_player_sector_coords()
 	var footer_y := _map_rect.end.y + 30.0
 	_draw_text(
-		"● JOGADOR    ■ ACAMPAMENTO    ● INIMIGO    ■ POI",
+		"● PLAYER    ■ CAMP    ● HOSTILE    ■ POI    ◆ SCRAP    ◆ AMMO    ◆ MEDKIT",
 		Vector2(panel_rect.position.x, footer_y),
 		12,
 		MUTED_TEXT_COLOR,
@@ -204,7 +260,7 @@ func _draw_footer(panel_rect: Rect2) -> void:
 		panel_rect.size.x
 	)
 	_draw_text(
-		"SETOR ATUAL  %d · %d" % [player_coords.x, player_coords.y],
+		"CURRENT SECTOR  %d · %d" % [player_coords.x, player_coords.y],
 		Vector2(panel_rect.position.x, footer_y + 20.0),
 		12,
 		ACCENT_COLOR,

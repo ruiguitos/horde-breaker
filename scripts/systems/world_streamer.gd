@@ -171,7 +171,7 @@ func _generate_sector(sector_id: StringName, definition: Dictionary) -> void:
 		"collected_caches": state["collected_caches"],
 		"ammo_collected": bool(state.get("ammo_collected", false)),
 		"outer_walls": _get_outer_wall_sides(coords),
-		"label": "SETOR %d · %d" % [coords.x, coords.y],
+		"label": "SECTOR %d · %d" % [coords.x, coords.y],
 		"cache_collected_callable": _on_sector_cache_collected,
 		"ammo_collected_callable": _on_sector_ammo_collected,
 	})
@@ -310,7 +310,7 @@ func _try_spawn_sector_ambush(sector_id: StringName, state: Dictionary) -> bool:
 		var coords: Vector2i = _definitions_by_id[sector_id]["coords"]
 		camp_economy.call(
 			&"request_feedback",
-			"EMBOSCADA NO SETOR %d · %d" % [coords.x, coords.y]
+			"AMBUSH IN SECTOR %d · %d" % [coords.x, coords.y]
 		)
 	return true
 

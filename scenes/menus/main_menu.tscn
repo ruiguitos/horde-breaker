@@ -91,7 +91,7 @@ alignment = 1
 [node name="Eyebrow" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "PROTOCOLO DE SOBREVIVÊNCIA  //  01"
+text = "SURVIVAL PROTOCOL  //  01"
 
 [node name="Title" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
@@ -110,7 +110,7 @@ color = Color(0.906, 0.566, 0.239, 1)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.735, 0.765, 1)
 theme_override_font_sizes/font_size = 19
-text = "Sobrevive à ronda. Evolui a tua classe. Quebra a horda."
+text = "Survive the horde. Level up your class. Break the siege."
 
 [node name="Spacer" type="Control" parent="PageMargin/Columns/BrandColumn"]
 custom_minimum_size = Vector2(0, 22)
@@ -123,21 +123,21 @@ custom_minimum_size = Vector2(380, 56)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"PrimaryButton"
-text = "INICIAR PARTIDA"
+text = "START RUN"
 
 [node name="SelectionButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(380, 50)
 layout_mode = 2
 size_flags_horizontal = 0
-text = "PERSONAGENS E CLASSES"
+text = "CHARACTERS & CLASSES"
 
 [node name="SettingsButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(380, 50)
 layout_mode = 2
 size_flags_horizontal = 0
-text = "DEFINIÇÕES"
+text = "SETTINGS"
 
 [node name="QuitButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
@@ -145,7 +145,7 @@ custom_minimum_size = Vector2(380, 46)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"DangerButton"
-text = "SAIR"
+text = "QUIT"
 
 [node name="SummaryColumn" type="VBoxContainer" parent="PageMargin/Columns"]
 unique_name_in_owner = true
@@ -185,7 +185,7 @@ theme_override_constants/separation = 9
 [node name="Eyebrow" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "OPERACIONAL ATIVO"
+text = "ACTIVE OPERATIVE"
 
 [node name="SelectionRow" type="HBoxContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 layout_mode = 2
@@ -232,20 +232,20 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 15
-text = "NÍVEL 1  •  XP 0 / 100"
+text = "LEVEL 1  •  XP 0 / 100"
 
 [node name="NoticeLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Especialista em armas automáticas. Recarrega armas 30% mais depressa."
+text = "Automatic weapons specialist. Reloads weapons 30% faster."
 autowrap_mode = 2
 
 [node name="BuildBadge" type="Label" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "ARENA URBANA  •  PERFIL LOCAL"
+text = "URBAN ARENA  •  LOCAL PROFILE"
 horizontal_alignment = 2
 
 [node name="Footer" type="Label" parent="."]
@@ -259,5 +259,5 @@ offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_type_variation = &"MutedLabel"
-text = "WASD  MOVER   •   RATO  CÂMARA   •   ESC  PAUSA"
+text = "WASD  MOVE   •   MOUSE  CAMERA   •   ESC  PAUSE"
 horizontal_alignment = 1

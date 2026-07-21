@@ -13,5 +13,5 @@ base_health = 100.0
 primary_weapon_id = &"pistol"
 health_regeneration_rate = 4.0
 health_regeneration_delay = 3.0
-class_description = "Especialista em sobrevivência. Regenera 4 de vida por segundo após 3 segundos sem sofrer dano."
+class_description = "Survival specialist. Regenerates 4 health per second after 3 seconds without taking damage."
 character_scene = ExtResource("2_medic_scene")

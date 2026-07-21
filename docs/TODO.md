@@ -39,6 +39,18 @@
   real do monitor em fullscreen e aplicar a resolução selecionada em modo janela.
 - [x] Adicionar um mapa tático em `Tab` com grelha de setores e marcadores do
   jogador, acampamento, POIs e inimigos ativos.
+- [x] Remover as rondas e adotar um diretor de horda contínuo que faz nascer
+  inimigos à volta do jogador durante a exploração, com escalada por nível de
+  ameaça e mais zombies em simultâneo.
+- [x] Aumentar o alcance do disparo automático de 3 para 6 metros.
+- [x] Randomizar as posições do Scrap e das munições do acampamento a cada partida.
+- [x] Melhorar o mapa tático: setor atual destacado, marcadores de Scrap, munição
+  e medkit, e chip de acento no estilo do HUD.
+- [x] Converter todo o texto do jogo (menus, HUD, mundo, dados) para inglês.
+- [x] Enriquecer os setores gerados com torre de água, camião destroçado e postes
+  de iluminação além dos marcos e contentores.
+- [x] Transformar o acampamento numa zona de reabastecimento (cura e munições ao
+  ficar perto do núcleo), inspirado no hub das referências.
 
 ## Regra
 

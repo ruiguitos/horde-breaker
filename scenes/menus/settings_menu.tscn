@@ -58,14 +58,14 @@ theme_override_constants/separation = 6
 [node name="Eyebrow" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "CONFIGURAÇÃO"
+text = "CONFIGURATION"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
 theme_override_font_sizes/font_size = 28
-text = "DEFINIÇÕES"
+text = "SETTINGS"
 horizontal_alignment = 1
 
 [node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
@@ -78,7 +78,7 @@ color = Color(0.906, 0.566, 0.239, 1)
 [node name="ScreenTitle" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"SectionTitle"
-text = "Ecrã"
+text = "Display"
 
 [node name="WindowModeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
@@ -88,7 +88,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "MODO DE JANELA"
+text = "WINDOW MODE"
 vertical_alignment = 1
 
 [node name="WindowModeOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/WindowModeRow"]
@@ -104,7 +104,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "RESOLUÇÃO"
+text = "RESOLUTION"
 vertical_alignment = 1
 
 [node name="ResolutionOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/ResolutionRow"]
@@ -120,7 +120,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "SINCRONIZAÇÃO VERTICAL (VSYNC)"
+text = "VERTICAL SYNC (VSYNC)"
 vertical_alignment = 1
 
 [node name="VsyncCheck" type="CheckButton" parent="CenterContainer/PanelContainer/Margin/Content/VsyncRow"]
@@ -130,7 +130,7 @@ layout_mode = 2
 [node name="InputTitle" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"SectionTitle"
-text = "Controlos e som"
+text = "Controls & Audio"
 
 [node name="SensitivityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
@@ -140,7 +140,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "SENSIBILIDADE DO RATO"
+text = "MOUSE SENSITIVITY"
 vertical_alignment = 1
 
 [node name="SensitivitySlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/SensitivityRow"]
@@ -169,7 +169,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "VOLUME GERAL"
+text = "MASTER VOLUME"
 vertical_alignment = 1
 
 [node name="VolumeSlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/VolumeRow"]
@@ -194,10 +194,10 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "GUARDAR E VOLTAR"
+text = "SAVE & BACK"
 
 [node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "As alterações são aplicadas e guardadas de imediato."
+text = "Changes are applied and saved immediately."
 horizontal_alignment = 1

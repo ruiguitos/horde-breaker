@@ -43,8 +43,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _populate_window_modes() -> void:
 	window_mode_option.clear()
-	window_mode_option.add_item("Janela")
-	window_mode_option.add_item("Ecrã completo")
+	window_mode_option.add_item("Windowed")
+	window_mode_option.add_item("Fullscreen")
 
 
 func _populate_resolutions(selected_resolution: Vector2i) -> void:
@@ -77,9 +77,9 @@ func _refresh_display_controls() -> void:
 	resolution_option.select(_available_resolutions.find(active_resolution))
 	resolution_option.disabled = fullscreen
 	resolution_option.tooltip_text = (
-		"Em ecrã completo é usada a resolução atual do monitor."
+		"Fullscreen uses the monitor's current resolution."
 		if fullscreen
-		else "A resolução escolhida é aplicada imediatamente à janela."
+		else "The selected resolution is applied to the window immediately."
 	)
 
 

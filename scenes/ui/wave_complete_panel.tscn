@@ -68,7 +68,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.87, 0.97, 0.89, 1)
 theme_override_font_sizes/font_size = 42
-text = "VITÓRIA"
+text = "VICTORY"
 horizontal_alignment = 1
 
 [node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
@@ -82,7 +82,7 @@ color = Color(0.294, 0.698, 0.465, 1)
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Todas as ameaças foram eliminadas.\nA arena está segura — por agora."
+text = "Every hostile has been eliminated.\nThe arena is safe — for now."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -97,10 +97,10 @@ text = "JOGAR NOVAMENTE"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "Voltar ao menu principal"
+text = "Back to main menu"
 
 [node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Prepara o próximo destacamento."
+text = "Prepare the next deployment."
 horizontal_alignment = 1

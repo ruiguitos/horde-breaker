@@ -26,7 +26,7 @@ func _ready() -> void:
 
 func _show_player_defeat() -> void:
 	_show_game_over(
-		"A horda derrubou o teu operacional.\nReagrupa e volta a tentar."
+		"The horde took your operative down.\nRegroup and try again."
 	)
 
 

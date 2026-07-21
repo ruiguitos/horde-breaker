@@ -22,13 +22,13 @@ func interact(_player: Node) -> bool:
 		var deposited_scrap := int(camp_economy.call(&"deposit_all_scrap"))
 		camp_economy.call(
 			&"request_feedback",
-			"%d SCRAP GUARDADO NO ACAMPAMENTO" % deposited_scrap
+			"%d SCRAP STORED AT THE CAMP" % deposited_scrap
 		)
 		return deposited_scrap > 0
 
 	if not bool(wave_manager.call(&"is_preparation_active")):
 		camp_economy.call(
-			&"request_feedback", "REPARAÇÕES APENAS DURANTE A EXPLORAÇÃO"
+			&"request_feedback", "REPAIRS ONLY WHILE EXPLORING"
 		)
 		return false
 
@@ -36,21 +36,21 @@ func interact(_player: Node) -> bool:
 	var maximum_health := float(camp_core.get("maximum_health"))
 	var missing_health := maximum_health - current_health
 	if missing_health <= 0.0:
-		camp_economy.call(&"request_feedback", "O NÚCLEO JÁ ESTÁ REPARADO")
+		camp_economy.call(&"request_feedback", "THE CORE IS ALREADY REPAIRED")
 		return false
 
 	var repair_amount := minf(missing_health, maximum_repair_per_interaction)
 	var scrap_cost := ceili(repair_amount / health_per_scrap)
 	if not bool(camp_economy.call(&"spend_stored_scrap", scrap_cost)):
 		camp_economy.call(
-			&"request_feedback", "SCRAP INSUFICIENTE: NECESSÁRIO %d" % scrap_cost
+			&"request_feedback", "NOT ENOUGH SCRAP: %d NEEDED" % scrap_cost
 		)
 		return false
 
 	var repaired_health := float(camp_core.call(&"repair", repair_amount))
 	camp_economy.call(
 		&"request_feedback",
-		"NÚCLEO REPARADO +%d  •  CUSTO %d SCRAP"
+		"CORE REPAIRED +%d  •  COST %d SCRAP"
 		% [roundi(repaired_health), scrap_cost]
 	)
 	return repaired_health > 0.0

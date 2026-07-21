@@ -91,7 +91,7 @@ func _try_start_encounter(body: Node3D) -> void:
 
 	_encounter_available = false
 	_reset_pending = false
-	_request_feedback("ESTAÇÃO INFESTADA  •  %d RUNNERS" % _active_enemies.size())
+	_request_feedback("FUEL STATION INFESTED  •  %d RUNNERS" % _active_enemies.size())
 	encounter_started.emit(_active_enemies.size())
 
 
@@ -114,7 +114,7 @@ func _on_cycle_completed(_cycle_number: int) -> void:
 		_reset_pending = true
 	var replenished_pickups := _spawn_missing_scrap()
 	if replenished_pickups > 0:
-		_request_feedback("SCRAP DA ESTAÇÃO REPÔS-SE")
+		_request_feedback("FUEL STATION SCRAP RESTOCKED")
 
 
 func _on_intermission_started(_next_wave: int, _duration: float) -> void:

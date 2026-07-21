@@ -42,7 +42,7 @@ func _refresh() -> void:
 		return
 	var level := SaveManager.get_character_level(character_id)
 	var xp := SaveManager.get_character_xp(character_id)
-	var test_suffix := "  ·  TESTE" if _using_test_progress else ""
+	var test_suffix := "  ·  TEST" if _using_test_progress else ""
 	credits_label.text = "CREDITS  ·  %d%s" % [SaveManager.get_credits(), test_suffix]
 	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
 		character_data.display_name,
@@ -50,9 +50,9 @@ func _refresh() -> void:
 		_get_weapon_name(character_data.secondary_weapon_id),
 	]
 	if level >= 10:
-		progress_label.text = "NÍVEL %d  •  MÁXIMO" % level
+		progress_label.text = "LEVEL %d  •  MAX" % level
 	else:
-		progress_label.text = "NÍVEL %d  •  XP %d / %d" % [
+		progress_label.text = "LEVEL %d  •  XP %d / %d" % [
 			level, xp, SaveManager.get_xp_required_for_next_level(level)
 		]
 	notice_label.text = character_data.class_description

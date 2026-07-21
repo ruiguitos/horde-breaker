@@ -42,7 +42,7 @@ func interact(player: Node) -> bool:
 
 	player.call(&"heal", healed_amount)
 	_set_available(false)
-	_request_feedback("+%d VIDA" % roundi(healed_amount))
+	_request_feedback("+%d HEALTH" % roundi(healed_amount))
 	collected.emit(healed_amount)
 	return true
 
@@ -55,7 +55,7 @@ func _on_cycle_completed(_cycle_number: int) -> void:
 	if _is_available:
 		return
 	_set_available(true)
-	_request_feedback("MEDKIT DO HOSPITAL REPÔS-SE")
+	_request_feedback("HOSPITAL MEDKIT RESTOCKED")
 	restocked.emit()
 
 

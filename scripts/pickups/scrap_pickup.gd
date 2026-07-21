@@ -18,7 +18,7 @@ func interact(_player: Node) -> bool:
 	if collected_scrap <= 0:
 		return false
 	camp_economy.call(
-		&"request_feedback", "+%d SCRAP TRANSPORTADO" % collected_scrap
+		&"request_feedback", "+%d SCRAP CARRIED" % collected_scrap
 	)
 	collected.emit()
 	queue_free()
