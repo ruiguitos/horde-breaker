@@ -1,7 +1,6 @@
 extends Control
 
 const PLAYER_GROUP := &"player"
-const CAMP_CORE_GROUP := &"camp_core"
 const CAMP_ECONOMY_GROUP := &"camp_economy"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
 const WAVE_MANAGER_GROUP := &"wave_manager"
@@ -12,22 +11,17 @@ const BAR_GOOD_COLOR := Color(0.294, 0.698, 0.465, 1.0)
 const BAR_WARNING_COLOR := Color(0.957, 0.694, 0.31, 1.0)
 const BAR_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
 const HIT_MARKER_COLOR := Color(1.0, 0.62, 0.2, 1.0)
-const MAX_FEEDBACK_MESSAGES := 4
+const MAX_FEEDBACK_MESSAGES := 3
 const VIGNETTE_PULSE_BOOST := 0.35
 const VIGNETTE_MAX_INTENSITY := 0.85
 
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_label: Label = %HealthLabel
-@onready var camp_health_bar: ProgressBar = %CampHealthBar
-@onready var camp_health_label: Label = %CampHealthLabel
-@onready var weapon_label: Label = %WeaponLabel
+@onready var active_weapon_label: Label = %ActiveWeaponLabel
 @onready var ammunition_label: Label = %AmmunitionLabel
-@onready var wave_caption: Label = %WaveCaption
-@onready var wave_label: Label = %WaveLabel
-@onready var enemies_label: Label = %EnemiesLabel
-@onready var surge_label: Label = %SurgeLabel
+@onready var threat_label: Label = %ThreatLabel
+@onready var hostiles_label: Label = %HostilesLabel
 @onready var carried_scrap_label: Label = %CarriedScrapLabel
-@onready var stored_scrap_label: Label = %StoredScrapLabel
 @onready var feedback_feed: VBoxContainer = %FeedbackFeed
 @onready var aim_point: Control = %AimPoint
 @onready var reload_bar: ProgressBar = %ReloadBar
@@ -49,39 +43,29 @@ var _bar_fill_styles: Dictionary[Color, StyleBoxFlat] = {}
 
 func _ready() -> void:
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
-	var camp_core := get_tree().get_first_node_in_group(CAMP_CORE_GROUP)
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	_weapon_controller = get_tree().get_first_node_in_group(WEAPON_CONTROLLER_GROUP)
 	var wave_manager := get_tree().get_first_node_in_group(WAVE_MANAGER_GROUP)
 	if (
 		player == null
-		or camp_core == null
 		or camp_economy == null
 		or _weapon_controller == null
 		or wave_manager == null
 	):
 		push_error(
-			"GameHUD requires player, camp_core, camp_economy, weapon_controller and wave_manager groups."
+			"GameHUD requires player, camp_economy, weapon_controller and wave_manager groups."
 		)
 		return
 
 	player.connect(&"health_changed", _update_health)
-	camp_core.connect(&"health_changed", _update_camp_health)
 	wave_manager.connect(&"wave_started", _on_wave_started)
 	wave_manager.connect(&"enemy_count_changed", _update_enemy_count)
-	wave_manager.connect(
-		&"preparation_time_changed", _update_surge_countdown
-	)
 	camp_economy.connect(&"scrap_changed", _update_scrap)
 	camp_economy.connect(&"feedback_requested", _show_feedback)
 	_weapon_controller.connect(&"active_weapon_changed", _show_weapon)
 
 	_update_health(
 		float(player.get("current_health")), float(player.get("maximum_health"))
-	)
-	_update_camp_health(
-		float(camp_core.get("current_health")),
-		float(camp_core.get("maximum_health"))
 	)
 	_update_scrap(
 		int(camp_economy.get("carried_scrap")),
@@ -98,7 +82,7 @@ func _ready() -> void:
 func _update_health(current_health: float, maximum_health: float) -> void:
 	health_bar.max_value = maximum_health
 	health_bar.value = current_health
-	health_label.text = "%d / %d" % [roundi(current_health), roundi(maximum_health)]
+	health_label.text = "%d" % roundi(current_health)
 	var health_ratio := current_health / maximum_health if maximum_health > 0.0 else 0.0
 	var health_color := _get_state_color(
 		health_ratio, HEALTH_GOOD_COLOR, HEALTH_WARNING_COLOR, HEALTH_DANGER_COLOR
@@ -114,20 +98,6 @@ func _update_health(current_health: float, maximum_health: float) -> void:
 		_pulse_damage_vignette()
 	else:
 		_set_vignette_intensity(_vignette_base_intensity)
-
-
-func _update_camp_health(current_health: float, maximum_health: float) -> void:
-	camp_health_bar.max_value = maximum_health
-	camp_health_bar.value = current_health
-	camp_health_label.text = "%d / %d" % [
-		roundi(current_health), roundi(maximum_health)
-	]
-	var health_ratio := current_health / maximum_health if maximum_health > 0.0 else 0.0
-	var health_color := _get_state_color(
-		health_ratio, HEALTH_GOOD_COLOR, HEALTH_WARNING_COLOR, HEALTH_DANGER_COLOR
-	)
-	camp_health_label.add_theme_color_override(&"font_color", health_color)
-	_apply_bar_fill_color(camp_health_bar, health_ratio)
 
 
 func _get_state_color(
@@ -183,7 +153,7 @@ func _pulse_damage_vignette() -> void:
 func _update_ammunition(
 	current_ammunition: int, _magazine_size: int, reserve_ammunition: int
 ) -> void:
-	ammunition_label.add_theme_font_size_override(&"font_size", 42)
+	ammunition_label.add_theme_font_size_override(&"font_size", 44)
 	ammunition_label.text = "%d / %d" % [
 		current_ammunition, reserve_ammunition
 	]
@@ -194,13 +164,12 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 	_disconnect_weapon_signals()
 	_weapon = active_weapon
 	_hide_reload_bar()
-	var primary_name := String(_weapon_controller.call("get_primary_weapon_name"))
-	var secondary_name := String(_weapon_controller.call("get_secondary_weapon_name"))
-	if slot == 0:
-		primary_name = "ACTIVE  •  " + primary_name
-	else:
-		secondary_name = "ACTIVE  •  " + secondary_name
-	weapon_label.text = "[1] %s    [2] %s" % [primary_name, secondary_name]
+	var active_name := (
+		String(_weapon_controller.call("get_primary_weapon_name"))
+		if slot == 0
+		else String(_weapon_controller.call("get_secondary_weapon_name"))
+	)
+	active_weapon_label.text = active_name
 	if _weapon == null:
 		aim_point.hide()
 		ammunition_label.add_theme_font_size_override(&"font_size", 18)
@@ -272,11 +241,6 @@ func _flash_hit_marker() -> void:
 
 
 func _show_reloading(duration: float) -> void:
-	ammunition_label.add_theme_font_size_override(&"font_size", 16)
-	ammunition_label.text = "RELOADING  •  %d / %d" % [
-		int(_weapon.get("current_ammunition")),
-		int(_weapon.get("reserve_ammunition"))
-	]
 	if _reload_tween != null and _reload_tween.is_valid():
 		_reload_tween.kill()
 	reload_bar.value = 0.0
@@ -301,12 +265,11 @@ func _on_wave_started(threat_level: int) -> void:
 
 
 func _update_wave(threat_level: int) -> void:
-	wave_caption.text = "THREAT LEVEL"
-	wave_label.text = "%02d" % threat_level
+	threat_label.text = "THREAT %02d" % threat_level
 
 
 func _update_enemy_count(remaining_enemies: int) -> void:
-	enemies_label.text = "%02d" % remaining_enemies
+	hostiles_label.text = "%02d HOSTILES" % remaining_enemies
 
 
 func _show_banner(caption: String, title: String) -> void:
@@ -321,16 +284,8 @@ func _show_banner(caption: String, title: String) -> void:
 	_banner_tween.tween_property(wave_banner, "modulate:a", 0.0, 0.6)
 
 
-func _update_surge_countdown(seconds_remaining: int) -> void:
-	if seconds_remaining <= 0:
-		surge_label.text = "THREAT RISING"
-		return
-	surge_label.text = "NEXT THREAT  ·  %ds" % seconds_remaining
-
-
-func _update_scrap(carried_scrap: int, stored_scrap: int) -> void:
+func _update_scrap(carried_scrap: int, _stored_scrap: int) -> void:
 	carried_scrap_label.text = "%03d" % carried_scrap
-	stored_scrap_label.text = "%03d" % stored_scrap
 
 
 func _show_feedback(message: String, duration: float) -> void:

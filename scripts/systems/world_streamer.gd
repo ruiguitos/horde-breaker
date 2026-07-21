@@ -21,8 +21,11 @@ const GRID_MAX := Vector2i(2, 2)
 const CAMP_COORDS := Vector2i(0, 0)
 const EAST_COORDS := Vector2i(1, 0)
 
-@export_range(8.0, 128.0, 1.0) var load_distance: float = 46.0
-@export_range(8.0, 160.0, 1.0) var unload_distance: float = 56.0
+# Sectors load well before they come into view (roughly a sector and a half
+# away) so the staged generation finishes off-screen and there is no visible
+# pop-in or delay when the player arrives.
+@export_range(8.0, 200.0, 1.0) var load_distance: float = 95.0
+@export_range(8.0, 240.0, 1.0) var unload_distance: float = 120.0
 
 var _player: Node3D
 var _run_seed: int = randi()
@@ -172,8 +175,10 @@ func _generate_sector(sector_id: StringName, definition: Dictionary) -> void:
 		"ammo_collected": bool(state.get("ammo_collected", false)),
 		"outer_walls": _get_outer_wall_sides(coords),
 		"label": "SECTOR %d · %d" % [coords.x, coords.y],
+		"weapon_collected": bool(state.get("weapon_collected", false)),
 		"cache_collected_callable": _on_sector_cache_collected,
 		"ammo_collected_callable": _on_sector_ammo_collected,
+		"weapon_collected_callable": _on_sector_weapon_collected,
 	})
 	var sector: Node3D = context["sector"]
 	sector.position = Vector3(definition["position"])
@@ -213,6 +218,7 @@ func _get_or_create_sector_state(
 			"seed": hash([_run_seed, coords.x, coords.y]) & 0x7FFFFFFF,
 			"collected_caches": [],
 			"ammo_collected": false,
+			"weapon_collected": false,
 			"ambush_triggered": false,
 		}
 	return _sector_states[sector_id]
@@ -244,6 +250,13 @@ func _on_sector_ammo_collected(sector_id: StringName) -> void:
 	if not _sector_states.has(sector_id):
 		return
 	_sector_states[sector_id]["ammo_collected"] = true
+	sector_state_changed.emit(sector_id)
+
+
+func _on_sector_weapon_collected(sector_id: StringName) -> void:
+	if not _sector_states.has(sector_id):
+		return
+	_sector_states[sector_id]["weapon_collected"] = true
 	sector_state_changed.emit(sector_id)
 
 

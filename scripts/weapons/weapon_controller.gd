@@ -73,6 +73,24 @@ func get_loadout_weapons() -> Array[Node3D]:
 	return weapons
 
 
+func equip_field_weapon(weapon_id: StringName) -> bool:
+	# A weapon found while exploring replaces the secondary slot for this run
+	# and becomes active immediately.
+	if weapon_id == &"":
+		return false
+	var new_weapon := _create_weapon(weapon_id)
+	if new_weapon == null:
+		return false
+	var old_secondary := _secondary_weapon
+	if _active_weapon == old_secondary:
+		_active_weapon = null
+	if old_secondary != null:
+		old_secondary.queue_free()
+	_secondary_weapon = new_weapon
+	_secondary_weapon_id = weapon_id
+	return equip_slot(WeaponSlot.SECONDARY)
+
+
 func get_active_slot() -> int:
 	return _active_slot
 

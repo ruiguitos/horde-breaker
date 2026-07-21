@@ -315,6 +315,12 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Acampamento transformado em zona de reabastecimento: ficar a menos de 12 m do núcleo cura o jogador e repõe munição de reserva por segundo, com aviso no HUD.
 - [x] Mapa tático melhorado: setor atual destacado com moldura de acento, marcadores em losango para Scrap, munição e medkit, chip de acento no estilo do HUD e legenda alargada.
 - [x] Todo o texto do jogo convertido para inglês: menus, HUD, painéis, etiquetas do mundo, feedback e descrições das classes.
+- [x] Etiquetas 3D removidas das caches de Scrap e das caixas de munições; ambas passam a ser recolhidas automaticamente ao passar por cima (deteção do corpo do jogador na layer 2).
+- [x] Delay de carregamento eliminado aumentando o raio de streaming para 95 m (descarga a 120 m), gerando os setores antes de entrarem no campo de visão.
+- [x] Mapa tático melhorado: bússola Norte, moldura de acento no setor atual, tonalidade própria para setores já visitados, triângulos para caixas de arma, anéis para objetivos e legenda alargada.
+- [x] HUD in-game reduzido ao essencial: vida compacta em baixo à esquerda, munição grande em baixo à direita com o nome da arma ativa, faixa de ameaça discreta no topo e contador de Scrap pequeno; removidas a placa do núcleo, a placa grande de recursos, o loadout `[1]/[2]` e a barra de atalhos.
+- [x] Armas encontráveis pela exploração: caixas de arma geradas em cerca de um terço dos setores por seed, recolhidas com `F`, que substituem a arma secundária durante a partida e ficam com estado por setor.
+- [x] `WeaponController.equip_field_weapon` adicionado para trocar o slot secundário em runtime; `AmmoPickup` e `ScrapPickup` emitem `collected` e suportam auto-recolha.
 
 ## Milestone atual
 
@@ -533,6 +539,9 @@ subida, dimensão dos lotes e limite simultâneo) com base na sensação de jogo
 - Teste integrado com save isolado confirmou o pool de vantagens a crescer com o nível (3 no nível 1, 6 no nível 7, 7 no nível 9) e os efeitos exatos das novas vantagens (carregador 30 → 38 e cadência ×1,15).
 - Teste integrado com registo das posições de nascimento confirmou spawns aleatórios: inimigos dentro de 2,6 m de um marcador válido, com desvio visível e vaga a nascer dentro do setor do jogador (3 em 5).
 - Captura em jogo real confirmou o painel com Carregadores Alargados no pool e o rodapé "Vantagens desbloqueadas 6 / 7".
+- Teste integrado confirmou auto-recolha de Scrap e munições ao sobrepor o corpo do jogador, e que a caixa de arma exige `F` (não é auto-recolhida) e troca a arma secundária para Shotgun, tornando-a ativa.
+- Teste do mundo aberto atualizado para o streaming antecipado (raio 95 m) confirmou setor distante não carregado no acampamento, geração ao entrar, layout determinístico, cache recolhida persistente e cinco setores vizinhos num canto.
+- Capturas em jogo real confirmaram o HUD minimalista sem as placas antigas e o mapa tático com bússola, setor atual, triângulos de arma, anel de objetivo e legenda alargada.
 - Teste automatizado confirmou que o modo guardado é apresentado corretamente,
   que uma janela muda realmente para `1280 × 720` e que o estado anterior é reposto.
 - Teste automatizado confirmou a ação `toggle_map`, o mapa inicialmente oculto e

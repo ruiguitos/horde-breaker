@@ -51,6 +51,15 @@
   de iluminação além dos marcos e contentores.
 - [x] Transformar o acampamento numa zona de reabastecimento (cura e munições ao
   ficar perto do núcleo), inspirado no hub das referências.
+- [x] Remover as etiquetas 3D por cima das caches de Scrap e das caixas de munições.
+- [x] Auto-pickup de Scrap e munições ao passar por cima, sem premir `F`.
+- [x] Remover o delay/pop-in ao carregar setores, gerando-os antes de estarem à vista.
+- [x] Melhorar o mapa tático: bússola Norte, setor atual destacado, setores
+  visitados, marcadores de armas e de objetivos, e legenda alargada.
+- [x] Reduzir o HUD in-game ao essencial (vida, munição, ameaça compacta, Scrap
+  pequeno), removendo a placa do núcleo, a placa grande de recursos e a barra de atalhos.
+- [x] Adicionar armas encontráveis pela exploração: caixas de arma nos setores
+  gerados que substituem a arma secundária durante a partida, com estado por setor.
 
 ## Regra
 

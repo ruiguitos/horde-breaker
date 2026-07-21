@@ -9,7 +9,13 @@ extends RefCounted
 const ROAD_GRID_SCENE := preload("res://scenes/world/city_road_grid.tscn")
 const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
 const AMMO_PICKUP_SCENE := preload("res://scenes/pickups/ammo_pickup.tscn")
+const WEAPON_PICKUP_SCENE := preload("res://scenes/pickups/weapon_pickup.tscn")
 const NAVIGATION_SCRIPT := preload("res://scripts/systems/arena_navigation.gd")
+const WEAPON_POOL: Array[Dictionary] = [
+	{"id": &"assault_rifle", "name": "Assault Rifle"},
+	{"id": &"shotgun", "name": "Shotgun"},
+	{"id": &"pistol", "name": "Pistol"},
+]
 const CONTAINER_SCENES: Array[PackedScene] = [
 	preload("res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf"),
 	preload("res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf"),
@@ -87,6 +93,7 @@ static func add_content_stage(context: Dictionary) -> void:
 	_add_set_dressing(sector, rng, blocked_areas)
 	_add_caches(sector, rng, config, blocked_areas)
 	_add_ammo_box(sector, rng, config, blocked_areas)
+	_add_weapon_crate(sector, rng, config, blocked_areas)
 	_add_spawn_markers(sector, rng, blocked_areas)
 
 
@@ -301,6 +308,38 @@ static func _add_ammo_box(
 	if ammo_callable.is_valid():
 		ammo_box.connect(
 			&"collected", ammo_callable.bind(StringName(config["id"]))
+		)
+
+
+static func _add_weapon_crate(
+	sector: Node3D,
+	rng: RandomNumberGenerator,
+	config: Dictionary,
+	blocked_areas: Array[Rect2]
+) -> void:
+	# Roughly one in three sectors offers a weapon to find while exploring.
+	# The choice is seeded so the same sector always holds the same weapon.
+	var weapon_choice: Dictionary = WEAPON_POOL[rng.randi_range(0, WEAPON_POOL.size() - 1)]
+	var offers_weapon := rng.randf() < 0.34
+	var placement := _find_free_position(
+		rng, Vector3(2.0, 1.0, 2.0), blocked_areas
+	)
+	if (
+		not offers_weapon
+		or placement == Vector2.INF
+		or bool(config.get("weapon_collected", false))
+	):
+		return
+	var crate := WEAPON_PICKUP_SCENE.instantiate() as Area3D
+	crate.name = "WeaponCrate"
+	crate.set(&"weapon_id", weapon_choice["id"])
+	crate.set(&"weapon_display_name", weapon_choice["name"])
+	sector.add_child(crate)
+	crate.position = Vector3(placement.x, 0.35, placement.y)
+	var weapon_callable: Callable = config.get("weapon_collected_callable", Callable())
+	if weapon_callable.is_valid():
+		crate.connect(
+			&"collected", weapon_callable.bind(StringName(config["id"]))
 		)
 
 

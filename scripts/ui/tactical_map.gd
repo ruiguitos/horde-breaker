@@ -28,13 +28,19 @@ const POI_COLOR := Color(0.95, 0.77, 0.30, 1.0)
 const SCRAP_COLOR := Color(0.44, 0.82, 0.59, 1.0)
 const AMMO_COLOR := Color(0.35, 0.72, 0.95, 1.0)
 const HEALTH_COLOR := Color(0.93, 0.45, 0.5, 1.0)
+const WEAPON_COLOR := Color(1.0, 0.78, 0.32, 1.0)
+const OBJECTIVE_COLOR := Color(1.0, 0.5, 0.16, 1.0)
+const VISITED_SECTOR_COLOR := Color(0.11, 0.16, 0.19, 1.0)
 const SCRAP_GROUP := &"scrap_pickup"
 const AMMO_GROUP := &"ammo_pickup"
 const HEALTH_GROUP := &"health_pickup"
+const WEAPON_GROUP := &"weapon_pickup"
+const OBJECTIVE_GROUP := &"sector_objective"
 
 var _map_rect := Rect2()
 var _player: Node3D
 var _world_streamer: Node
+var _visited_sectors: Dictionary[Vector2i, bool] = {}
 
 
 func _ready() -> void:
@@ -58,11 +64,19 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
+	_track_visited_sector()
 	if get_tree().paused:
 		visible = false
 		return
 	if visible:
 		queue_redraw()
+
+
+func _track_visited_sector() -> void:
+	if not is_instance_valid(_player):
+		_refresh_references()
+	if is_instance_valid(_player):
+		_visited_sectors[_get_player_sector_coords()] = true
 
 
 func _notification(what: int) -> void:
@@ -120,10 +134,27 @@ func _draw() -> void:
 	_draw_sectors()
 	_draw_loot()
 	_draw_points_of_interest()
+	_draw_objectives()
 	_draw_enemies()
 	_draw_camp()
 	_draw_player()
+	_draw_compass()
 	_draw_footer(panel_rect)
+
+
+func _draw_compass() -> void:
+	# North indicator so the player can orient the grid at a glance.
+	var center := Vector2(_map_rect.end.x - 4.0, _map_rect.position.y + 4.0)
+	draw_colored_polygon(
+		PackedVector2Array([
+			center + Vector2(0.0, -12.0),
+			center + Vector2(6.0, 4.0),
+			center + Vector2(0.0, 0.0),
+			center + Vector2(-6.0, 4.0),
+		]),
+		ACCENT_COLOR
+	)
+	_draw_text("N", center + Vector2(-4.0, 22.0), 12, TEXT_COLOR)
 
 
 func _draw_sectors() -> void:
@@ -151,6 +182,8 @@ func _draw_sectors() -> void:
 				fill_color = CAMP_SECTOR_COLOR
 			elif _is_sector_loaded(coords):
 				fill_color = LOADED_SECTOR_COLOR
+			elif _visited_sectors.has(coords):
+				fill_color = VISITED_SECTOR_COLOR
 			draw_rect(sector_rect.grow(-3.0), fill_color)
 			if coords == player_coords:
 				draw_rect(sector_rect.grow(-1.0), ACCENT_COLOR, false, 2.0)
@@ -169,6 +202,38 @@ func _draw_loot() -> void:
 	_draw_loot_group(SCRAP_GROUP, SCRAP_COLOR)
 	_draw_loot_group(AMMO_GROUP, AMMO_COLOR)
 	_draw_loot_group(HEALTH_GROUP, HEALTH_COLOR)
+	_draw_weapon_crates()
+
+
+func _draw_weapon_crates() -> void:
+	for pickup_value in get_tree().get_nodes_in_group(WEAPON_GROUP):
+		var pickup := pickup_value as Node3D
+		if (
+			pickup == null
+			or not pickup.visible
+			or not _is_inside_world(pickup.global_position)
+		):
+			continue
+		# Upward triangle sets weapon crates apart from the loot diamonds.
+		var center := _world_to_map(pickup.global_position)
+		draw_colored_polygon(
+			PackedVector2Array([
+				center + Vector2(0.0, -6.0),
+				center + Vector2(6.0, 5.0),
+				center + Vector2(-6.0, 5.0),
+			]),
+			WEAPON_COLOR
+		)
+
+
+func _draw_objectives() -> void:
+	for objective_value in get_tree().get_nodes_in_group(OBJECTIVE_GROUP):
+		var objective := objective_value as Node3D
+		if objective == null or not _is_inside_world(objective.global_position):
+			continue
+		var center := _world_to_map(objective.global_position)
+		draw_arc(center, 7.0, 0.0, TAU, 20, OBJECTIVE_COLOR, 2.0)
+		draw_circle(center, 2.5, OBJECTIVE_COLOR)
 
 
 func _draw_loot_group(group_name: StringName, color: Color) -> void:
@@ -252,7 +317,7 @@ func _draw_footer(panel_rect: Rect2) -> void:
 	var player_coords := _get_player_sector_coords()
 	var footer_y := _map_rect.end.y + 30.0
 	_draw_text(
-		"● PLAYER    ■ CAMP    ● HOSTILE    ■ POI    ◆ SCRAP    ◆ AMMO    ◆ MEDKIT",
+		"● PLAYER   ● HOSTILE   ■ CAMP   ■ POI   ◆ SCRAP   ◆ AMMO   ◆ MEDKIT   ▲ WEAPON   ◎ OBJECTIVE",
 		Vector2(panel_rect.position.x, footer_y),
 		12,
 		MUTED_TEXT_COLOR,
