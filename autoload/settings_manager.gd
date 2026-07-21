@@ -3,8 +3,11 @@ extends Node
 signal display_settings_applied(fullscreen: bool, resolution: Vector2i)
 
 const SETTINGS_PATH := "user://horde_breaker_settings.cfg"
-const DEFAULT_RESOLUTION := Vector2i(1920, 1080)
-const DEFAULT_FULLSCREEN := true
+# Boots windowed at a low resolution by default so the prototype stays
+# comfortable to test; fullscreen and higher resolutions are opt-in via the
+# settings menu and persist across runs.
+const DEFAULT_RESOLUTION := Vector2i(1152, 648)
+const DEFAULT_FULLSCREEN := false
 
 var _config := ConfigFile.new()
 var _target_fullscreen := true

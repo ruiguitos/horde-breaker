@@ -63,6 +63,8 @@
 - [x] Adicionar variedade de inimigos: Brute (tanque com knockback), Spitter
   (ataque à distância) e o boss The Breaker (invoca minions), ligados à
   escalada do diretor de horda.
+- [x] Baixar a resolução por defeito para janela 1152 × 648 e adicionar um
+  contador de FPS (autoload, alternável com `F3`) para testes.
 
 ## Regra
 

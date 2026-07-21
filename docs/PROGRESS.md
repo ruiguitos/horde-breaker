@@ -325,6 +325,8 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Base `normal_zombie.gd` estendida com knockback configurável e modo de ataque à distância (aproximar/recuar/disparar) reutilizável; projétil `spit_projectile` criado.
 - [x] Knockback do jogador implementado como impulso que decai por cima do input, aplicado por Brute e Boss.
 - [x] Diretor de horda passou a escolher o tipo de inimigo por peso conforme o nível de ameaça (Runners cedo, Brutes a partir do nível 2, Spitters do nível 3) e a invocar um Boss a cada cinco níveis, com aviso no HUD.
+- [x] Resolução por defeito baixada para janela 1152 × 648 (projeto e `SettingsManager`) para facilitar os testes; fullscreen e resoluções maiores continuam opcionais e persistidos.
+- [x] Contador de FPS global adicionado como autoload `FpsOverlay`, sempre visível, com cor por faixa (verde/amarelo/vermelho) e alternável com `F3`.
 
 ## Milestone atual
 
