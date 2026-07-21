@@ -35,6 +35,12 @@ var _instances: Dictionary[StringName, Node3D] = {}
 var _request_started_ticks: Dictionary[StringName, int] = {}
 var _sector_states: Dictionary[StringName, Dictionary] = {}
 var _beacon_activated: Dictionary[StringName, bool] = {}
+# Generated sectors are built on worker threads so the heavy node construction
+# never hitches the main thread; results are added to the tree once ready.
+var _generation_tasks: Dictionary[StringName, int] = {}
+var _generation_meta: Dictionary[StringName, Dictionary] = {}
+var _generation_results: Dictionary[StringName, Node3D] = {}
+var _generation_mutex := Mutex.new()
 
 
 func _ready() -> void:
@@ -59,11 +65,28 @@ func _physics_process(_delta: float) -> void:
 		elif distance >= unload_distance:
 			unload_sector(sector_id)
 	_poll_pending_requests()
+	_poll_generation_tasks()
 	_update_sector_ambushes()
 
 
+func _exit_tree() -> void:
+	# Let any in-flight generation finish so worker threads never touch freed
+	# state, then discard results that were never added to the tree.
+	for task_id in _generation_tasks.values():
+		WorkerThreadPool.wait_for_task_completion(task_id)
+	_generation_tasks.clear()
+	for sector in _generation_results.values():
+		if is_instance_valid(sector):
+			sector.free()
+	_generation_results.clear()
+
+
 func request_sector_load(sector_id: StringName) -> bool:
-	if _instances.has(sector_id) or _request_started_ticks.has(sector_id):
+	if (
+		_instances.has(sector_id)
+		or _request_started_ticks.has(sector_id)
+		or _generation_tasks.has(sector_id)
+	):
 		return false
 	var definition := _get_definition(sector_id)
 	if definition.is_empty():
@@ -163,13 +186,11 @@ func _build_grid_definitions() -> void:
 
 
 func _generate_sector(sector_id: StringName, definition: Dictionary) -> void:
-	# Generation is spread over several frames: the shell appears immediately
-	# and each road quadrant, the content and the navigation land on their own
-	# frame, so no single frame pays the full ~140 ms cost.
-	var start_ticks := Time.get_ticks_usec()
+	# The whole sector subtree is built off the main thread on a worker
+	# thread, so the main thread never pays the ~230 ms construction cost.
 	var state := _get_or_create_sector_state(sector_id, definition)
 	var coords: Vector2i = definition["coords"]
-	var context := SectorGenerator.begin_sector({
+	var config := {
 		"id": sector_id,
 		"seed": int(state["seed"]),
 		"collected_caches": state["collected_caches"],
@@ -180,34 +201,58 @@ func _generate_sector(sector_id: StringName, definition: Dictionary) -> void:
 		"cache_collected_callable": _on_sector_cache_collected,
 		"ammo_collected_callable": _on_sector_ammo_collected,
 		"weapon_collected_callable": _on_sector_weapon_collected,
-	})
-	var sector: Node3D = context["sector"]
-	sector.position = Vector3(definition["position"])
+	}
+	_generation_meta[sector_id] = {
+		"start": Time.get_ticks_usec(),
+		"seed": int(state["seed"]),
+		"position": Vector3(definition["position"]),
+	}
+	var task_id := WorkerThreadPool.add_task(
+		_build_sector_task.bind(sector_id, config)
+	)
+	_generation_tasks[sector_id] = task_id
+
+
+func _build_sector_task(sector_id: StringName, config: Dictionary) -> void:
+	# Runs on a worker thread: pure detached-node construction, no tree access.
+	var sector := SectorGenerator.build_sector(config)
+	_generation_mutex.lock()
+	_generation_results[sector_id] = sector
+	_generation_mutex.unlock()
+
+
+func _poll_generation_tasks() -> void:
+	for sector_id in _generation_tasks.keys():
+		var task_id: int = _generation_tasks[sector_id]
+		if not WorkerThreadPool.is_task_completed(task_id):
+			continue
+		WorkerThreadPool.wait_for_task_completion(task_id)
+		_generation_tasks.erase(sector_id)
+		_generation_mutex.lock()
+		var sector: Node3D = _generation_results.get(sector_id)
+		_generation_results.erase(sector_id)
+		_generation_mutex.unlock()
+		_finalize_generated_sector(sector_id, sector)
+
+
+func _finalize_generated_sector(sector_id: StringName, sector: Node3D) -> void:
+	var meta: Dictionary = _generation_meta.get(sector_id, {})
+	_generation_meta.erase(sector_id)
+	if sector == null:
+		return
+	# If the player already moved out of range, drop the freshly built sector.
+	if not _definitions_by_id.has(sector_id) or _instances.has(sector_id):
+		sector.free()
+		return
+	sector.position = meta.get("position", Vector3.ZERO)
 	add_child(sector)
 	_instances[sector_id] = sector
-	for quadrant_index in 4:
-		await get_tree().process_frame
-		if not _is_generation_still_valid(sector_id, sector):
-			return
-		SectorGenerator.add_roads_stage(context, quadrant_index)
-	await get_tree().process_frame
-	if not _is_generation_still_valid(sector_id, sector):
-		return
-	SectorGenerator.add_content_stage(context)
-	await get_tree().process_frame
-	if not _is_generation_still_valid(sector_id, sector):
-		return
-	SectorGenerator.finish_sector(context)
-	var elapsed_ms := (Time.get_ticks_usec() - start_ticks) / 1000.0
+	var elapsed_ms := (Time.get_ticks_usec() - int(meta.get("start", 0))) / 1000.0
 	print(
-		"WorldStreamer: sector '%s' generated over frames in %.1f ms total (seed %d)."
-		% [sector_id, elapsed_ms, int(state["seed"])]
+		"WorldStreamer: sector '%s' built on a worker thread in %.1f ms (seed %d)."
+		% [sector_id, elapsed_ms, int(meta.get("seed", 0))]
 	)
 	sector_loaded.emit(sector_id)
-
-
-func _is_generation_still_valid(sector_id: StringName, sector: Node3D) -> bool:
-	return is_instance_valid(sector) and _instances.get(sector_id) == sector
 
 
 func _get_or_create_sector_state(

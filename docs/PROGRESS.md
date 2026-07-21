@@ -328,6 +328,7 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Resolução por defeito baixada para janela 1152 × 648 (projeto e `SettingsManager`) para facilitar os testes; fullscreen e resoluções maiores continuam opcionais e persistidos.
 - [x] Contador de FPS global adicionado como autoload `FpsOverlay`, sempre visível, com cor por faixa (verde/amarelo/vermelho) e alternável com `F3`.
 - [x] Primeira ronda de otimização de desempenho: aquisição de alvo do disparo automático passou a fazer os raycasts por inimigo só algumas vezes por segundo (cache entre varreduras), corrigindo também um erro de objeto libertado; repath dos inimigos throttlado e escalonado (0,35 s) com cache do alvo do jogador; setores carregados em simultâneo reduzidos de ~9 para ~5 baixando o raio de streaming (72 m / descarga 96 m) para cortar draw calls no renderer GL Compatibility.
+- [x] Geração de setores movida para threads de trabalho (`WorkerThreadPool`): a construção da subárvore (estradas, adereços, navegação) deixou de correr na thread principal, eliminando o "break" de ~230 ms ao entrar numa zona nova; o setor pronto é apenas adicionado à cena na thread principal, com o resultado descartado em segurança se o jogador se afastar entretanto.
 
 ## Milestone atual
 
