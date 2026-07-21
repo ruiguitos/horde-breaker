@@ -76,11 +76,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if mouse_motion == null:
 		return
 
+	var effective_sensitivity := (
+		mouse_sensitivity * SettingsManager.get_mouse_sensitivity_multiplier()
+	)
 	rotation.y = wrapf(
-		rotation.y - mouse_motion.relative.x * mouse_sensitivity, -PI, PI
+		rotation.y - mouse_motion.relative.x * effective_sensitivity, -PI, PI
 	)
 	_pitch = clampf(
-		_pitch - mouse_motion.relative.y * mouse_sensitivity,
+		_pitch - mouse_motion.relative.y * effective_sensitivity,
 		deg_to_rad(minimum_pitch_degrees),
 		deg_to_rad(maximum_pitch_degrees)
 	)

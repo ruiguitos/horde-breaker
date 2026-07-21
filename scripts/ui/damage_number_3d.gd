@@ -21,6 +21,7 @@ func configure(damage_amount: float, is_headshot: bool) -> void:
 		return
 	text = str(roundi(damage_amount))
 	modulate = HEADSHOT_DAMAGE_COLOR if is_headshot else NORMAL_DAMAGE_COLOR
+	_play_impact_sound(is_headshot)
 	global_position += Vector3(
 		randf_range(-horizontal_jitter, horizontal_jitter),
 		0.0,
@@ -28,6 +29,19 @@ func configure(damage_amount: float, is_headshot: bool) -> void:
 	)
 	_elapsed_time = 0.0
 	set_process(true)
+
+
+func _play_impact_sound(is_headshot: bool) -> void:
+	var audio := AudioStreamPlayer3D.new()
+	audio.stream = (
+		HitSoundLibrary.get_headshot_stream()
+		if is_headshot
+		else HitSoundLibrary.get_body_hit_stream()
+	)
+	audio.volume_db = -4.0 if is_headshot else -8.0
+	audio.max_distance = 40.0
+	add_child(audio)
+	audio.play()
 
 
 func _process(delta: float) -> void:

@@ -1,0 +1,206 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="1_upgrade_panel_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+
+[node name="UpgradeChoicePanel" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_upgrade_panel_script")
+
+[node name="ChoiceColumn" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -140.0
+offset_right = 540.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+mouse_filter = 2
+
+[node name="Eyebrow" type="Label" parent="ChoiceColumn"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "MELHORIA DE CAMPANHA"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="ChoiceColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 30
+text = "ESCOLHE UMA VANTAGEM"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Cards" type="HBoxContainer" parent="ChoiceColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Card1" type="PanelContainer" parent="ChoiceColumn/Cards"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CardPanel"
+
+[node name="Margin" type="MarginContainer" parent="ChoiceColumn/Cards/Card1"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="ChoiceColumn/Cards/Card1/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Card1Title" type="Label" parent="ChoiceColumn/Cards/Card1/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 20
+text = "MUNIÇÕES REFORÇADAS"
+autowrap_mode = 2
+
+[node name="AccentLine" type="ColorRect" parent="ChoiceColumn/Cards/Card1/Margin/Content"]
+custom_minimum_size = Vector2(46, 3)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="Card1Description" type="Label" parent="ChoiceColumn/Cards/Card1/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+text = "+20% de dano em todas as armas."
+autowrap_mode = 2
+
+[node name="Card1Button" type="Button" parent="ChoiceColumn/Cards/Card1/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "ESCOLHER"
+
+[node name="Card2" type="PanelContainer" parent="ChoiceColumn/Cards"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CardPanel"
+
+[node name="Margin" type="MarginContainer" parent="ChoiceColumn/Cards/Card2"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="ChoiceColumn/Cards/Card2/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Card2Title" type="Label" parent="ChoiceColumn/Cards/Card2/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 20
+text = "BLINDAGEM IMPROVISADA"
+autowrap_mode = 2
+
+[node name="AccentLine" type="ColorRect" parent="ChoiceColumn/Cards/Card2/Margin/Content"]
+custom_minimum_size = Vector2(46, 3)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="Card2Description" type="Label" parent="ChoiceColumn/Cards/Card2/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+text = "+25 de vida máxima."
+autowrap_mode = 2
+
+[node name="Card2Button" type="Button" parent="ChoiceColumn/Cards/Card2/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "ESCOLHER"
+
+[node name="Card3" type="PanelContainer" parent="ChoiceColumn/Cards"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CardPanel"
+
+[node name="Margin" type="MarginContainer" parent="ChoiceColumn/Cards/Card3"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="ChoiceColumn/Cards/Card3/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Card3Title" type="Label" parent="ChoiceColumn/Cards/Card3/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 20
+text = "PERNAS FRESCAS"
+autowrap_mode = 2
+
+[node name="AccentLine" type="ColorRect" parent="ChoiceColumn/Cards/Card3/Margin/Content"]
+custom_minimum_size = Vector2(46, 3)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="Card3Description" type="Label" parent="ChoiceColumn/Cards/Card3/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+text = "+10% de velocidade."
+autowrap_mode = 2
+
+[node name="Card3Button" type="Button" parent="ChoiceColumn/Cards/Card3/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "ESCOLHER"
+
+[node name="Hint" type="Label" parent="ChoiceColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "A vantagem aplica-se apenas a esta partida.  •  Também podes continuar a explorar e escolher depois."
+horizontal_alignment = 1
+mouse_filter = 2

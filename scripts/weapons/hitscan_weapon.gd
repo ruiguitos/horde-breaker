@@ -192,6 +192,10 @@ func set_reload_duration_multiplier(multiplier: float) -> void:
 	reload_timer.wait_time = _get_effective_reload_duration()
 
 
+func get_reload_duration_multiplier() -> float:
+	return _reload_duration_multiplier
+
+
 func cancel_reload() -> void:
 	reload_timer.stop()
 

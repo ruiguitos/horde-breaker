@@ -4,8 +4,10 @@ signal health_changed(current_health: float, maximum_health: float)
 signal attacked(target: Node, damage: float)
 signal died(enemy: Node)
 
-const ENEMY_TARGET_GROUP := &"enemy_target"
+const PLAYER_GROUP := &"player"
+const ALIVE_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
+const HIT_FLASH_COLOR := Color(1.0, 0.82, 0.6, 0.0)
 
 @export_range(1.0, 1000.0, 1.0) var maximum_health: float = 50.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 2.5
@@ -24,13 +26,13 @@ const TARGET_REPATH_DISTANCE := 0.25
 var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _target: PhysicsBody3D
+var _hit_flash_material: StandardMaterial3D
+var _hit_flash_tween: Tween
 
 
 func _ready() -> void:
 	current_health = maximum_health
-	_target = _find_nearest_target()
-	if _target == null:
-		push_error("NormalZombie requires a PhysicsBody3D in the enemy_target group.")
+	_setup_hit_flash()
 
 	var attack_shape := attack_collision.shape.duplicate() as SphereShape3D
 	if attack_shape == null:
@@ -43,7 +45,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
-	_target = _find_nearest_target()
+	_target = _find_player_target()
 	if not is_instance_valid(_target):
 		_stop_horizontal_movement()
 		move_and_slide()
@@ -58,25 +60,19 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
-func _find_nearest_target() -> PhysicsBody3D:
-	var nearest_target: PhysicsBody3D
-	var nearest_distance_squared := INF
-	for node in get_tree().get_nodes_in_group(ENEMY_TARGET_GROUP):
+func _find_player_target() -> PhysicsBody3D:
+	# Enemies pursue only the player; camp, core and fortifications are
+	# never targeted. The player leaves the alive-target group on death.
+	for node in get_tree().get_nodes_in_group(PLAYER_GROUP):
 		var candidate := node as PhysicsBody3D
 		if candidate == null:
 			continue
-		if (
-			not candidate.has_method(&"take_damage")
-			and not candidate.has_method(&"take_enemy_damage")
-		):
+		if not candidate.is_in_group(ALIVE_TARGET_GROUP):
 			continue
-		var distance_squared := global_position.distance_squared_to(
-			candidate.global_position
-		)
-		if distance_squared < nearest_distance_squared:
-			nearest_target = candidate
-			nearest_distance_squared = distance_squared
-	return nearest_target
+		if not candidate.has_method(&"take_damage"):
+			continue
+		return candidate
+	return null
 
 
 func _is_target_in_attack_range() -> bool:
@@ -99,6 +95,7 @@ func take_damage(amount: float) -> float:
 	var applied_damage := minf(amount, current_health)
 	current_health -= applied_damage
 	health_changed.emit(current_health, maximum_health)
+	_play_hit_flash()
 	if is_zero_approx(current_health):
 		died.emit(self)
 		queue_free()
@@ -144,9 +141,7 @@ func _try_attack() -> void:
 		return
 
 	attacked.emit(_target, attack_damage)
-	if _target.has_method(&"take_enemy_damage"):
-		_target.call(&"take_enemy_damage", attack_damage)
-	elif _target.has_method(&"take_damage"):
+	if _target.has_method(&"take_damage"):
 		_target.call("take_damage", attack_damage)
 	attack_cooldown_timer.start(attack_cooldown)
 
@@ -154,3 +149,26 @@ func _try_attack() -> void:
 func _stop_horizontal_movement() -> void:
 	velocity.x = 0.0
 	velocity.z = 0.0
+
+
+func _setup_hit_flash() -> void:
+	_hit_flash_material = StandardMaterial3D.new()
+	_hit_flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_hit_flash_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_hit_flash_material.albedo_color = HIT_FLASH_COLOR
+	for mesh_instance in visual_root.find_children("*", "MeshInstance3D", true, false):
+		(mesh_instance as MeshInstance3D).material_overlay = _hit_flash_material
+
+
+func _play_hit_flash() -> void:
+	if _hit_flash_material == null:
+		return
+	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
+		_hit_flash_tween.kill()
+	var flash_color := HIT_FLASH_COLOR
+	flash_color.a = 0.55
+	_hit_flash_material.albedo_color = flash_color
+	_hit_flash_tween = create_tween()
+	_hit_flash_tween.tween_property(
+		_hit_flash_material, "albedo_color:a", 0.0, 0.16
+	)

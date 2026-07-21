@@ -28,7 +28,6 @@ func take_enemy_damage(amount: float) -> float:
 	_update_world_label()
 	if is_zero_approx(current_health):
 		_is_destroyed = true
-		remove_from_group(&"enemy_target")
 		core_light.light_color = Color(0.75, 0.08, 0.04, 1.0)
 		destroyed.emit()
 	return applied_damage

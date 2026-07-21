@@ -1,5 +1,7 @@
 extends Area3D
 
+signal collected
+
 @export_range(1, 200, 1) var ammunition_amount: int = 12
 
 
@@ -11,5 +13,6 @@ func interact(player: Node) -> bool:
 	)
 	if added_ammunition <= 0:
 		return false
+	collected.emit()
 	queue_free()
 	return true

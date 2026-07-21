@@ -1,7 +1,12 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="1_hud_script"]
 [ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+[ext_resource type="Shader" path="res://assets/shaders/damage_vignette.gdshader" id="3_vignette_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = ExtResource("3_vignette_shader")
+shader_parameter/intensity = 0.0
 
 [node name="GameHUD" type="Control"]
 layout_mode = 3
@@ -14,10 +19,22 @@ mouse_filter = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_hud_script")
 
+[node name="DamageVignette" type="ColorRect" parent="."]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_vignette")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="AimPoint" type="Control" parent="."]
 unique_name_in_owner = true
 z_index = 5
 layout_mode = 1
+pivot_offset = Vector2(9, 9)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -74,295 +91,301 @@ offset_bottom = 10.0
 mouse_filter = 2
 color = Color(0.906, 0.566, 0.239, 1)
 
-[node name="WavePanel" type="PanelContainer" parent="."]
+[node name="ReloadBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+visible = false
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = 24.0
+offset_right = 60.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+max_value = 1.0
+step = 0.001
+show_percentage = false
+mouse_filter = 2
+
+[node name="WaveModule" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -142.0
-offset_top = 18.0
-offset_right = 142.0
-offset_bottom = 88.0
+offset_left = -170.0
+offset_top = 14.0
+offset_right = 170.0
+offset_bottom = 122.0
 grow_horizontal = 2
-mouse_filter = 2
-theme_type_variation = &"HudPanel"
-
-[node name="Margin" type="MarginContainer" parent="WavePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 9
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 9
+theme_override_constants/separation = 1
 mouse_filter = 2
 
-[node name="Content" type="HBoxContainer" parent="WavePanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 16
-mouse_filter = 2
-
-[node name="Wave" type="VBoxContainer" parent="WavePanel/Margin/Content"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 0
-mouse_filter = 2
-
-[node name="WaveCaption" type="Label" parent="WavePanel/Margin/Content/Wave"]
+[node name="WaveCaption" type="Label" parent="WaveModule"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "ATAQUE"
+text = "THREAT LEVEL"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="WaveLabel" type="Label" parent="WavePanel/Margin/Content/Wave"]
+[node name="WaveLabel" type="Label" parent="WaveModule"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MetricLabel"
+theme_type_variation = &"HudValueLabel"
+theme_override_font_sizes/font_size = 44
 text = "01"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="Divider" type="VSeparator" parent="WavePanel/Margin/Content"]
+[node name="UnderLine" type="ColorRect" parent="WaveModule"]
+custom_minimum_size = Vector2(120, 3)
 layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.9)
+
+[node name="EnemiesRow" type="HBoxContainer" parent="WaveModule"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
 mouse_filter = 2
 
-[node name="Enemies" type="VBoxContainer" parent="WavePanel/Margin/Content"]
+[node name="EnemiesCaption" type="Label" parent="WaveModule/EnemiesRow"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_type_variation = &"MutedLabel"
+text = "HOSTILES"
+vertical_alignment = 1
 mouse_filter = 2
 
-[node name="Caption" type="Label" parent="WavePanel/Margin/Content/Enemies"]
-layout_mode = 2
-theme_type_variation = &"EyebrowLabel"
-text = "AMEAÇAS"
-horizontal_alignment = 1
-mouse_filter = 2
-
-[node name="EnemiesLabel" type="Label" parent="WavePanel/Margin/Content/Enemies"]
+[node name="EnemiesLabel" type="Label" parent="WaveModule/EnemiesRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MetricLabel"
+theme_override_colors/font_color = Color(0.965, 0.955, 0.94, 1)
+theme_override_font_sizes/font_size = 19
 text = "05"
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="SurgeLabel" type="Label" parent="WaveModule"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.63, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "NEXT THREAT  ·  75s"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="CampPanel" type="PanelContainer" parent="."]
+[node name="WaveBanner" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 138.0
+offset_right = 280.0
+offset_bottom = 236.0
+grow_horizontal = 2
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="BannerCaption" type="Label" parent="WaveBanner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "THE HORDE GROWS"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="BannerTitle" type="Label" parent="WaveBanner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.97, 0.94, 0.875, 1)
+theme_override_font_sizes/font_size = 52
+text = "THREAT LEVEL 01"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="CampPlate" type="PanelContainer" parent="."]
 layout_mode = 1
 offset_left = 18.0
 offset_top = 18.0
-offset_right = 352.0
-offset_bottom = 116.0
+offset_right = 330.0
+offset_bottom = 92.0
 mouse_filter = 2
 theme_type_variation = &"HudPanel"
 
-[node name="Margin" type="MarginContainer" parent="CampPanel"]
+[node name="Content" type="VBoxContainer" parent="CampPlate"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 4
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="CampPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 5
-mouse_filter = 2
-
-[node name="Header" type="HBoxContainer" parent="CampPanel/Margin/Content"]
+[node name="Header" type="HBoxContainer" parent="CampPlate/Content"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Caption" type="Label" parent="CampPanel/Margin/Content/Header"]
+[node name="Caption" type="Label" parent="CampPlate/Content/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"EyebrowLabel"
-text = "NÚCLEO DO ACAMPAMENTO"
+text = "CAMP CORE"
 mouse_filter = 2
 
-[node name="CampHealthLabel" type="Label" parent="CampPanel/Margin/Content/Header"]
+[node name="CampHealthLabel" type="Label" parent="CampPlate/Content/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.74, 0.91, 0.79, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 text = "500 / 500"
 horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="CampHealthBar" type="ProgressBar" parent="CampPanel/Margin/Content"]
+[node name="CampHealthBar" type="ProgressBar" parent="CampPlate/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 max_value = 500.0
 value = 500.0
 show_percentage = false
 mouse_filter = 2
 
-[node name="CampHint" type="Label" parent="CampPanel/Margin/Content"]
+[node name="CampHint" type="Label" parent="CampPlate/Content"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "F: depositar Scrap ou reparar."
+theme_override_colors/font_color = Color(0.58, 0.63, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "F  ·  DEPOSIT SCRAP OR REPAIR"
 mouse_filter = 2
 
-[node name="ScrapPanel" type="PanelContainer" parent="."]
+[node name="ScrapPlate" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -352.0
+offset_left = -330.0
 offset_top = 18.0
 offset_right = -18.0
-offset_bottom = 116.0
+offset_bottom = 92.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_type_variation = &"HudPanel"
 
-[node name="Margin" type="MarginContainer" parent="ScrapPanel"]
+[node name="Content" type="VBoxContainer" parent="ScrapPlate"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 4
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="ScrapPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 5
-mouse_filter = 2
-
-[node name="Caption" type="Label" parent="ScrapPanel/Margin/Content"]
+[node name="Caption" type="Label" parent="ScrapPlate/Content"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
-text = "RECURSOS DA EXPEDIÇÃO"
+text = "EXPEDITION RESOURCES"
 horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="Values" type="HBoxContainer" parent="ScrapPanel/Margin/Content"]
+[node name="Values" type="HBoxContainer" parent="ScrapPlate/Content"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 mouse_filter = 2
 
-[node name="CarriedCaption" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+[node name="CarriedCaption" type="Label" parent="ScrapPlate/Content/Values"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "TRANSPORTADO"
+text = "CARRIED"
+vertical_alignment = 1
 mouse_filter = 2
 
-[node name="CarriedScrapLabel" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+[node name="CarriedScrapLabel" type="Label" parent="ScrapPlate/Content/Values"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MetricLabel"
+theme_override_colors/font_color = Color(0.965, 0.955, 0.94, 1)
+theme_override_font_sizes/font_size = 22
 text = "000"
 horizontal_alignment = 2
+vertical_alignment = 1
 mouse_filter = 2
 
-[node name="StoredCaption" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+[node name="StoredCaption" type="Label" parent="ScrapPlate/Content/Values"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "NA BASE"
+text = "STORED"
 horizontal_alignment = 2
+vertical_alignment = 1
 mouse_filter = 2
 
-[node name="StoredScrapLabel" type="Label" parent="ScrapPanel/Margin/Content/Values"]
+[node name="StoredScrapLabel" type="Label" parent="ScrapPlate/Content/Values"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MetricLabel"
+theme_override_colors/font_color = Color(0.965, 0.955, 0.94, 1)
+theme_override_font_sizes/font_size = 22
 text = "000"
 horizontal_alignment = 2
+vertical_alignment = 1
 mouse_filter = 2
 
-[node name="FeedbackPanel" type="PanelContainer" parent="."]
+[node name="FeedbackFeed" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
-visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -230.0
-offset_top = 102.0
+offset_top = 244.0
 offset_right = 230.0
-offset_bottom = 148.0
+offset_bottom = 424.0
 grow_horizontal = 2
-mouse_filter = 2
-theme_type_variation = &"HudPanel"
-
-[node name="FeedbackLabel" type="Label" parent="FeedbackPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"EyebrowLabel"
-text = "+25 SCRAP TRANSPORTADO"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_constants/separation = 6
 mouse_filter = 2
 
-[node name="FeedbackTimer" type="Timer" parent="."]
-unique_name_in_owner = true
-wait_time = 2.5
-one_shot = true
-
-[node name="HealthPanel" type="PanelContainer" parent="."]
+[node name="HealthCluster" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 18.0
-offset_top = -116.0
-offset_right = 352.0
+offset_top = -136.0
+offset_right = 438.0
 offset_bottom = -18.0
 grow_vertical = 0
-mouse_filter = 2
-theme_type_variation = &"HudPanel"
-
-[node name="Margin" type="MarginContainer" parent="HealthPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 3
+alignment = 2
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="HealthPanel/Margin"]
+[node name="Caption" type="Label" parent="HealthCluster"]
 layout_mode = 2
-theme_override_constants/separation = 5
-mouse_filter = 2
-
-[node name="Header" type="HBoxContainer" parent="HealthPanel/Margin/Content"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Caption" type="Label" parent="HealthPanel/Margin/Content/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"EyebrowLabel"
-text = "ESTADO DO OPERACIONAL"
+text = "OPERATIVE"
 mouse_filter = 2
 
-[node name="HealthLabel" type="Label" parent="HealthPanel/Margin/Content/Header"]
+[node name="HealthLabel" type="Label" parent="HealthCluster"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.74, 0.91, 0.79, 1)
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"HudValueLabel"
+theme_override_font_sizes/font_size = 34
 text = "100 / 100"
-horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="HealthBar" type="ProgressBar" parent="HealthPanel/Margin/Content"]
+[node name="HealthBar" type="ProgressBar" parent="HealthCluster"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 value = 100.0
 show_percentage = false
 mouse_filter = 2
 
-[node name="HealthHint" type="Label" parent="HealthPanel/Margin/Content"]
+[node name="HealthHint" type="Label" parent="HealthCluster"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "Mantém a distância da horda."
+theme_override_colors/font_color = Color(0.58, 0.63, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "STAY AHEAD OF THE HORDE"
 mouse_filter = 2
 
-[node name="WeaponPanel" type="PanelContainer" parent="."]
+[node name="WeaponCluster" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -370,35 +393,16 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -438.0
-offset_top = -126.0
+offset_top = -150.0
 offset_right = -18.0
 offset_bottom = -18.0
 grow_horizontal = 0
 grow_vertical = 0
-mouse_filter = 2
-theme_type_variation = &"HudPanel"
-
-[node name="Margin" type="MarginContainer" parent="WeaponPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 3
+alignment = 2
 mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="WeaponPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 5
-mouse_filter = 2
-
-[node name="Caption" type="Label" parent="WeaponPanel/Margin/Content"]
-layout_mode = 2
-theme_type_variation = &"EyebrowLabel"
-text = "EQUIPAMENTO"
-horizontal_alignment = 2
-mouse_filter = 2
-
-[node name="WeaponLabel" type="Label" parent="WeaponPanel/Margin/Content"]
+[node name="WeaponLabel" type="Label" parent="WeaponCluster"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
@@ -407,46 +411,41 @@ horizontal_alignment = 2
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="AmmoRow" type="HBoxContainer" parent="WeaponPanel/Margin/Content"]
+[node name="AmmoCaption" type="Label" parent="WeaponCluster"]
 layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "AMMO  ·  MAG / RESERVE"
+horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="Caption" type="Label" parent="WeaponPanel/Margin/Content/AmmoRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"MutedLabel"
-text = "MUNIÇÃO  •  CARREGADOR / RESERVA"
-vertical_alignment = 1
-mouse_filter = 2
-
-[node name="AmmunitionLabel" type="Label" parent="WeaponPanel/Margin/Content/AmmoRow"]
+[node name="AmmunitionLabel" type="Label" parent="WeaponCluster"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MetricLabel"
+theme_type_variation = &"HudValueLabel"
+theme_override_font_sizes/font_size = 42
 text = "30 / 90"
 horizontal_alignment = 2
 mouse_filter = 2
 
-[node name="ControlsPanel" type="PanelContainer" parent="."]
+[node name="AmmoUnderline" type="ColorRect" parent="WeaponCluster"]
+custom_minimum_size = Vector2(180, 3)
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.9)
+
+[node name="ControlsHint" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 12
-anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -132.0
-offset_top = -48.0
-offset_right = 132.0
-offset_bottom = -18.0
+offset_top = -36.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 2
-theme_type_variation = &"HudPanel"
-
-[node name="Label" type="Label" parent="ControlsPanel"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "F  APANHAR   •   ESC  PAUSA"
+theme_override_colors/font_color = Color(0.58, 0.63, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "F  PICK UP   •   ESC  PAUSE"
 horizontal_alignment = 1
-vertical_alignment = 1
 mouse_filter = 2

@@ -34,10 +34,12 @@ var _world_streamer: Node
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_process_unhandled_input(true)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+# _input instead of _unhandled_input: Tab is also the built-in ui_focus_next
+# shortcut, so any focused button (e.g. the upgrade choice panel) would
+# consume the event before it ever reached unhandled input.
+func _input(event: InputEvent) -> void:
 	if get_tree().paused:
 		return
 	if not event.is_action_pressed("toggle_map") or event.is_echo():

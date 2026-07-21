@@ -21,61 +21,58 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.025, 0.039, 0.055, 1)
+color = Color(0.016, 0.027, 0.043, 1)
 
-[node name="TopGlow" type="ColorRect" parent="Background"]
+[node name="DiagonalAccent" type="ColorRect" parent="Background"]
+layout_mode = 0
+offset_left = 420.0
+offset_top = -260.0
+offset_right = 1620.0
+offset_bottom = -60.0
+rotation = 0.42
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.05)
+
+[node name="DiagonalAccent2" type="ColorRect" parent="Background"]
+layout_mode = 0
+offset_left = 560.0
+offset_top = -300.0
+offset_right = 1760.0
+offset_bottom = -272.0
+rotation = 0.42
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.16)
+
+[node name="TopRail" type="ColorRect" parent="Background"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 6.0
+offset_bottom = 4.0
 grow_horizontal = 2
 mouse_filter = 2
 color = Color(0.906, 0.566, 0.239, 0.9)
 
-[node name="Horizon" type="ColorRect" parent="Background"]
+[node name="BottomField" type="ColorRect" parent="Background"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -180.0
+offset_top = -44.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.045, 0.066, 0.087, 1)
-
-[node name="HorizonLine" type="ColorRect" parent="Background/Horizon"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 1.0
-grow_horizontal = 2
-mouse_filter = 2
-color = Color(0.906, 0.566, 0.239, 0.22)
-
-[node name="RightRail" type="ColorRect" parent="Background"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -10.0
-offset_top = -210.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-color = Color(0.906, 0.566, 0.239, 0.72)
+color = Color(0.008, 0.014, 0.022, 0.9)
 
 [node name="PageMargin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 52.0
-offset_top = 34.0
-offset_right = -52.0
-offset_bottom = -42.0
+offset_left = 64.0
+offset_top = 36.0
+offset_right = -64.0
+offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -83,117 +80,161 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 56
 
-[node name="Brand" type="VBoxContainer" parent="PageMargin/Columns"]
-custom_minimum_size = Vector2(430, 0)
+[node name="BrandColumn" type="VBoxContainer" parent="PageMargin/Columns"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="Eyebrow" type="Label" parent="PageMargin/Columns/Brand"]
+[node name="Eyebrow" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
 theme_type_variation = &"EyebrowLabel"
 text = "PROTOCOLO DE SOBREVIVÊNCIA  //  01"
 
-[node name="Title" type="Label" parent="PageMargin/Columns/Brand"]
+[node name="Title" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
-theme_override_font_sizes/font_size = 58
+theme_override_font_sizes/font_size = 64
 text = "HORDE\nBREAKER"
 
-[node name="AccentLine" type="ColorRect" parent="PageMargin/Columns/Brand"]
-custom_minimum_size = Vector2(86, 4)
+[node name="AccentLine" type="ColorRect" parent="PageMargin/Columns/BrandColumn"]
+custom_minimum_size = Vector2(96, 5)
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
 color = Color(0.906, 0.566, 0.239, 1)
 
-[node name="Subtitle" type="Label" parent="PageMargin/Columns/Brand"]
-custom_minimum_size = Vector2(0, 50)
+[node name="Subtitle" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.735, 0.765, 1)
-theme_override_font_sizes/font_size = 20
-text = "Sobrevive à ronda. Evolui a tua classe.\nQuebra a horda."
+theme_override_font_sizes/font_size = 19
+text = "Sobrevive à ronda. Evolui a tua classe. Quebra a horda."
 
-[node name="BuildBadge" type="PanelContainer" parent="PageMargin/Columns/Brand"]
+[node name="Spacer" type="Control" parent="PageMargin/Columns/BrandColumn"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="StartButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 56)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_type_variation = &"CardPanel"
+theme_type_variation = &"PrimaryButton"
+text = "INICIAR PARTIDA"
 
-[node name="Label" type="Label" parent="PageMargin/Columns/Brand/BuildBadge"]
+[node name="SelectionButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 50)
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "  ARENA URBANA  •  PERFIL LOCAL  "
+size_flags_horizontal = 0
+text = "PERSONAGENS E CLASSES"
 
-[node name="MenuPanel" type="PanelContainer" parent="PageMargin/Columns"]
-custom_minimum_size = Vector2(430, 520)
+[node name="SettingsButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 50)
 layout_mode = 2
-size_flags_vertical = 4
+size_flags_horizontal = 0
+text = "DEFINIÇÕES"
 
-[node name="Margin" type="MarginContainer" parent="PageMargin/Columns/MenuPanel"]
+[node name="QuitButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 46)
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
+size_flags_horizontal = 0
+theme_type_variation = &"DangerButton"
+text = "SAIR"
 
-[node name="Content" type="VBoxContainer" parent="PageMargin/Columns/MenuPanel/Margin"]
+[node name="SummaryColumn" type="VBoxContainer" parent="PageMargin/Columns"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(410, 0)
 layout_mode = 2
 theme_override_constants/separation = 12
+alignment = 1
 
-[node name="TopLine" type="HBoxContainer" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
+[node name="CreditsPlate" type="PanelContainer" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
+size_flags_horizontal = 8
+theme_type_variation = &"HudPanel"
 
-[node name="Status" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content/TopLine"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"EyebrowLabel"
-text = "PRONTO PARA A RONDA"
-
-[node name="CreditsLabel" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content/TopLine"]
+[node name="CreditsLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/CreditsPlate"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 15
 text = "CREDITS  ·  0"
-horizontal_alignment = 2
+horizontal_alignment = 1
 
-[node name="SectionTitle" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
-layout_mode = 2
-theme_type_variation = &"SectionTitle"
-text = "Operacional selecionado"
-
-[node name="LoadoutCard" type="PanelContainer" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 136)
+[node name="SummaryCard" type="PanelContainer" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
 theme_type_variation = &"CardPanel"
 
-[node name="Margin" type="MarginContainer" parent="PageMargin/Columns/MenuPanel/Margin/Content/LoadoutCard"]
+[node name="Margin" type="MarginContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
 
-[node name="Content" type="VBoxContainer" parent="PageMargin/Columns/MenuPanel/Margin/Content/LoadoutCard/Margin"]
+[node name="Content" type="VBoxContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 9
 
-[node name="SelectionLabel" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content/LoadoutCard/Margin/Content"]
+[node name="Eyebrow" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "OPERACIONAL ATIVO"
+
+[node name="SelectionRow" type="HBoxContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="EmblemHolder" type="Control" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="EmblemDiamond" type="ColorRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow/EmblemHolder"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 46.0
+offset_bottom = 42.0
+rotation = 0.785398
+pivot_offset = Vector2(18, 18)
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 1)
+
+[node name="EmblemCore" type="ColorRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow/EmblemHolder"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 38.0
+offset_bottom = 34.0
+rotation = 0.785398
+pivot_offset = Vector2(10, 10)
+mouse_filter = 2
+color = Color(0.031, 0.047, 0.063, 1)
+
+[node name="SelectionLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.97, 0.94, 0.875, 1)
 theme_override_font_sizes/font_size = 20
 text = "Recruit\n[1] Assault Rifle   •   [2] Pistol"
 autowrap_mode = 2
 
-[node name="ProgressLabel" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content/LoadoutCard/Margin/Content"]
+[node name="ProgressLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
+theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
+theme_override_font_sizes/font_size = 15
 text = "NÍVEL 1  •  XP 0 / 100"
 
-[node name="NoticeLabel" type="Label" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
+[node name="NoticeLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
@@ -201,30 +242,11 @@ theme_type_variation = &"MutedLabel"
 text = "Especialista em armas automáticas. Recarrega armas 30% mais depressa."
 autowrap_mode = 2
 
-[node name="Spacer" type="Control" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
+[node name="BuildBadge" type="Label" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
-size_flags_vertical = 3
-mouse_filter = 2
-
-[node name="StartButton" type="Button" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
-layout_mode = 2
-theme_type_variation = &"PrimaryButton"
-text = "INICIAR PARTIDA"
-
-[node name="SelectionButton" type="Button" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-text = "Personagens e classes"
-
-[node name="QuitButton" type="Button" parent="PageMargin/Columns/MenuPanel/Margin/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 2
-theme_type_variation = &"DangerButton"
-text = "Sair"
+theme_type_variation = &"MutedLabel"
+text = "ARENA URBANA  •  PERFIL LOCAL"
+horizontal_alignment = 2
 
 [node name="Footer" type="Label" parent="."]
 layout_mode = 1
@@ -232,8 +254,8 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -28.0
-offset_bottom = -8.0
+offset_top = -32.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_type_variation = &"MutedLabel"

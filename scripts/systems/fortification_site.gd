@@ -6,7 +6,6 @@ signal destroyed
 
 const ARENA_NAVIGATION_GROUP := &"arena_navigation"
 const CAMP_ECONOMY_GROUP := &"camp_economy"
-const ENEMY_TARGET_GROUP := &"enemy_target"
 const WAVE_MANAGER_GROUP := &"wave_manager"
 
 @export_range(1, 500, 1) var build_cost: int = 30
@@ -76,7 +75,6 @@ func _build_barricade(camp_economy: Node) -> bool:
 		return false
 	current_health = maximum_health
 	is_built = true
-	add_to_group(ENEMY_TARGET_GROUP)
 	health_changed.emit(current_health, maximum_health)
 	_update_presentation()
 	call_deferred("_apply_collision_state", true)
@@ -108,7 +106,6 @@ func _repair_barricade(camp_economy: Node) -> bool:
 
 func _destroy_barricade() -> void:
 	is_built = false
-	remove_from_group(ENEMY_TARGET_GROUP)
 	_update_presentation()
 	call_deferred("_apply_collision_state", false)
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)

@@ -1,5 +1,7 @@
 extends Area3D
 
+signal collected
+
 const CAMP_ECONOMY_GROUP := &"camp_economy"
 
 @export_range(1, 500, 1) var scrap_amount: int = 25
@@ -18,5 +20,6 @@ func interact(_player: Node) -> bool:
 	camp_economy.call(
 		&"request_feedback", "+%d SCRAP TRANSPORTADO" % collected_scrap
 	)
+	collected.emit()
 	queue_free()
 	return true

@@ -17,7 +17,9 @@
 - [x] Criar o primeiro setor leste carregável, com navegação ligada e estado do farol preservado em memória.
 - [x] Implementar carregamento em background dos setores com `ResourceLoader.load_threaded_request` e medição do tempo de carga.
 - [x] Grelha 4 × 4 de setores implementada com geração procedural por seed, estado de caches por setor e navegação contínua; a extração do setor inicial foi substituída pela decisão de manter o acampamento persistente.
-- [ ] Adicionar POIs, encontros, spawns e estado de encontros aos setores gerados, e distribuir a geração (~140 ms) por vários frames.
+- [x] Adicionar encontros (emboscada única por setor), spawns próprios, caixa de munições com estado e geração distribuída por vários frames aos setores gerados.
+- [x] Fazer as hordas nascerem nos pontos de spawn mais próximos do jogador, incluindo os marcadores dos setores carregados.
+- [ ] Adicionar POIs com interiores exploráveis aos setores gerados e repor emboscadas por ciclo em vez de uma única por partida.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.

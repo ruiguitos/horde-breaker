@@ -38,6 +38,9 @@ func _ready() -> void:
 	SaveManager.selected_character_changed.connect(_on_selected_character_changed)
 	_refresh()
 	back_button.grab_focus()
+	UiAnimations.fade_in($PageMargin/Content/TopBar, 0.0)
+	UiAnimations.fade_in($PageMargin/Content/Characters, 0.1)
+	UiAnimations.fade_in($PageMargin/Content/LoadoutPanel, 0.2)
 
 
 func _refresh() -> void:

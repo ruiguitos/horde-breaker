@@ -157,17 +157,26 @@ e desempenho. Referências: [Large world coordinates](https://docs.godotengine.o
 
 ### Fase 2 — protótipo de dois setores
 
-- [ ] extrair o mapa atual para uma cena de setor inicial independente;
+- [x] extrair o mapa atual para uma cena de setor inicial independente —
+  substituído por decisão de arquitetura: o setor do acampamento permanece na
+  cena persistente, como o próprio plano prevê ("o acampamento permanece
+  carregado"), e os restantes setores são cenas ou geração descartável;
 - [x] criar um segundo setor graybox ligado por uma estrada;
 - [x] manter jogador e acampamento ao carregar e descarregar o segundo setor;
-- [ ] medir a pausa da transição e adotar background loading; a ausência de duplicação e o estado do farol já foram validados.
+- [x] medir a pausa da transição e adotar background loading; o setor leste carrega
+  em 9–15 ms numa thread de background e a ausência de duplicação e o estado do
+  farol já foram validados.
 
 ### Fase 3 — mundo compacto 4 × 4
 
-- criar 16 setores de 64 × 64 metros;
-- carregar apenas a vizinhança necessária;
-- introduzir descoberta de POIs e estado de sessão;
-- medir memória, tempo de carregamento, draw calls, física e navegação.
+- [x] criar 16 setores de 64 × 64 metros — acampamento persistente, setor leste
+  desenhado à mão e catorze setores gerados por seed com `SectorGenerator`;
+- [x] carregar apenas a vizinhança necessária, por distância ao centro do setor;
+- [x] estado de sessão inicial por setor: seed determinística e caches de Scrap
+  recolhidas; descoberta de POIs e estado de encontros continuam pendentes;
+- [ ] medir memória, draw calls, física e navegação com o mundo completo; a
+  geração de um setor foi medida em 134–144 ms e deve ser distribuída por
+  vários frames.
 
 ### Fase 4 — persistência e construção
 

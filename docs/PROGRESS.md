@@ -296,6 +296,16 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 - [x] Navegação por setor alinhada nas fronteiras, com regiões fundidas pelo mapa de navegação e caminhos contínuos entre acampamento e setores gerados.
 - [x] Fronteiras norte, sul e oeste do acampamento abertas e muros do setor leste removidos para ligar a grelha completa.
 - [x] `ScrapPickup` passou a emitir `collected`, permitindo registar loot por setor.
+- [x] Mapa tático em `Tab` corrigido: a ação `toggle_map` estava ligada a Backspace (keycode 4194308) em vez de Tab (4194306).
+- [x] Mapa tático movido de `_unhandled_input` para `_input`, porque o Tab é também o atalho nativo `ui_focus_next` e qualquer botão com foco (como o painel de melhorias) consumia a tecla antes de chegar ao mapa.
+- [x] Layer do mapa tático baixada de 20 para 8, ficando acima do HUD e abaixo dos painéis de derrota e pausa.
+- [x] Geração de setores distribuída por frames: casca imediata, um quadrante de estradas por frame, conteúdo e navegação em frames próprios, com cancelamento seguro se o jogador se afastar a meio.
+- [x] Setores gerados ganharam vida: três marcadores de spawn próprios, uma caixa de munições com estado por setor e uma emboscada única por partida (2–3 inimigos por seed) disparada ao entrar durante a exploração, com aviso no HUD.
+- [x] Hordas passaram a nascer nos oito pontos de spawn mais próximos do jogador, juntando os marcadores do acampamento aos dos setores carregados.
+- [x] `AmmoPickup` passou a emitir `collected` para suportar estado de loot por setor.
+- [x] Spawns das vagas tornados aleatórios por feedback do playtest: o conjunto dos seis pontos mais próximos é baralhado a cada vaga e cada inimigo nasce com desvio aleatório de ±1,5 m, evitando padrões e empilhamento.
+- [x] Vantagens entre rondas dependentes do nível permanente da classe: nível 1 desbloqueia as três básicas e os níveis 3, 5, 7 e 9 desbloqueiam recarga, dano, Carregadores Alargados (+25% carregador) e Adrenalina (+15% cadência e golpes mais rápidos).
+- [x] Painel de vantagens passou a indicar o progresso de desbloqueio (por exemplo, "Vantagens desbloqueadas 6 / 7").
 
 ## Milestone atual
 
@@ -304,12 +314,11 @@ Fase: primeiro vertical slice do Milestone 18 concluído com dois setores e disp
 ## Próxima tarefa
 
 Playtest manual do mundo aberto com as três classes: atravessar as quatro
-fronteiras do acampamento, verificar a sensação da transição (pausa de
-~140 ms na primeira geração de cada setor), recolher caches distantes e
-regressar. Depois: reduzir a pausa de geração (distribuir a instanciação das
-estradas por vários frames ou pool de setores), adicionar POIs, encontros e
-spawns próprios aos setores gerados, e decidir as questões pendentes do
-disparo automático e da segunda arma do Medic.
+fronteiras, sentir a transição faseada, apanhar a emboscada de um setor,
+recolher caches e munições distantes e deixar uma vaga começar longe da base
+para ver a horda a nascer em redor. Com o feedback do playtest, decidir a
+ordem entre: POIs com interiores nos setores gerados, emboscadas repostas por
+ciclo, afinação do disparo automático (2–3 m) e a segunda arma do Medic.
 
 ## Validação
 
@@ -509,6 +518,13 @@ disparo automático e da segunda arma do Medic.
 - Teste integrado do mundo aberto confirmou: zero setores no acampamento, geração do setor norte com três caches e muro exterior, caminho de navegação contínuo de 51 pontos do acampamento até ao interior do setor gerado, layout determinístico após descarregar e recarregar, cache recolhida sem reaparecer e dois setores vizinhos carregados num canto.
 - Geração de um setor medida em 134–144 ms (dominada pela instanciação das estradas) e carregamento do setor leste em background em 12–20 ms.
 - Capturas com janela real confirmaram ruas contínuas, marcos, contentores e caches legíveis nos setores gerados sob o céu de entardecer.
+- Teste integrado do mapa tático confirmou o pior cenário real: com o botão do painel de melhorias focado, o Tab abre e fecha o mapa na mesma.
+- Captura com janela real confirmou o mapa tático com a grelha 4 × 4, a base destacada, os setores carregados, o marcador do jogador com direção e os POIs.
+- Teste integrado da vida dos setores confirmou: geração faseada completa (4 quadrantes + navegação) em ~180–220 ms totais espalhados por 7 frames, marcadores de spawn e caixa de munições presentes, emboscada de 3 inimigos disparada uma única vez, munições recolhidas sem reaparecer e vaga a nascer dentro do setor do jogador.
+- Regressão completa dos testes do mundo aberto, streamer e funcionalidades anteriores sem falhas após a geração faseada.
+- Teste integrado com save isolado confirmou o pool de vantagens a crescer com o nível (3 no nível 1, 6 no nível 7, 7 no nível 9) e os efeitos exatos das novas vantagens (carregador 30 → 38 e cadência ×1,15).
+- Teste integrado com registo das posições de nascimento confirmou spawns aleatórios: inimigos dentro de 2,6 m de um marcador válido, com desvio visível e vaga a nascer dentro do setor do jogador (3 em 5).
+- Captura em jogo real confirmou o painel com Carregadores Alargados no pool e o rodapé "Vantagens desbloqueadas 6 / 7".
 - Teste automatizado confirmou que o modo guardado é apresentado corretamente,
   que uma janela muda realmente para `1280 × 720` e que o estado anterior é reposto.
 - Teste automatizado confirmou a ação `toggle_map`, o mapa inicialmente oculto e
@@ -542,9 +558,9 @@ disparo automático e da segunda arma do Medic.
 - As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
 - O setor persistente ainda faz parte de `test_arena.tscn`; apenas o setor leste está isolado numa cena própria.
 - O setor leste já usa background loading medido (9–15 ms no graybox); falta repetir a medição com setores de geometria real.
-- A primeira geração de cada setor pausa ~140 ms (instanciação das estradas na thread principal); distribuir por frames ou usar um pool de setores fica para a otimização seguinte.
-- Os setores gerados ainda não têm POIs, encontros, spawns de inimigos nem pickups de munição próprios; as hordas continuam a nascer no setor do acampamento.
-- O estado por setor cobre apenas as caches de Scrap; encontros e estruturas locais ainda não têm estado.
+- A geração faseada elimina a pausa única, mas cada quadrante de estradas ainda custa ~35–45 ms no seu frame; dividir por peça de estrada ou usar um pool fica para depois de medir em jogo real.
+- Os setores gerados têm spawns, munições e emboscada, mas ainda não têm POIs com interiores; a emboscada é única por partida em vez de reposta por ciclo.
+- O estado por setor cobre caches, munições e emboscada; estruturas locais e descoberta de POIs ainda não têm estado.
 - Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
 - O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
 - Com a perseguição exclusiva do jogador, a vida do núcleo e a barricada perderam

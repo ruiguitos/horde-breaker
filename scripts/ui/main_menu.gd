@@ -12,6 +12,7 @@ const TEST_RECRUIT_XP := 700
 @onready var notice_label: Label = %NoticeLabel
 @onready var start_button: Button = %StartButton
 @onready var selection_button: Button = %SelectionButton
+@onready var settings_button: Button = %SettingsButton
 @onready var quit_button: Button = %QuitButton
 
 var _using_test_progress := false
@@ -23,11 +24,14 @@ func _ready() -> void:
 	_load_test_progress_if_enabled()
 	start_button.pressed.connect(GameManager.start_game)
 	selection_button.pressed.connect(GameManager.open_character_selection)
+	settings_button.pressed.connect(GameManager.open_settings)
 	quit_button.pressed.connect(GameManager.quit_game)
 	SaveManager.credits_changed.connect(_on_credits_changed)
 	SaveManager.selected_character_changed.connect(_on_selected_character_changed)
 	_refresh()
 	start_button.grab_focus()
+	UiAnimations.fade_in(%BrandColumn, 0.0)
+	UiAnimations.fade_in(%SummaryColumn, 0.12)
 
 
 func _refresh() -> void:

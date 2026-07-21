@@ -64,6 +64,15 @@ func get_active_weapon() -> Node3D:
 	return _active_weapon
 
 
+func get_loadout_weapons() -> Array[Node3D]:
+	var weapons: Array[Node3D] = []
+	if _primary_weapon != null:
+		weapons.append(_primary_weapon)
+	if _secondary_weapon != null:
+		weapons.append(_secondary_weapon)
+	return weapons
+
+
 func get_active_slot() -> int:
 	return _active_slot
 

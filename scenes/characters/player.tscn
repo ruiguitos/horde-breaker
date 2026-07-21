@@ -96,6 +96,6 @@ current = true
 fov = 70.0
 
 [node name="TacticalMapLayer" type="CanvasLayer" parent="."]
-layer = 20
+layer = 8
 
 [node name="TacticalMap" parent="TacticalMapLayer" instance=ExtResource("6_tactical_map")]
