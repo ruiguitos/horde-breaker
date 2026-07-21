@@ -1,10 +1,12 @@
 extends Control
 
 const RECRUIT_ID := &"recruit"
+# The editor test profile now starts from a clean slate (level 1, 0 Credits)
+# so the game can be playtested from scratch. Raise these to seed a head start.
 const ENABLE_TEST_PROGRESS := true
 const TEST_SAVE_PATH := "user://horde_breaker_test.cfg"
-const TEST_STARTING_CREDITS := 2000
-const TEST_RECRUIT_XP := 700
+const TEST_STARTING_CREDITS := 0
+const TEST_RECRUIT_XP := 0
 
 @onready var credits_label: Label = %CreditsLabel
 @onready var selection_label: Label = %SelectionLabel
