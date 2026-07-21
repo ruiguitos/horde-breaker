@@ -60,6 +60,9 @@
   pequeno), removendo a placa do núcleo, a placa grande de recursos e a barra de atalhos.
 - [x] Adicionar armas encontráveis pela exploração: caixas de arma nos setores
   gerados que substituem a arma secundária durante a partida, com estado por setor.
+- [x] Adicionar variedade de inimigos: Brute (tanque com knockback), Spitter
+  (ataque à distância) e o boss The Breaker (invoca minions), ligados à
+  escalada do diretor de horda.
 
 ## Regra
 

@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="1_normal_zombie"]
+[ext_resource type="Script" path="res://scripts/enemies/boss_breaker.gd" id="2_boss_script"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/enemies/Zombie_Chubby.gltf" id="3_boss_model"]
+[ext_resource type="Script" path="res://scripts/characters/imported_model_animation.gd" id="4_model_animation"]
+
+[sub_resource type="StandardMaterial3D" id="Material_boss"]
+albedo_color = Color(0.22, 0.05, 0.08, 1)
+metallic = 0.3
+roughness = 0.7
+
+[node name="BossBreaker" instance=ExtResource("1_normal_zombie")]
+script = ExtResource("2_boss_script")
+maximum_health = 1200.0
+move_speed = 2.2
+attack_damage = 34.0
+attack_range = 2.4
+attack_cooldown = 1.8
+xp_reward = 100
+knockback_force = 16.0
+summon_scene = ExtResource("1_normal_zombie")
+
+[node name="Visual" parent="VisualRoot" index="0"]
+material_override = SubResource("Material_boss")
+
+[node name="ImportedModel" parent="VisualRoot" index="2"]
+process_mode = 4
+visible = false
+
+[node name="ClassModel" parent="VisualRoot" instance=ExtResource("3_boss_model")]
+position = Vector3(0, -1, 0)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(2.4, 2.7, 2.4)
+script = ExtResource("4_model_animation")
+move_animation = &"Walk"
+
+[node name="Aura" type="OmniLight3D" parent="VisualRoot"]
+position = Vector3(0, 1.0, 0)
+light_color = Color(0.9, 0.12, 0.16, 1)
+light_energy = 3.0
+omni_range = 6.0
+
+[node name="Label" type="Label3D" parent="VisualRoot"]
+position = Vector3(0, 2.8, 0)
+modulate = Color(1, 0.3, 0.28, 1)
+outline_modulate = Color(0.05, 0.01, 0.01, 1)
+billboard = 1
+no_depth_test = true
+text = "THE BREAKER"
+font_size = 40
+outline_size = 10
+
+[editable path="VisualRoot"]

@@ -21,8 +21,11 @@ signal died
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var camera_pivot: Node3D = $CameraPivot
 
+const KNOCKBACK_DECAY := 9.0
+
 var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
+var _knockback_velocity := Vector3.ZERO
 var _is_dead: bool = false
 var _is_crouching: bool = false
 var _is_sprinting: bool = false
@@ -98,6 +101,16 @@ func _physics_process(delta: float) -> void:
 	velocity.x = movement_direction.x * current_speed
 	velocity.z = movement_direction.z * current_speed
 
+	# Knockback from Brute/Boss hits is added on top of input and decays fast.
+	if _knockback_velocity.length_squared() > 0.01:
+		velocity.x += _knockback_velocity.x
+		velocity.z += _knockback_velocity.z
+		_knockback_velocity = _knockback_velocity.move_toward(
+			Vector3.ZERO, KNOCKBACK_DECAY * delta
+		)
+	else:
+		_knockback_velocity = Vector3.ZERO
+
 	var facing_direction := movement_direction
 	if (
 		Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -150,6 +163,15 @@ func heal(amount: float) -> void:
 		return
 	current_health = minf(current_health + amount, maximum_health)
 	health_changed.emit(current_health, maximum_health)
+
+
+func apply_knockback(direction: Vector3, force: float) -> void:
+	if _is_dead or force <= 0.0:
+		return
+	var horizontal := Vector3(direction.x, 0.0, direction.z)
+	if horizontal.length_squared() <= 0.0001:
+		return
+	_knockback_velocity = horizontal.normalized() * force
 
 
 func _regenerate_health(delta: float) -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -8,6 +8,9 @@
 [ext_resource type="PackedScene" path="res://scenes/world/camp_core.tscn" id="6_camp_core"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="26_brute"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="27_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="28_boss"]
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
@@ -283,6 +286,9 @@ unique_name_in_owner = true
 script = ExtResource("5_wave_manager_script")
 normal_zombie_scene = ExtResource("3_zombie")
 runner_zombie_scene = ExtResource("9_runner_zombie")
+brute_zombie_scene = ExtResource("26_brute")
+spitter_zombie_scene = ExtResource("27_spitter")
+boss_scene = ExtResource("28_boss")
 
 [node name="CampEconomy" type="Node" parent="Gameplay" groups=["camp_economy"]]
 script = ExtResource("18_camp_economy")

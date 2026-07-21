@@ -321,6 +321,10 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] HUD in-game reduzido ao essencial: vida compacta em baixo à esquerda, munição grande em baixo à direita com o nome da arma ativa, faixa de ameaça discreta no topo e contador de Scrap pequeno; removidas a placa do núcleo, a placa grande de recursos, o loadout `[1]/[2]` e a barra de atalhos.
 - [x] Armas encontráveis pela exploração: caixas de arma geradas em cerca de um terço dos setores por seed, recolhidas com `F`, que substituem a arma secundária durante a partida e ficam com estado por setor.
 - [x] `WeaponController.equip_field_weapon` adicionado para trocar o slot secundário em runtime; `AmmoPickup` e `ScrapPickup` emitem `collected` e suportam auto-recolha.
+- [x] Variedade de inimigos alargada: **Brute** (tanque lento, 320 de vida, ataque forte com knockback), **Spitter** (mantém distância e dispara projéteis de ácido) e o boss **The Breaker** (1200 de vida, knockback e invocação periódica de minions).
+- [x] Base `normal_zombie.gd` estendida com knockback configurável e modo de ataque à distância (aproximar/recuar/disparar) reutilizável; projétil `spit_projectile` criado.
+- [x] Knockback do jogador implementado como impulso que decai por cima do input, aplicado por Brute e Boss.
+- [x] Diretor de horda passou a escolher o tipo de inimigo por peso conforme o nível de ameaça (Runners cedo, Brutes a partir do nível 2, Spitters do nível 3) e a invocar um Boss a cada cinco níveis, com aviso no HUD.
 
 ## Milestone atual
 
@@ -542,6 +546,8 @@ subida, dimensão dos lotes e limite simultâneo) com base na sensação de jogo
 - Teste integrado confirmou auto-recolha de Scrap e munições ao sobrepor o corpo do jogador, e que a caixa de arma exige `F` (não é auto-recolhida) e troca a arma secundária para Shotgun, tornando-a ativa.
 - Teste do mundo aberto atualizado para o streaming antecipado (raio 95 m) confirmou setor distante não carregado no acampamento, geração ao entrar, layout determinístico, cache recolhida persistente e cinco setores vizinhos num canto.
 - Capturas em jogo real confirmaram o HUD minimalista sem as placas antigas e o mapa tático com bússola, setor atual, triângulos de arma, anel de objetivo e legenda alargada.
+- Teste integrado dos inimigos confirmou: o Brute dá dano e empurra o jogador, o Spitter dispara um projétil à distância, o Boss invoca minions ao longo do tempo e o diretor gera um Boss no nível configurado.
+- Cenas de Brute, Spitter e Boss executadas isoladamente e a arena durante 90 frames sem erros.
 - Teste automatizado confirmou que o modo guardado é apresentado corretamente,
   que uma janela muda realmente para `1280 × 720` e que o estado anterior é reposto.
 - Teste automatizado confirmou a ação `toggle_map`, o mapa inicialmente oculto e

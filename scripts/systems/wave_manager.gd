@@ -22,14 +22,19 @@ const SPAWN_POSITION_JITTER := 1.5
 const MINIMUM_SPAWN_DISTANCE := 12.0
 const LEVELS_PER_CYCLE := 3
 const HARD_ENEMY_CAP := 30
+const CAMP_ECONOMY_GROUP := &"camp_economy"
 
 @export var normal_zombie_scene: PackedScene
 @export var runner_zombie_scene: PackedScene
+@export var brute_zombie_scene: PackedScene
+@export var spitter_zombie_scene: PackedScene
+@export var boss_scene: PackedScene
 @export_range(1.0, 120.0, 0.5) var first_surge_delay: float = 20.0
 @export_range(10.0, 300.0, 1.0) var level_up_interval: float = 75.0
 @export_range(0.5, 30.0, 0.5) var base_spawn_interval: float = 7.0
 @export_range(1, 30, 1) var base_max_alive: int = 6
 @export_range(0, 10, 1) var max_alive_per_level: int = 4
+@export_range(2, 20, 1) var boss_every_levels: int = 5
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
 @onready var enemies: Node3D = %Enemies
@@ -121,6 +126,8 @@ func _advance_level_timer(delta: float) -> void:
 	_level_time_remaining = level_up_interval
 	wave_started.emit(current_wave)
 	intermission_started.emit(current_wave, level_up_interval)
+	if boss_scene != null and current_wave % boss_every_levels == 0:
+		_spawn_boss()
 
 
 func _report_countdown(seconds_remaining: float) -> void:
@@ -145,17 +152,52 @@ func _spawn_travel_batch() -> void:
 	var batch_size := mini(
 		2 + current_wave / 2, maximum_alive - alive_enemy_count
 	)
-	var runner_chance := minf(0.1 * float(current_wave), 0.45)
 	for spawn_index in batch_size:
-		var enemy_scene := (
-			runner_zombie_scene
-			if randf() < runner_chance
-			else normal_zombie_scene
-		)
 		var spawn_point := spawn_points[spawn_index % spawn_points.size()]
-		if _spawn_enemy(enemy_scene, spawn_point):
+		if _spawn_enemy(_pick_enemy_scene(), spawn_point):
 			alive_enemy_count += 1
 	enemy_count_changed.emit(alive_enemy_count)
+
+
+func _pick_enemy_scene() -> PackedScene:
+	# Weighted by threat level: runners appear early, brutes from level 2 and
+	# spitters from level 3, all growing more common as the horde escalates.
+	var weighted_scenes: Array = [[normal_zombie_scene, 1.0]]
+	weighted_scenes.append([runner_zombie_scene, minf(0.15 * current_wave, 0.7)])
+	if brute_zombie_scene != null and current_wave >= 2:
+		weighted_scenes.append(
+			[brute_zombie_scene, minf(0.08 * float(current_wave - 1), 0.35)]
+		)
+	if spitter_zombie_scene != null and current_wave >= 3:
+		weighted_scenes.append(
+			[spitter_zombie_scene, minf(0.1 * float(current_wave - 2), 0.4)]
+		)
+	var total_weight := 0.0
+	for entry in weighted_scenes:
+		total_weight += float(entry[1])
+	var pick := randf() * total_weight
+	for entry in weighted_scenes:
+		pick -= float(entry[1])
+		if pick <= 0.0:
+			return entry[0] as PackedScene
+	return normal_zombie_scene
+
+
+func _spawn_boss() -> void:
+	var spawn_points := _gather_active_spawn_points()
+	if spawn_points.is_empty():
+		return
+	spawn_points.shuffle()
+	if _spawn_enemy(boss_scene, spawn_points[0]):
+		alive_enemy_count += 1
+		enemy_count_changed.emit(alive_enemy_count)
+		_announce("⚠  THE BREAKER HAS ARRIVED")
+
+
+func _announce(message: String) -> void:
+	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
+	if camp_economy != null and camp_economy.has_method(&"request_feedback"):
+		camp_economy.call(&"request_feedback", message)
 
 
 func _gather_active_spawn_points() -> Array[Marker3D]:
