@@ -6,6 +6,7 @@ signal character_purchased(character_id: StringName)
 signal selected_character_changed(character_id: StringName)
 signal weapon_purchased(character_id: StringName, weapon_id: StringName)
 signal selected_weapon_changed(character_id: StringName, weapon_id: StringName)
+signal skill_points_changed(character_id: StringName)
 
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
@@ -139,30 +140,81 @@ func add_character_xp(character_id: StringName, amount: int) -> int:
 	if amount <= 0:
 		return 0
 
+	# Characters level up without a cap; each level grants one skill point.
 	var section := String(character_id)
 	var level := get_character_level(character_id)
 	var xp := get_character_xp(character_id)
-	var maximum_level := _get_maximum_level(character_id)
 	var levels_gained := 0
-	if level >= maximum_level:
-		return levels_gained
 
 	xp += amount
-	while level < maximum_level:
+	while true:
 		var required_xp := get_xp_required_for_next_level(level)
 		if xp < required_xp:
 			break
 		xp -= required_xp
 		level += 1
 		levels_gained += 1
-	if level >= maximum_level:
-		xp = 0
 
 	_config.set_value(section, "level", level)
 	_config.set_value(section, "xp", xp)
 	save_progress()
 	character_progress_changed.emit(character_id, level, xp)
+	if levels_gained > 0:
+		skill_points_changed.emit(character_id)
 	return levels_gained
+
+
+func get_earned_skill_points(character_id: StringName) -> int:
+	# One point per level gained past level 1.
+	return maxi(get_character_level(character_id) - 1, 0)
+
+
+func get_unlocked_skill_nodes(character_id: StringName) -> PackedStringArray:
+	var stored: Variant = _config.get_value(
+		String(character_id), "skill_nodes", PackedStringArray()
+	)
+	return PackedStringArray(stored)
+
+
+func get_available_skill_points(character_id: StringName) -> int:
+	return (
+		get_earned_skill_points(character_id)
+		- get_unlocked_skill_nodes(character_id).size()
+	)
+
+
+func is_skill_node_unlocked(character_id: StringName, node_id: StringName) -> bool:
+	return String(node_id) in get_unlocked_skill_nodes(character_id)
+
+
+func can_unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
+	if (
+		SkillTree.get_node_definition(node_id).is_empty()
+		or is_skill_node_unlocked(character_id, node_id)
+		or get_available_skill_points(character_id) <= 0
+	):
+		return false
+	var prerequisite := SkillTree.get_prerequisite_id(node_id)
+	return (
+		prerequisite == &""
+		or is_skill_node_unlocked(character_id, prerequisite)
+	)
+
+
+func unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
+	if not can_unlock_skill_node(character_id, node_id):
+		return false
+	var unlocked := get_unlocked_skill_nodes(character_id)
+	unlocked.append(String(node_id))
+	_config.set_value(String(character_id), "skill_nodes", unlocked)
+	if not save_progress():
+		return false
+	skill_points_changed.emit(character_id)
+	return true
+
+
+func get_skill_bonuses(character_id: StringName) -> Dictionary:
+	return SkillTree.get_bonuses(Array(get_unlocked_skill_nodes(character_id)))
 
 
 func get_purchased_weapons(character_id: StringName) -> PackedStringArray:

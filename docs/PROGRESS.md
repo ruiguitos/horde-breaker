@@ -329,6 +329,11 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Contador de FPS global adicionado como autoload `FpsOverlay`, sempre visível, com cor por faixa (verde/amarelo/vermelho) e alternável com `F3`.
 - [x] Primeira ronda de otimização de desempenho: aquisição de alvo do disparo automático passou a fazer os raycasts por inimigo só algumas vezes por segundo (cache entre varreduras), corrigindo também um erro de objeto libertado; repath dos inimigos throttlado e escalonado (0,35 s) com cache do alvo do jogador; setores carregados em simultâneo reduzidos de ~9 para ~5 baixando o raio de streaming (72 m / descarga 96 m) para cortar draw calls no renderer GL Compatibility.
 - [x] Geração de setores movida para threads de trabalho (`WorkerThreadPool`): a construção da subárvore (estradas, adereços, navegação) deixou de correr na thread principal, eliminando o "break" de ~230 ms ao entrar numa zona nova; o setor pronto é apenas adicionado à cena na thread principal, com o resultado descartado em segurança se o jogador se afastar entretanto.
+- [x] Limite de níveis removido: as personagens sobem de nível sem teto e ganham um ponto de habilidade por nível.
+- [x] Árvore de habilidades permanente por personagem (`SkillTree`): três ramos (Ofensiva, Sobrevivência, Expedição) de cinco níveis, com pré-requisitos por tier, guardada no save e aplicada a cada partida (dano, cadência, recarga, vida, regeneração, redução de dano, velocidade, reserva de munição, e multiplicadores de Scrap e XP).
+- [x] Ecrã de skill tree acessível por um botão na seleção de personagens, que constrói os cartões dinamicamente com estados desbloqueado/disponível/bloqueado e pontos disponíveis.
+- [x] "Field Upgrade" (painel de melhorias entre rondas) removido por completo, substituído pela skill tree permanente.
+- [x] Ao equipar uma arma encontrada, a arma substituída é largada no chão como pickup, podendo ser reapanhada com `F`.
 
 ## Milestone atual
 

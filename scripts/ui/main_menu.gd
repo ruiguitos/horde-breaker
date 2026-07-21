@@ -49,8 +49,9 @@ func _refresh() -> void:
 		_get_weapon_name(character_data.primary_weapon_id),
 		_get_weapon_name(character_data.secondary_weapon_id),
 	]
-	if level >= 10:
-		progress_label.text = "LEVEL %d  •  MAX" % level
+	var available_points := SaveManager.get_available_skill_points(character_id)
+	if available_points > 0:
+		progress_label.text = "LEVEL %d  •  %d SKILL POINTS" % [level, available_points]
 	else:
 		progress_label.text = "LEVEL %d  •  XP %d / %d" % [
 			level, xp, SaveManager.get_xp_required_for_next_level(level)

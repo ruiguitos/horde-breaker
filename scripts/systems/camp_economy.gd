@@ -5,14 +5,24 @@ signal feedback_requested(message: String, duration: float)
 
 var carried_scrap: int = 0
 var stored_scrap: int = 0
+var _scrap_multiplier: float = 1.0
+
+
+func _ready() -> void:
+	_scrap_multiplier = float(
+		SaveManager.get_skill_bonuses(SaveManager.get_selected_character()).get(
+			"scrap_mult", 1.0
+		)
+	)
 
 
 func add_carried_scrap(amount: int) -> int:
 	if amount <= 0:
 		return 0
-	carried_scrap += amount
+	var boosted := maxi(roundi(amount * _scrap_multiplier), amount)
+	carried_scrap += boosted
 	scrap_changed.emit(carried_scrap, stored_scrap)
-	return amount
+	return boosted
 
 
 func deposit_all_scrap() -> int:

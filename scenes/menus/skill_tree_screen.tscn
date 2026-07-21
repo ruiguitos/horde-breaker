@@ -1,0 +1,106 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/skill_tree_screen.gd" id="1_skill_tree_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+
+[node name="SkillTreeScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_skill_tree_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.016, 0.027, 0.043, 1)
+
+[node name="TopRail" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 4.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.9)
+
+[node name="PageMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 24.0
+offset_right = -34.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="PageMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TopBar" type="HBoxContainer" parent="PageMargin/Content"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="BackButton" type="Button" parent="PageMargin/Content/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 46)
+layout_mode = 2
+text = "‹  BACK"
+
+[node name="Heading" type="VBoxContainer" parent="PageMargin/Content/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Eyebrow" type="Label" parent="PageMargin/Content/TopBar/Heading"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "PERMANENT PROGRESSION"
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="PageMargin/Content/TopBar/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 28
+text = "SKILL TREE"
+horizontal_alignment = 1
+
+[node name="PointsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
+custom_minimum_size = Vector2(210, 46)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HudPanel"
+
+[node name="PointsLabel" type="Label" parent="PageMargin/Content/TopBar/PointsCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
+theme_override_font_sizes/font_size = 15
+text = "SKILL POINTS  ·  0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Branches" type="HBoxContainer" parent="PageMargin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Hint" type="Label" parent="PageMargin/Content"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Spend skill points from the top of each branch downward. Bonuses are permanent and apply every run for this character."
+horizontal_alignment = 1

@@ -65,6 +65,14 @@
   escalada do diretor de horda.
 - [x] Baixar a resolução por defeito para janela 1152 × 648 e adicionar um
   contador de FPS (autoload, alternável com `F3`) para testes.
+- [ ] **Em espera:** ainda existe um mini-hitch no instante em que um setor
+  gerado aparece (o `add_child` regista ~64 malhas de uma vez). Próximo passo
+  possível: encaixar as peças do setor em 2-3 frames em vez de todas de uma vez.
+- [x] Remover o limite de níveis das personagens e adicionar uma árvore de
+  habilidades permanente por personagem (skill tree), com pontos ganhos por nível.
+- [x] Remover o "Field Upgrade" (melhorias entre rondas), substituído pela skill tree.
+- [x] Ao apanhar uma arma do chão, largar a arma substituída no chão para poder
+  voltar a apanhá-la.
 
 ## Regra
 

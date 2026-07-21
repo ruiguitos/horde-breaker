@@ -14,6 +14,7 @@ signal died
 @export_range(1.0, 30.0, 0.5) var crouch_transition_speed: float = 8.0
 @export_range(0.0, 100.0, 0.5) var health_regeneration_rate: float = 1.0
 @export_range(0.0, 30.0, 0.5) var health_regeneration_delay: float = 6.0
+@export_range(0.0, 0.9, 0.01) var damage_reduction: float = 0.0
 
 @onready var camera: Camera3D = %Camera3D
 @onready var visual_root: Node3D = %VisualRoot
@@ -147,8 +148,9 @@ func take_damage(amount: float) -> void:
 	if amount <= 0.0 or _is_dead:
 		return
 
+	var reduced_amount := amount * (1.0 - clampf(damage_reduction, 0.0, 0.9))
 	_time_since_damage = 0.0
-	current_health = maxf(current_health - amount, 0.0)
+	current_health = maxf(current_health - reduced_amount, 0.0)
 	health_changed.emit(current_health, maximum_health)
 	if is_zero_approx(current_health):
 		_is_dead = true

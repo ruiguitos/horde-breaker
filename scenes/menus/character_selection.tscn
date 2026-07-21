@@ -87,6 +87,13 @@ theme_override_font_sizes/font_size = 30
 text = "CLASS SELECTION"
 horizontal_alignment = 1
 
+[node name="SkillTreeButton" type="Button" parent="PageMargin/Content/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 46)
+layout_mode = 2
+size_flags_vertical = 4
+text = "SKILL TREE"
+
 [node name="CreditsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
 custom_minimum_size = Vector2(176, 46)
 layout_mode = 2
