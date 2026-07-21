@@ -9,6 +9,10 @@ const ALIVE_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
 const HIT_FLASH_COLOR := Color(1.0, 0.82, 0.6, 0.0)
 const RANGED_DISTANCE_MARGIN := 1.5
+# Navigation paths are the expensive part of the chase. Recomputing every
+# frame for every zombie causes frame spikes, so each one repaths on a fixed
+# interval, staggered per instance so they never all repath on the same frame.
+const REPATH_INTERVAL := 0.35
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 50.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 2.5
@@ -32,6 +36,8 @@ const RANGED_DISTANCE_MARGIN := 1.5
 var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _target: PhysicsBody3D
+var _cached_target: PhysicsBody3D
+var _repath_time: float = 0.0
 var _hit_flash_material: StandardMaterial3D
 var _hit_flash_tween: Tween
 
@@ -39,6 +45,7 @@ var _hit_flash_tween: Tween
 func _ready() -> void:
 	current_health = maximum_health
 	_setup_hit_flash()
+	_repath_time = randf() * REPATH_INTERVAL
 
 	var attack_shape := attack_collision.shape.duplicate() as SphereShape3D
 	if attack_shape == null:
@@ -53,7 +60,8 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
-	_target = _find_player_target()
+	_repath_time -= delta
+	_target = _acquire_target()
 	if not is_instance_valid(_target):
 		_stop_horizontal_movement()
 		move_and_slide()
@@ -87,6 +95,18 @@ func _process_ranged(delta: float) -> void:
 		_stop_horizontal_movement()
 		if horizontal_distance <= ranged_attack_range:
 			_try_ranged_attack()
+
+
+func _acquire_target() -> PhysicsBody3D:
+	# Cache the player reference and only rescan the group when it becomes
+	# invalid (e.g. on death), instead of iterating a group every frame.
+	if (
+		is_instance_valid(_cached_target)
+		and _cached_target.is_in_group(ALIVE_TARGET_GROUP)
+	):
+		return _cached_target
+	_cached_target = _find_player_target()
+	return _cached_target
 
 
 func _find_player_target() -> PhysicsBody3D:
@@ -142,10 +162,12 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _pursue_target(delta: float) -> void:
-	if navigation_agent.target_position.distance_to(
-		_target.global_position
-	) >= TARGET_REPATH_DISTANCE:
-		navigation_agent.target_position = _target.global_position
+	if _repath_time <= 0.0:
+		_repath_time = REPATH_INTERVAL
+		if navigation_agent.target_position.distance_to(
+			_target.global_position
+		) >= TARGET_REPATH_DISTANCE:
+			navigation_agent.target_position = _target.global_position
 	var navigation_map := navigation_agent.get_navigation_map()
 	if NavigationServer3D.map_get_iteration_id(navigation_map) == 0:
 		_stop_horizontal_movement()

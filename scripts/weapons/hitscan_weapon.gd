@@ -36,12 +36,16 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @onready var muzzle_flash_timer: Timer = %MuzzleFlashTimer
 @onready var reload_timer: Timer = %ReloadTimer
 
+const PROXIMITY_SCAN_INTERVAL := 0.12
+
 var current_ammunition: int
 var reserve_ammunition: int
 var _cooldown_remaining: float = 0.0
 var _reload_duration_multiplier: float = 1.0
 var _tracer_material: StandardMaterial3D
 var _player_body: Node3D
+var _proximity_scan_time: float = 0.0
+var _cached_proximity_target: Node3D
 
 
 func _ready() -> void:
@@ -61,6 +65,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
+	_proximity_scan_time = maxf(_proximity_scan_time - delta, 0.0)
 	if Input.is_action_pressed("reload"):
 		_start_reload()
 	var attack_requested := (
@@ -76,7 +81,7 @@ func _physics_process(delta: float) -> void:
 	var proximity_target: Node3D
 	var proximity_aim_position := Vector3.ZERO
 	if not manual_attack_allowed:
-		proximity_target = _get_nearest_proximity_target()
+		proximity_target = _acquire_proximity_target()
 	if proximity_target != null:
 		proximity_aim_position = _get_target_aim_position(proximity_target)
 		_aim_weapon_at(proximity_aim_position)
@@ -300,6 +305,34 @@ func _get_pellet_direction(base_direction: Vector3, pellet_index: int) -> Vector
 		+ spread_basis.x * cos(angle) * spread_radius
 		+ spread_basis.y * sin(angle) * spread_radius
 	).normalized()
+
+
+func _acquire_proximity_target() -> Node3D:
+	# The full scan raycasts every candidate enemy, so it only runs a few times
+	# a second; between scans the cached target is reused if still in range.
+	# is_instance_valid must gate the call: a freed node cannot even be passed
+	# to a Node3D-typed parameter.
+	if (
+		_proximity_scan_time > 0.0
+		and is_instance_valid(_cached_proximity_target)
+		and _is_proximity_target_valid(_cached_proximity_target)
+	):
+		return _cached_proximity_target
+	_proximity_scan_time = PROXIMITY_SCAN_INTERVAL
+	_cached_proximity_target = _get_nearest_proximity_target()
+	return _cached_proximity_target
+
+
+func _is_proximity_target_valid(target: Node3D) -> bool:
+	if (
+		target.is_queued_for_deletion()
+		or not is_instance_valid(_player_body)
+	):
+		return false
+	var distance_squared := _player_body.global_position.distance_squared_to(
+		target.global_position
+	)
+	return distance_squared <= proximity_auto_fire_range * proximity_auto_fire_range
 
 
 func _get_nearest_proximity_target() -> Node3D:

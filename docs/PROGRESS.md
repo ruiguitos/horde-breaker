@@ -327,6 +327,7 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Diretor de horda passou a escolher o tipo de inimigo por peso conforme o nível de ameaça (Runners cedo, Brutes a partir do nível 2, Spitters do nível 3) e a invocar um Boss a cada cinco níveis, com aviso no HUD.
 - [x] Resolução por defeito baixada para janela 1152 × 648 (projeto e `SettingsManager`) para facilitar os testes; fullscreen e resoluções maiores continuam opcionais e persistidos.
 - [x] Contador de FPS global adicionado como autoload `FpsOverlay`, sempre visível, com cor por faixa (verde/amarelo/vermelho) e alternável com `F3`.
+- [x] Primeira ronda de otimização de desempenho: aquisição de alvo do disparo automático passou a fazer os raycasts por inimigo só algumas vezes por segundo (cache entre varreduras), corrigindo também um erro de objeto libertado; repath dos inimigos throttlado e escalonado (0,35 s) com cache do alvo do jogador; setores carregados em simultâneo reduzidos de ~9 para ~5 baixando o raio de streaming (72 m / descarga 96 m) para cortar draw calls no renderer GL Compatibility.
 
 ## Milestone atual
 

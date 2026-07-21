@@ -21,11 +21,12 @@ const GRID_MAX := Vector2i(2, 2)
 const CAMP_COORDS := Vector2i(0, 0)
 const EAST_COORDS := Vector2i(1, 0)
 
-# Sectors load well before they come into view (roughly a sector and a half
-# away) so the staged generation finishes off-screen and there is no visible
-# pop-in or delay when the player arrives.
-@export_range(8.0, 200.0, 1.0) var load_distance: float = 95.0
-@export_range(8.0, 240.0, 1.0) var unload_distance: float = 120.0
+# Load the current sector plus its orthogonal neighbours (a sector centre is
+# 64 m away). 72 m keeps roughly five sectors resident instead of nine, which
+# cuts draw calls a lot in the GL Compatibility renderer while still loading a
+# sector before the player reaches it. Diagonals stream in as you approach.
+@export_range(8.0, 200.0, 1.0) var load_distance: float = 72.0
+@export_range(8.0, 240.0, 1.0) var unload_distance: float = 96.0
 
 var _player: Node3D
 var _run_seed: int = randi()
