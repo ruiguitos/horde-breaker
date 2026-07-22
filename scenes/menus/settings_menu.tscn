@@ -81,6 +81,9 @@ layout_mode = 2
 theme_type_variation = &"SectionTitle"
 text = "Display"
 
+[node name="DisplayDivider" type="HSeparator" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
+
 [node name="WindowModeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -132,6 +135,9 @@ layout_mode = 2
 layout_mode = 2
 theme_type_variation = &"SectionTitle"
 text = "Controls & Audio"
+
+[node name="SectionDivider" type="HSeparator" parent="CenterContainer/PanelContainer/Margin/Content"]
+layout_mode = 2
 
 [node name="SensitivityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2

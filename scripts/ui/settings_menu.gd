@@ -16,6 +16,8 @@ const RESOLUTIONS: Array[Vector2i] = [
 @onready var volume_slider: HSlider = %VolumeSlider
 @onready var volume_value: Label = %VolumeValue
 @onready var back_button: Button = %BackButton
+@onready var panel_container: PanelContainer = $CenterContainer/PanelContainer
+@onready var background: ColorRect = $Background
 
 var _available_resolutions: Array[Vector2i] = []
 
@@ -33,6 +35,11 @@ func _ready() -> void:
 	back_button.pressed.connect(_close)
 	UiAnimations.enhance_buttons(self)
 	back_button.grab_focus()
+	background.modulate.a = 0.0
+	panel_container.modulate.a = 0.0
+	await get_tree().process_frame
+	UiAnimations.fade_in(background, 0.0, 0.2)
+	UiAnimations.pop_in(panel_container, 0.24)
 
 
 func _unhandled_input(event: InputEvent) -> void:
