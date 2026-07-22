@@ -18,7 +18,7 @@ const MAP_COLOR := Color(0.045, 0.067, 0.086, 1.0)
 const SECTOR_COLOR := Color(0.075, 0.11, 0.135, 1.0)
 const LOADED_SECTOR_COLOR := Color(0.16, 0.24, 0.28, 1.0)
 const CAMP_SECTOR_COLOR := Color(0.31, 0.20, 0.09, 1.0)
-const BORDER_COLOR := Color(0.31, 0.40, 0.45, 1.0)
+const BORDER_COLOR := Color(0.31, 0.40, 0.45, 0.62)
 const ACCENT_COLOR := Color(0.94, 0.57, 0.22, 1.0)
 const TEXT_COLOR := Color(0.94, 0.94, 0.91, 1.0)
 const MUTED_TEXT_COLOR := Color(0.62, 0.68, 0.72, 1.0)
@@ -41,6 +41,7 @@ var _map_rect := Rect2()
 var _player: Node3D
 var _world_streamer: Node
 var _visited_sectors: Dictionary[Vector2i, bool] = {}
+var _open_tween: Tween
 
 
 func _ready() -> void:
@@ -64,7 +65,21 @@ func _input(event: InputEvent) -> void:
 	if visible:
 		_refresh_references()
 		queue_redraw()
+		_animate_open()
+	else:
+		modulate.a = 1.0
 	get_viewport().set_input_as_handled()
+
+
+func _animate_open() -> void:
+	if _open_tween != null and _open_tween.is_valid():
+		_open_tween.kill()
+	modulate.a = 0.0
+	_open_tween = create_tween()
+	_open_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_open_tween.set_trans(Tween.TRANS_QUAD)
+	_open_tween.set_ease(Tween.EASE_OUT)
+	_open_tween.tween_property(self, "modulate:a", 1.0, 0.16)
 
 
 func _process(_delta: float) -> void:
@@ -104,10 +119,14 @@ func _draw() -> void:
 	)
 	var panel_rect := Rect2(
 		_map_rect.position - Vector2(24.0, 70.0),
-		_map_rect.size + Vector2(48.0, 124.0)
+		_map_rect.size + Vector2(48.0, 150.0)
 	)
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.0, 0.0, 0.0, 0.52))
-	draw_rect(panel_rect, PANEL_COLOR)
+	var panel_style := get_theme_stylebox(&"panel", &"MenuPanel")
+	if panel_style != null:
+		draw_style_box(panel_style, panel_rect)
+	else:
+		draw_rect(panel_rect, PANEL_COLOR)
 	draw_rect(panel_rect, BORDER_COLOR, false, 2.0)
 	draw_rect(
 		Rect2(panel_rect.position, Vector2(panel_rect.size.x, 4.0)), ACCENT_COLOR
@@ -193,11 +212,17 @@ func _draw_sectors() -> void:
 				fill_color = LOADED_SECTOR_COLOR
 			elif _visited_sectors.has(coords):
 				fill_color = VISITED_SECTOR_COLOR
-			draw_rect(sector_rect.grow(-3.0), fill_color)
+			draw_rect(sector_rect.grow(-2.0), fill_color)
 			if coords == player_coords:
 				draw_rect(sector_rect.grow(-1.0), ACCENT_COLOR, false, 2.0)
+				draw_rect(
+					sector_rect.grow(-5.0),
+					Color(ACCENT_COLOR.r, ACCENT_COLOR.g, ACCENT_COLOR.b, 0.42),
+					false,
+					1.0
+				)
 			else:
-				draw_rect(sector_rect, BORDER_COLOR, false, 1.0)
+				draw_rect(sector_rect, BORDER_COLOR, false, 0.75)
 			var sector_label := "BASE" if coords == CAMP_COORDS else "%d · %d" % [grid_x, grid_z]
 			_draw_text(
 				sector_label,
@@ -208,9 +233,9 @@ func _draw_sectors() -> void:
 
 
 func _draw_loot() -> void:
-	_draw_loot_group(SCRAP_GROUP, SCRAP_COLOR)
-	_draw_loot_group(AMMO_GROUP, AMMO_COLOR)
-	_draw_loot_group(HEALTH_GROUP, HEALTH_COLOR)
+	_draw_loot_group(SCRAP_GROUP, SCRAP_COLOR, &"scrap")
+	_draw_loot_group(AMMO_GROUP, AMMO_COLOR, &"ammo")
+	_draw_loot_group(HEALTH_GROUP, HEALTH_COLOR, &"health")
 	_draw_weapon_crates()
 
 
@@ -245,7 +270,9 @@ func _draw_objectives() -> void:
 		draw_circle(center, 2.5, OBJECTIVE_COLOR)
 
 
-func _draw_loot_group(group_name: StringName, color: Color) -> void:
+func _draw_loot_group(
+	group_name: StringName, color: Color, marker_type: StringName
+) -> void:
 	for pickup_value in get_tree().get_nodes_in_group(group_name):
 		var pickup := pickup_value as Node3D
 		if (
@@ -254,7 +281,7 @@ func _draw_loot_group(group_name: StringName, color: Color) -> void:
 			or not _is_inside_world(pickup.global_position)
 		):
 			continue
-		_draw_diamond(_world_to_map(pickup.global_position), 4.5, color)
+		_draw_marker(_world_to_map(pickup.global_position), marker_type, color)
 
 
 func _draw_diamond(center: Vector2, radius: float, color: Color) -> void:
@@ -267,6 +294,49 @@ func _draw_diamond(center: Vector2, radius: float, color: Color) -> void:
 		]),
 		color
 	)
+
+
+func _draw_marker(
+	center: Vector2, marker_type: StringName, color: Color
+) -> void:
+	match marker_type:
+		&"scrap":
+			_draw_diamond(center, 4.5, color)
+		&"ammo":
+			draw_rect(Rect2(center + Vector2(-5.0, -4.0), Vector2(3.0, 8.0)), color)
+			draw_rect(Rect2(center + Vector2(2.0, -4.0), Vector2(3.0, 8.0)), color)
+		&"health":
+			draw_rect(Rect2(center + Vector2(-5.0, -1.5), Vector2(10.0, 3.0)), color)
+			draw_rect(Rect2(center + Vector2(-1.5, -5.0), Vector2(3.0, 10.0)), color)
+		&"weapon":
+			draw_colored_polygon(
+				PackedVector2Array([
+					center + Vector2(0.0, -5.5),
+					center + Vector2(5.5, 5.0),
+					center + Vector2(-5.5, 5.0),
+				]),
+				color
+			)
+		&"objective":
+			draw_arc(center, 5.5, 0.0, TAU, 16, color, 1.5)
+			draw_circle(center, 1.8, color)
+		&"camp":
+			draw_rect(Rect2(center - Vector2(4.5, 4.5), Vector2(9.0, 9.0)), color)
+		&"poi":
+			draw_rect(
+				Rect2(center - Vector2(4.5, 4.5), Vector2(9.0, 9.0)),
+				color,
+				false,
+				1.5
+			)
+			draw_circle(center, 1.6, color)
+		&"enemy":
+			draw_circle(center, 4.0, color)
+			draw_line(center + Vector2(-2.0, 0.0), center + Vector2(2.0, 0.0), TEXT_COLOR, 1.0)
+			draw_line(center + Vector2(0.0, -2.0), center + Vector2(0.0, 2.0), TEXT_COLOR, 1.0)
+		&"player":
+			draw_circle(center, 4.5, color)
+			draw_circle(center, 4.5, TEXT_COLOR, false, 1.2)
 
 
 func _get_player_sector_coords() -> Vector2i:
@@ -284,7 +354,13 @@ func _draw_points_of_interest() -> void:
 		if point == null or not _is_inside_world(point.global_position):
 			continue
 		var map_position := _world_to_map(point.global_position)
-		draw_rect(Rect2(map_position - Vector2(4.0, 4.0), Vector2(8.0, 8.0)), POI_COLOR)
+		draw_rect(
+			Rect2(map_position - Vector2(4.5, 4.5), Vector2(9.0, 9.0)),
+			POI_COLOR,
+			false,
+			1.5
+		)
+		draw_circle(map_position, 1.8, POI_COLOR)
 
 
 func _draw_enemies() -> void:
@@ -292,7 +368,10 @@ func _draw_enemies() -> void:
 		var enemy := enemy_value as Node3D
 		if enemy == null or not _is_inside_world(enemy.global_position):
 			continue
-		draw_circle(_world_to_map(enemy.global_position), 3.5, ENEMY_COLOR)
+		var center := _world_to_map(enemy.global_position)
+		draw_circle(center, 4.0, ENEMY_COLOR)
+		draw_line(center + Vector2(-2.0, 0.0), center + Vector2(2.0, 0.0), TEXT_COLOR, 1.0)
+		draw_line(center + Vector2(0.0, -2.0), center + Vector2(0.0, 2.0), TEXT_COLOR, 1.0)
 
 
 func _draw_camp() -> void:
@@ -324,22 +403,46 @@ func _draw_player() -> void:
 
 func _draw_footer(panel_rect: Rect2) -> void:
 	var player_coords := _get_player_sector_coords()
-	var footer_y := _map_rect.end.y + 30.0
-	_draw_text(
-		"● PLAYER   ● HOSTILE   ■ CAMP   ■ POI   ◆ SCRAP   ◆ AMMO   ◆ MEDKIT   ▲ WEAPON   ◎ OBJECTIVE",
-		Vector2(panel_rect.position.x, footer_y),
-		12,
-		MUTED_TEXT_COLOR,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		panel_rect.size.x
-	)
+	var footer_y := _map_rect.end.y + 18.0
+	var content_width := panel_rect.size.x - 36.0
+	var first_item_width := content_width / 5.0
+	var second_item_width := content_width / 4.0
+	var first_row_x := panel_rect.position.x + 18.0
+	var second_row_x := panel_rect.position.x + 18.0
+	_draw_legend_item(Vector2(first_row_x, footer_y), first_item_width, &"player", "PLAYER", PLAYER_COLOR)
+	_draw_legend_item(Vector2(first_row_x + first_item_width, footer_y), first_item_width, &"enemy", "HOSTILE", ENEMY_COLOR)
+	_draw_legend_item(Vector2(first_row_x + first_item_width * 2.0, footer_y), first_item_width, &"camp", "CAMP", ACCENT_COLOR)
+	_draw_legend_item(Vector2(first_row_x + first_item_width * 3.0, footer_y), first_item_width, &"poi", "POI", POI_COLOR)
+	_draw_legend_item(Vector2(first_row_x + first_item_width * 4.0, footer_y), first_item_width, &"scrap", "SCRAP", SCRAP_COLOR)
+	_draw_legend_item(Vector2(second_row_x, footer_y + 18.0), second_item_width, &"ammo", "AMMO", AMMO_COLOR)
+	_draw_legend_item(Vector2(second_row_x + second_item_width, footer_y + 18.0), second_item_width, &"health", "MEDKIT", HEALTH_COLOR)
+	_draw_legend_item(Vector2(second_row_x + second_item_width * 2.0, footer_y + 18.0), second_item_width, &"weapon", "WEAPON", WEAPON_COLOR)
+	_draw_legend_item(Vector2(second_row_x + second_item_width * 3.0, footer_y + 18.0), second_item_width, &"objective", "OBJECTIVE", OBJECTIVE_COLOR)
 	_draw_text(
 		"CURRENT SECTOR  %d · %d" % [player_coords.x, player_coords.y],
-		Vector2(panel_rect.position.x, footer_y + 20.0),
+		Vector2(panel_rect.position.x, footer_y + 40.0),
 		12,
 		ACCENT_COLOR,
 		HORIZONTAL_ALIGNMENT_CENTER,
 		panel_rect.size.x
+	)
+
+
+func _draw_legend_item(
+	origin: Vector2,
+	item_width: float,
+	marker_type: StringName,
+	label: String,
+	color: Color
+) -> void:
+	_draw_marker(origin + Vector2(7.0, -3.5), marker_type, color)
+	_draw_text(
+		label,
+		origin + Vector2(17.0, 0.0),
+		10,
+		MUTED_TEXT_COLOR,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		item_width - 18.0
 	)
 
 
