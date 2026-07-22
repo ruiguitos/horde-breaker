@@ -1,0 +1,68 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/melee_weapon.gd" id="1_melee_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_blade"]
+albedo_color = Color(0.72, 0.78, 0.82, 1)
+metallic = 0.55
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Material_handle"]
+albedo_color = Color(0.19, 0.11, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="Mesh_handle"]
+material = SubResource("Material_handle")
+top_radius = 0.045
+bottom_radius = 0.045
+height = 1.8
+
+[sub_resource type="PrismMesh" id="Mesh_tip"]
+material = SubResource("Material_blade")
+size = Vector3(0.18, 0.42, 0.08)
+
+[sub_resource type="BoxMesh" id="Mesh_guard"]
+material = SubResource("Material_blade")
+size = Vector3(0.28, 0.06, 0.08)
+
+[sub_resource type="BoxShape3D" id="Shape_attack"]
+size = Vector3(2.2, 1.8, 3.4)
+
+[node name="Spear" type="Node3D" groups=["player_weapon"]]
+script = ExtResource("1_melee_script")
+display_name = "Spear"
+weapon_id = &"spear"
+damage = 42.0
+attack_cooldown = 0.75
+aim_range = 12.0
+attack_animation = &"Stab"
+
+[node name="SwordVisualPivot" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0, 0.35, -0.4)
+rotation = Vector3(1.5708, 0, 0)
+
+[node name="Handle" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, -0.65, 0)
+mesh = SubResource("Mesh_handle")
+
+[node name="Tip" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, 0.42, 0)
+mesh = SubResource("Mesh_tip")
+
+[node name="Guard" type="MeshInstance3D" parent="SwordVisualPivot"]
+position = Vector3(0, 0.18, 0)
+mesh = SubResource("Mesh_guard")
+
+[node name="AttackArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(-0.7, 0.5, -1.8)
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="AttackCollision" type="CollisionShape3D" parent="AttackArea"]
+unique_name_in_owner = true
+shape = SubResource("Shape_attack")

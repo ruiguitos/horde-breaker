@@ -9,6 +9,14 @@ const BRANCH_OFFENSE := &"offense"
 const BRANCH_SURVIVAL := &"survival"
 const BRANCH_EXPEDITION := &"expedition"
 
+const REQUIRED_LEVEL_BY_TIER := {
+	1: 2,
+	2: 5,
+	3: 9,
+	4: 14,
+	5: 20,
+}
+
 const BRANCHES: Array[Dictionary] = [
 	{"id": BRANCH_OFFENSE, "title": "OFFENSE"},
 	{"id": BRANCH_SURVIVAL, "title": "SURVIVAL"},
@@ -145,6 +153,13 @@ static func get_prerequisite_id(node_id: StringName) -> StringName:
 		):
 			return candidate["id"]
 	return &""
+
+
+static func get_required_level(node_id: StringName) -> int:
+	var node := get_node_definition(node_id)
+	if node.is_empty():
+		return 0
+	return int(REQUIRED_LEVEL_BY_TIER.get(int(node["tier"]), 0))
 
 
 static func get_bonuses(unlocked_ids: Array) -> Dictionary:

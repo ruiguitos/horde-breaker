@@ -7,10 +7,6 @@ enum WeaponSlot {
 	SECONDARY,
 }
 
-const ASSAULT_RIFLE_DATA: WeaponData = preload("res://data/weapons/assault_rifle.tres")
-const PISTOL_DATA: WeaponData = preload("res://data/weapons/pistol.tres")
-const SHOTGUN_DATA: WeaponData = preload("res://data/weapons/shotgun.tres")
-const WORN_SWORD_DATA: WeaponData = preload("res://data/weapons/worn_sword.tres")
 const WEAPON_PICKUP_SCENE := preload("res://scenes/pickups/weapon_pickup.tscn")
 const PLAYER_GROUP := &"player"
 
@@ -23,11 +19,23 @@ var _active_weapon: Node3D
 var _active_slot: int = WeaponSlot.PRIMARY
 
 
-func configure(character_data: CharacterData) -> void:
+func configure(
+	character_data: CharacterData,
+	primary_weapon_id: StringName = &"",
+	secondary_weapon_id: StringName = &""
+) -> void:
 	if character_data == null:
 		return
-	_primary_weapon_id = character_data.primary_weapon_id
-	_secondary_weapon_id = character_data.secondary_weapon_id
+	_primary_weapon_id = (
+		primary_weapon_id
+		if primary_weapon_id != &""
+		else character_data.primary_weapon_id
+	)
+	_secondary_weapon_id = (
+		secondary_weapon_id
+		if secondary_weapon_id != &""
+		else character_data.secondary_weapon_id
+	)
 	_reload_duration_multiplier = character_data.reload_duration_multiplier
 
 
@@ -198,12 +206,4 @@ func _get_weapon_name(weapon_id: StringName) -> String:
 
 
 func _get_weapon_data(weapon_id: StringName) -> WeaponData:
-	if weapon_id == ASSAULT_RIFLE_DATA.weapon_id:
-		return ASSAULT_RIFLE_DATA
-	if weapon_id == PISTOL_DATA.weapon_id:
-		return PISTOL_DATA
-	if weapon_id == SHOTGUN_DATA.weapon_id:
-		return SHOTGUN_DATA
-	if weapon_id == WORN_SWORD_DATA.weapon_id:
-		return WORN_SWORD_DATA
-	return null
+	return WeaponCatalog.get_weapon_data(weapon_id)

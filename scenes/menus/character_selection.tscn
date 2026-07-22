@@ -99,6 +99,13 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "SKILL TREE"
 
+[node name="ArmoryButton" type="Button" parent="PageMargin/Content/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+size_flags_vertical = 4
+text = "ARMORY"
+
 [node name="CreditsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
 custom_minimum_size = Vector2(176, 46)
 layout_mode = 2
@@ -377,7 +384,7 @@ custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Shotgun + Worn Sword
-140 health points."
+150 health points."
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
@@ -486,8 +493,8 @@ color = Color(0.294, 0.698, 0.465, 1)
 custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Pistol
-Regenerates 4 HP/s after 3 s."
+text = "Pistol + Spear
+Regenerates 3 HP/s after 4 s."
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]

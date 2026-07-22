@@ -329,8 +329,8 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Contador de FPS global adicionado como autoload `FpsOverlay`, sempre visível, com cor por faixa (verde/amarelo/vermelho) e alternável com `F3`.
 - [x] Primeira ronda de otimização de desempenho: aquisição de alvo do disparo automático passou a fazer os raycasts por inimigo só algumas vezes por segundo (cache entre varreduras), corrigindo também um erro de objeto libertado; repath dos inimigos throttlado e escalonado (0,35 s) com cache do alvo do jogador; setores carregados em simultâneo reduzidos de ~9 para ~5 baixando o raio de streaming (72 m / descarga 96 m) para cortar draw calls no renderer GL Compatibility.
 - [x] Geração de setores movida para threads de trabalho (`WorkerThreadPool`): a construção da subárvore (estradas, adereços, navegação) deixou de correr na thread principal, eliminando o "break" de ~230 ms ao entrar numa zona nova; o setor pronto é apenas adicionado à cena na thread principal, com o resultado descartado em segurança se o jogador se afastar entretanto.
-- [x] Limite de níveis removido: as personagens sobem de nível sem teto e ganham um ponto de habilidade por nível.
-- [x] Árvore de habilidades permanente por personagem (`SkillTree`): três ramos (Ofensiva, Sobrevivência, Expedição) de cinco níveis, com pré-requisitos por tier, guardada no save e aplicada a cada partida (dano, cadência, recarga, vida, regeneração, redução de dano, velocidade, reserva de munição, e multiplicadores de Scrap e XP).
+- [x] Limite de níveis removido: as personagens sobem de nível sem teto e ganham um ponto de habilidade a cada dois níveis.
+- [x] Árvore de habilidades permanente por personagem (`SkillTree`): três ramos (Ofensiva, Sobrevivência, Expedição) de cinco níveis, com pré-requisitos e níveis mínimos 2/5/9/14/20 por tier, guardada no save e aplicada a cada partida (dano, cadência, recarga, vida, regeneração, redução de dano, velocidade, reserva de munição, e multiplicadores de Scrap e XP).
 - [x] Ecrã de skill tree acessível por um botão na seleção de personagens, que constrói os cartões dinamicamente com estados desbloqueado/disponível/bloqueado e pontos disponíveis.
 - [x] "Field Upgrade" (painel de melhorias entre rondas) removido por completo, substituído pela skill tree permanente.
 - [x] Ao equipar uma arma encontrada, a arma substituída é largada no chão como pickup, podendo ser reapanhada com `F`.
@@ -403,21 +403,43 @@ zona de reabastecimento e todo o jogo em inglês.
   Aprendizagem registada: modelos de armas futuros exigem `BoneAttachment3D` ao
   osso da mão ou vir embutidos no rig do personagem.
 
+- [x] Progressão da skill tree abrandada: um ponto a cada dois níveis, tiers
+  bloqueados até aos níveis 2/5/9/14/20 e migração conservadora que nunca remove
+  skills já desbloqueadas nem mostra pontos negativos em saves antigos.
+- [x] `ARMORY` funcional adicionado à seleção de classes: catálogo por classe,
+  requisitos de nível/Créditos, compra permanente e equipamento persistente nos
+  slots `[1]`/`[2]`, incluindo troca automática quando a mesma arma muda de slot.
+- [x] Medic concluído com Pistol + Spear, malha `Spear` embutida no rig, golpe
+  melee de 42 de dano, alcance superior e animação `Stab`.
+- [x] Primeiro passe de equilíbrio das classes: Recruit mantém 100 HP, 1 HP/s
+  após 6 s e recarga 30% mais rápida; Renegade passa a 150 HP; Medic mantém
+  100 HP e regenera 3 HP/s após 4 s. Alcances automáticos iniciais: AR 6 m,
+  Pistol 5,5 m e Shotgun 4,5 m.
+
 
 ## Milestone atual
 
-**Milestone 19 — Open World Sandbox (horda contínua, reabastecimento e localização em inglês)**
+**Milestone 20 — Arsenal e progressão controlada**
 
 ## Próxima tarefa
 
-Fazer um playtest manual curto do facelift Tier 1 (hover/press com rato e
-teclado, mudança entre classes já desbloqueadas e legibilidade durante a órbita)
-e depois escolher entre o ecrã `ARMORY` ou as novas armas baseadas nas malhas
-embutidas do rig. Mixamo e armas externas continuam parqueados.
+Fazer um playtest curto das três classes: ritmo de pontos/requisitos da skill
+tree, compra e troca de slots no `ARMORY`, alcance/dano das armas, regeneração
+do Medic e golpe da Spear. O facelift adicional dos menus fica adiado a pedido
+do utilizador; Mixamo e armas externas continuam parqueados.
 
 ## Validação
 
 - Godot disponível: `4.7.stable.mono.official.5b4e0cb0f`.
+- Milestone 20: importação headless sem erros; `armory_screen`,
+  `character_selection`, `skill_tree_screen`, `spear`, `medic` e `test_arena`
+  executados isoladamente durante 60 frames sem `SCRIPT ERROR`.
+- Teste integrado com save isolado confirmou 33 verificações: níveis mínimos,
+  pontos a cada dois níveis, preservação de skills antigas, migração do loadout
+  do Medic, catálogo, compra da Pistol pelo Renegade, persistência/troca dos
+  slots e Spear ativa com malha embutida e animação `Stab`.
+- Capturas OpenGL a 1152 × 648 confirmaram o novo `ARMORY` e o botão na seleção
+  de classes sem cortes nem sobreposições.
 - Facelift Tier 1: importação headless concluída sem erros; `main_menu.tscn` e
   `character_selection.tscn` executados isoladamente durante 60 frames sem
   `SCRIPT ERROR`.
@@ -690,7 +712,7 @@ embutidas do rig. Mixamo e armas externas continuam parqueados.
 
 - resolução inicial;
 - layout definitivo de controlos.
-- arma ou ferramenta secundária definitiva do Medic.
+- afinação final da Spear como secundária do Medic.
 - afinação final dos 30/45 segundos, custo de 30 Scrap, 200 pontos de vida e limites da reparação/construção no modo survival contínuo.
 - alcance final do disparo automático entre 2 e 3 metros e permanência do controlo manual.
 - aprovação da expansão do protótipo de dois setores para 16 setores e 256 × 256 metros.
@@ -701,7 +723,7 @@ embutidas do rig. Mixamo e armas externas continuam parqueados.
 - Os oito caches exteriores são estáticos; o Scrap do armazém e da estação reaparece por ciclo, ainda sem loot aleatório ou inventário.
 - Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
-- O Medic tem o segundo slot preparado, mas vazio, até ser escolhida uma arma ou ferramenta adequada.
+- A Spear do Medic é funcional, mas dano, alcance e cadência ainda precisam de playtest.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.

@@ -6,6 +6,11 @@ signal character_purchased(character_id: StringName)
 signal selected_character_changed(character_id: StringName)
 signal weapon_purchased(character_id: StringName, weapon_id: StringName)
 signal selected_weapon_changed(character_id: StringName, weapon_id: StringName)
+signal selected_loadout_changed(
+	character_id: StringName,
+	primary_weapon_id: StringName,
+	secondary_weapon_id: StringName
+)
 signal skill_points_changed(character_id: StringName)
 signal mastery_progress_changed(character_id: StringName, objective_id: StringName)
 signal mastery_completed(character_id: StringName, objective_id: StringName)
@@ -18,6 +23,7 @@ const ASSAULT_RIFLE_ID := &"assault_rifle"
 const PISTOL_ID := &"pistol"
 const SHOTGUN_ID := &"shotgun"
 const WORN_SWORD_ID := &"worn_sword"
+const SPEAR_ID := &"spear"
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
 const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
 const MEDIC_DATA: CharacterData = preload("res://data/characters/medic.tres")
@@ -182,7 +188,8 @@ func add_character_xp(character_id: StringName, amount: int) -> int:
 	if amount <= 0:
 		return 0
 
-	# Characters level up without a cap; each level grants one skill point.
+	# Characters level up without a cap. Skill points are derived from the
+	# resulting level and are awarded every two levels.
 	var section := String(character_id)
 	var level := get_character_level(character_id)
 	var xp := get_character_xp(character_id)
@@ -207,8 +214,12 @@ func add_character_xp(character_id: StringName, amount: int) -> int:
 
 
 func get_earned_skill_points(character_id: StringName) -> int:
-	# One point per level gained past level 1.
-	return maxi(get_character_level(character_id) - 1, 0)
+	# Levels 2, 4, 6... each grant one permanent point.
+	return floori(float(get_character_level(character_id)) / 2.0)
+
+
+func get_next_skill_point_level(character_id: StringName) -> int:
+	return (get_earned_skill_points(character_id) + 1) * 2
 
 
 func get_unlocked_skill_nodes(character_id: StringName) -> PackedStringArray:
@@ -219,9 +230,13 @@ func get_unlocked_skill_nodes(character_id: StringName) -> PackedStringArray:
 
 
 func get_available_skill_points(character_id: StringName) -> int:
-	return (
+	# Existing profiles keep every unlocked node. If an older profile spent more
+	# points than the new cadence grants, it simply earns no new point until its
+	# level catches up; the UI must never display a negative value.
+	return maxi(
 		get_earned_skill_points(character_id)
-		- get_unlocked_skill_nodes(character_id).size()
+		- get_unlocked_skill_nodes(character_id).size(),
+		0
 	)
 
 
@@ -230,10 +245,12 @@ func is_skill_node_unlocked(character_id: StringName, node_id: StringName) -> bo
 
 
 func can_unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
+	var node_definition := SkillTree.get_node_definition(node_id)
 	if (
-		SkillTree.get_node_definition(node_id).is_empty()
+		node_definition.is_empty()
 		or is_skill_node_unlocked(character_id, node_id)
 		or get_available_skill_points(character_id) <= 0
+		or get_character_level(character_id) < SkillTree.get_required_level(node_id)
 	):
 		return false
 	var prerequisite := SkillTree.get_prerequisite_id(node_id)
@@ -328,7 +345,9 @@ func can_purchase_weapon(character_id: StringName, weapon_data: WeaponData) -> b
 	if weapon_data == null:
 		return false
 	return (
-		not is_weapon_purchased(character_id, weapon_data.weapon_id)
+		is_character_unlocked(character_id)
+		and weapon_data.is_playable
+		and not is_weapon_purchased(character_id, weapon_data.weapon_id)
 		and meets_weapon_requirements(character_id, weapon_data)
 	)
 
@@ -378,8 +397,16 @@ func get_secondary_weapon(character_id: StringName) -> StringName:
 
 
 func select_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
+	return select_weapon_for_slot(character_id, weapon_data, &"primary")
+
+
+func select_weapon_for_slot(
+	character_id: StringName, weapon_data: WeaponData, slot: StringName
+) -> bool:
 	if (
 		weapon_data == null
+		or slot not in [&"primary", &"secondary"]
+		or not is_character_unlocked(character_id)
 		or (
 			weapon_data.required_character_id != &""
 			and weapon_data.required_character_id != character_id
@@ -388,12 +415,30 @@ func select_weapon(character_id: StringName, weapon_data: WeaponData) -> bool:
 		or not is_weapon_purchased(character_id, weapon_data.weapon_id)
 	):
 		return false
+	var primary_weapon_id := get_primary_weapon(character_id)
+	var secondary_weapon_id := get_secondary_weapon(character_id)
+	if slot == &"primary":
+		if primary_weapon_id == weapon_data.weapon_id:
+			return true
+		if secondary_weapon_id == weapon_data.weapon_id:
+			secondary_weapon_id = primary_weapon_id
+		primary_weapon_id = weapon_data.weapon_id
+	else:
+		if secondary_weapon_id == weapon_data.weapon_id:
+			return true
+		if primary_weapon_id == weapon_data.weapon_id:
+			primary_weapon_id = secondary_weapon_id
+		secondary_weapon_id = weapon_data.weapon_id
 	_config.set_value(
-		String(character_id), "selected_weapon", String(weapon_data.weapon_id)
+		String(character_id), "selected_primary_weapon", String(primary_weapon_id)
+	)
+	_config.set_value(
+		String(character_id), "selected_secondary_weapon", String(secondary_weapon_id)
 	)
 	if not save_progress():
 		return false
 	selected_weapon_changed.emit(character_id, weapon_data.weapon_id)
+	selected_loadout_changed.emit(character_id, primary_weapon_id, secondary_weapon_id)
 	return true
 
 
@@ -474,7 +519,7 @@ func _ensure_defaults() -> bool:
 		_set_default(
 			String(MEDIC_ID),
 			"purchased_weapons",
-			PackedStringArray([String(PISTOL_ID)])
+			PackedStringArray([String(PISTOL_ID), String(SPEAR_ID)])
 		)
 		or defaults_added
 	)
@@ -485,15 +530,15 @@ func _ensure_defaults() -> bool:
 		or defaults_added
 	)
 	defaults_added = (
-		_set_default(String(MEDIC_ID), "selected_secondary_weapon", "")
+		_set_default(String(MEDIC_ID), "selected_secondary_weapon", String(SPEAR_ID))
 		or defaults_added
 	)
-	# The short-lived Revolver experiment stored itself as the medic secondary;
-	# clean it back to the empty slot.
+	# Migrate the former empty/experimental Medic slot to the Spear without
+	# changing any other loadout choice already stored by a later profile.
 	if String(
 		_config.get_value(String(MEDIC_ID), "selected_secondary_weapon", "")
-	) == "revolver":
-		_config.set_value(String(MEDIC_ID), "selected_secondary_weapon", "")
+	) in ["", "revolver"]:
+		_config.set_value(String(MEDIC_ID), "selected_secondary_weapon", String(SPEAR_ID))
 		defaults_added = true
 	defaults_added = (
 		_ensure_purchased_weapons(
@@ -508,7 +553,9 @@ func _ensure_defaults() -> bool:
 		or defaults_added
 	)
 	defaults_added = (
-		_ensure_purchased_weapons(MEDIC_ID, PackedStringArray([String(PISTOL_ID)]))
+		_ensure_purchased_weapons(
+			MEDIC_ID, PackedStringArray([String(PISTOL_ID), String(SPEAR_ID)])
+		)
 		or defaults_added
 	)
 	return defaults_added

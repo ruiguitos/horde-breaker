@@ -1,0 +1,224 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/armory_screen.gd" id="1_armory_script"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+
+[node name="ArmoryScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_armory_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.016, 0.027, 0.043, 1)
+
+[node name="DiagonalAccent" type="ColorRect" parent="Background"]
+layout_mode = 0
+offset_left = -220.0
+offset_top = 560.0
+offset_right = 1500.0
+offset_bottom = 588.0
+rotation = -0.16
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.07)
+
+[node name="TopRail" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 4.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.906, 0.566, 0.239, 0.9)
+
+[node name="PageMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 24.0
+offset_right = -34.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="PageMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TopBar" type="HBoxContainer" parent="PageMargin/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="BackButton" type="Button" parent="PageMargin/Content/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 46)
+layout_mode = 2
+text = "<  BACK"
+
+[node name="Heading" type="VBoxContainer" parent="PageMargin/Content/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Eyebrow" type="Label" parent="PageMargin/Content/TopBar/Heading"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "PERMANENT EQUIPMENT"
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="PageMargin/Content/TopBar/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
+theme_override_font_sizes/font_size = 28
+text = "RECRUIT ARMORY"
+horizontal_alignment = 1
+
+[node name="CreditsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
+custom_minimum_size = Vector2(190, 46)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HudPanel"
+
+[node name="CreditsLabel" type="Label" parent="PageMargin/Content/TopBar/CreditsCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
+theme_override_font_sizes/font_size = 15
+text = "CREDITS  -  0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="PageMargin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="LoadoutPanel" type="PanelContainer" parent="PageMargin/Content/Body"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_type_variation = &"MenuPanel"
+
+[node name="Margin" type="MarginContainer" parent="PageMargin/Content/Body/LoadoutPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Content" type="VBoxContainer" parent="PageMargin/Content/Body/LoadoutPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Caption" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "SELECTED OPERATIVE"
+
+[node name="ClassLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Recruit"
+
+[node name="LevelLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "LEVEL 1  -  PERMANENT LOADOUT"
+
+[node name="Divider" type="HSeparator" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+layout_mode = 2
+
+[node name="PrimaryCaption" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "PRIMARY  [1]"
+
+[node name="PrimaryCard" type="PanelContainer" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="PrimaryWeaponLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content/PrimaryCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Assault Rifle"
+vertical_alignment = 1
+
+[node name="SecondaryCaption" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "SECONDARY  [2]"
+
+[node name="SecondaryCard" type="PanelContainer" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="SecondaryWeaponLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content/SecondaryCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Pistol"
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+text = "Purchased weapons are permanent.\nEquipping the same weapon in the other slot swaps the loadout."
+vertical_alignment = 2
+autowrap_mode = 2
+
+[node name="InventoryPanel" type="PanelContainer" parent="PageMargin/Content/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MenuPanel"
+
+[node name="Margin" type="MarginContainer" parent="PageMargin/Content/Body/InventoryPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="Content" type="VBoxContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"SectionTitle"
+text = "AVAILABLE WEAPONS"
+
+[node name="Subheader" type="Label" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Buy eligible weapons with Credits, then assign them to slot 1 or 2."
+
+[node name="WeaponsScroll" type="ScrollContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="WeaponsList" type="VBoxContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/WeaponsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10

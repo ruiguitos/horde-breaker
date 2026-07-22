@@ -52,8 +52,11 @@ GL Compatibility), GDScript tipado, sem C#.
   tree), Credits por ciclo, **mastery** (kills, threat level) e feedback de
   mastery completa.
 - `pickup_randomizer.gd` — posições de Scrap/munições do acampamento por partida.
-- `skill_tree.gd` / `character_skills.gd` — definições da árvore e aplicação dos
-  bónus à partida.
+- `skill_tree.gd` / `character_skills.gd` — definições da árvore, níveis mínimos
+  2/5/9/14/20 por tier e aplicação dos bónus à partida; o `SaveManager` deriva
+  um ponto a cada dois níveis e preserva skills de saves antigos.
+- `weapon_catalog.gd` — catálogo único dos `WeaponData` jogáveis usado pelo
+  `WeaponController` e pelo ecrã `ARMORY`.
 - `character_mastery.gd` — definições dos objetivos de mastery (goal, recompensa,
   modo acumular vs. máximo).
 
@@ -65,7 +68,7 @@ GL Compatibility), GDScript tipado, sem C#.
   `renegade.tscn`/`medic.tscn` herdam e trocam o modelo (`ClassModel`).
 - `imported_model_animation.gd` — componente único de animação por nomes de
   clips: locomoção (idle/walk/run/crouch/airborne) conforme o estado do corpo e
-  a arma ativa (gun vs sword), `Slash` no melee, e por sinais do corpo:
+  a arma ativa (gun vs melee), `Slash`/`Stab` no melee, e por sinais do corpo:
   `attacked` → `Idle_Attack`, `health_changed` → `HitReact` (cooldown 0,9 s),
   `died` → `Death` (trava a locomoção).
 - `normal_zombie.gd` — base dos inimigos: perseguição por `NavigationAgent3D`
@@ -78,8 +81,8 @@ GL Compatibility), GDScript tipado, sem C#.
 
 ## Armas e pickups
 
-- `weapon_controller.gd` — loadout 1/2, troca em runtime
-  (`equip_field_weapon`), sinal `active_weapon_changed`.
+- `weapon_controller.gd` — loadout permanente 1/2 escolhido no `ARMORY`, troca
+  em runtime (`equip_field_weapon`), sinal `active_weapon_changed`.
 - `hitscan_weapon.gd` — raycast câmara→ponto + cano→impacto, dano por zonas,
   munição carregador/reserva, recarga, **auto-fire a 6 m** com raycasts
   throttled; `melee_weapon.gd` — golpe frontal em área.
@@ -108,7 +111,8 @@ GL Compatibility), GDScript tipado, sem C#.
 
 ## Dados estáticos
 
-`CharacterData`, `WeaponData` (`data/characters`, `data/weapons`) como
+`CharacterData`, `WeaponData` (`data/characters`, `data/weapons`, incluindo a
+Spear do Medic) como
 `Resource` tipados; `WaveData` legado (não usado pelo diretor contínuo).
 
 ## Validação

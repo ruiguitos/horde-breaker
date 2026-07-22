@@ -4,6 +4,7 @@ const MAIN_MENU_SCENE := "res://scenes/menus/main_menu.tscn"
 const CHARACTER_SELECTION_SCENE := "res://scenes/menus/character_selection.tscn"
 const SETTINGS_SCENE := "res://scenes/menus/settings_menu.tscn"
 const SKILL_TREE_SCENE := "res://scenes/menus/skill_tree_screen.tscn"
+const ARMORY_SCENE := "res://scenes/menus/armory_screen.tscn"
 const TEST_ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const FADE_OUT_DURATION := 0.18
 const FADE_IN_DURATION := 0.3
@@ -31,6 +32,10 @@ func open_settings() -> void:
 
 func open_skill_tree() -> void:
 	_change_scene(SKILL_TREE_SCENE)
+
+
+func open_armory() -> void:
+	_change_scene(ARMORY_SCENE)
 
 
 func start_game() -> void:

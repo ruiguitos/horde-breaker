@@ -79,7 +79,7 @@ text = "SKILL TREE"
 horizontal_alignment = 1
 
 [node name="PointsCard" type="PanelContainer" parent="PageMargin/Content/TopBar"]
-custom_minimum_size = Vector2(210, 46)
+custom_minimum_size = Vector2(286, 46)
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"HudPanel"
@@ -89,7 +89,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 15
-text = "SKILL POINTS  ·  0"
+text = "LV 1  ·  0 PTS  ·  NEXT LV 2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -102,5 +102,5 @@ theme_override_constants/separation = 16
 [node name="Hint" type="Label" parent="PageMargin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Spend skill points from the top of each branch downward. Bonuses are permanent and apply every run for this character."
+text = "Earn 1 point every 2 levels. Each tier also requires its displayed character level; unspent points are saved."
 horizontal_alignment = 1

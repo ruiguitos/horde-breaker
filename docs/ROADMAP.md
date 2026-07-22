@@ -27,15 +27,22 @@ cada um vive no histórico do `docs/PROGRESS.md`.
   no save, melhorias da base, mastery, animações de ataque/dano/morte,
   orçamento de IA e métricas de streaming.
 
-## Milestone 20 — Arsenal e arte de armas (atual)
+## Milestone 20 — Arsenal e progressão controlada (atual)
 
-Objetivo: substituir os modelos estáticos das armas pelo pack CC0
-**Quaternius Animated Guns** e alargar o arsenal.
+Objetivo: tornar compras/loadouts utilizáveis e impedir que a skill tree seja
+concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
 
-- [ ] Integrar o pack (download do utilizador): Pistol, Shotgun, AR/P90.
-- [ ] Ligar animações de disparo/recarga aos eventos do `WeaponController`.
-- [ ] Avaliar SMG (P90) e Marksman (sniper) como armas novas compráveis.
-- [ ] Rever balanceamento do arsenal após playtest.
+- [x] Pontos de skill ganhos a cada dois níveis e tiers limitados aos níveis
+  2/5/9/14/20, sem retirar skills de saves anteriores.
+- [x] Ecrã `ARMORY` com estados comprado/comprável/bloqueado, compra com Credits
+  e escolha persistente dos slots 1/2.
+- [x] Spear do Medic baseada na malha embutida, com alcance melee e animação `Stab`.
+- [x] Primeiro passe de identidade das classes: Recruit 100 HP/recarga rápida,
+  Renegade 150 HP, Medic 100 HP/regeneração 3 HP/s após 4 s.
+- [ ] Rever dano, cadência, alcance automático e regeneração após playtest das
+  três classes.
+- [ ] Avaliar SMG e Fire Axe como próximas armas compráveis, apenas com malhas
+  embutidas no rig atual.
 
 ## Milestone 21 — Ambiente e POIs finais
 
@@ -46,8 +53,8 @@ Objetivo: substituir os modelos estáticos das armas pelo pack CC0
 ## Milestone 22 — Balanceamento e sensação de jogo
 
 - [ ] Curva do diretor de horda (intervalo de subida, lotes, limite simultâneo).
-- [ ] Decisões de playtest pendentes: alcance do auto-fire (2–3 m vs 6 m),
-  manter disparo manual, 2ª arma do Medic.
+- [ ] Decisões de playtest pendentes: alcance do auto-fire por arma e manter
+  disparo manual.
 - [ ] Mini-hitch do `add_child` dos setores (encaixar malhas por frames) — em
   espera a pedido do utilizador.
 

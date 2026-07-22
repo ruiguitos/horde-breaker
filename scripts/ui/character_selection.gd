@@ -25,6 +25,7 @@ const LOCKED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 @onready var secondary_weapon_label: Label = %SecondaryWeaponLabel
 @onready var back_button: Button = %BackButton
 @onready var skill_tree_button: Button = %SkillTreeButton
+@onready var armory_button: Button = %ArmoryButton
 @onready var character_preview: Node3D = %CharacterPreview
 
 var _displayed_credits := 0
@@ -34,6 +35,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	back_button.pressed.connect(GameManager.open_main_menu)
 	skill_tree_button.pressed.connect(GameManager.open_skill_tree)
+	armory_button.pressed.connect(GameManager.open_armory)
 	recruit_button.pressed.connect(_on_character_pressed.bind(RECRUIT_DATA))
 	renegade_button.pressed.connect(_on_character_pressed.bind(RENEGADE_DATA))
 	medic_button.pressed.connect(_on_character_pressed.bind(MEDIC_DATA))
@@ -99,10 +101,10 @@ func _refresh() -> void:
 		_get_mastery_detail(selected_data.character_id),
 	]
 	primary_weapon_label.text = _get_weapon_name(
-		selected_data.primary_weapon_id
+		SaveManager.get_primary_weapon(selected_data.character_id)
 	)
 	secondary_weapon_label.text = _get_weapon_name(
-		selected_data.secondary_weapon_id
+		SaveManager.get_secondary_weapon(selected_data.character_id)
 	)
 
 
@@ -176,6 +178,8 @@ func _get_weapon_name(weapon_id: StringName) -> String:
 		return "Shotgun"
 	if weapon_id == &"worn_sword":
 		return "Worn Sword"
+	if weapon_id == &"spear":
+		return "Spear"
 	return "—"
 
 

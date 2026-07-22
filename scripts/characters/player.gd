@@ -37,7 +37,11 @@ var _standing_collision_y: float
 var _standing_camera_y: float
 
 
-func configure_character(character_data: CharacterData) -> void:
+func configure_character(
+	character_data: CharacterData,
+	primary_weapon_id: StringName = &"",
+	secondary_weapon_id: StringName = &""
+) -> void:
 	if character_data == null:
 		push_error("Player requires valid CharacterData.")
 		return
@@ -46,7 +50,12 @@ func configure_character(character_data: CharacterData) -> void:
 	health_regeneration_delay = character_data.health_regeneration_delay
 	var weapon_controller := get_node("VisualRoot/WeaponPivot")
 	if weapon_controller.has_method(&"configure"):
-		weapon_controller.call(&"configure", character_data)
+		weapon_controller.call(
+			&"configure",
+			character_data,
+			primary_weapon_id,
+			secondary_weapon_id
+		)
 
 
 func _ready() -> void:

@@ -37,6 +37,7 @@ starting_reserve_ammunition = 48
 maximum_reserve_ammunition = 120
 reload_duration = 1.3
 automatic_fire = false
+proximity_auto_fire_range = 5.5
 weapon_id = &"pistol"
 display_name = "Pistol"
 

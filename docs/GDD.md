@@ -28,9 +28,9 @@ progressão permanente (XP, skill tree, mastery, Credits) transita entre partida
 Três classes com loadout primário/secundário (`1`/`2`) e passivos:
 
 - **Recruit** (Assault): Assault Rifle + Pistol; recarrega 30% mais rápido.
-- **Renegade** (Vanguard): Shotgun + Worn Sword; 140 de vida. Desbloqueio: 500 Credits.
-- **Medic** (Support): Pistol; regenera 4 HP/s após 3 s sem dano. Desbloqueio: 750 Credits.
-  (2ª arma própria por decidir após playtest.)
+- **Renegade** (Vanguard): Shotgun + Worn Sword; 150 de vida. Desbloqueio: 500 Credits.
+- **Medic** (Support): Pistol + Spear; regenera 3 HP/s após 4 s sem dano.
+  Desbloqueio: 750 Credits.
 
 Movimento: andar 4 m/s, correr 7 m/s (`Shift`), salto (`Space`), agachar
 (`Ctrl`), interação (`F`), vista frontal (`C`), mira sobre o ombro (botão
@@ -92,11 +92,14 @@ desaparece pouco depois.
 ## Progressão
 
 - **Scrap**: moeda da partida (desaparece no fim).
-- **Credits**: moeda permanente (ciclos e mastery) — desbloqueia classes.
-- **Character XP**: por classe, **sem teto de nível**; 1 skill point por nível.
+- **Credits**: moeda permanente (ciclos e mastery) — desbloqueia classes e armas.
+- **Character XP**: por classe, **sem teto de nível**; 1 skill point a cada 2 níveis.
 - **Skill tree permanente** por classe: 3 ramos (Offense/Survival/Expedition) ×
-  5 tiers com pré-requisitos (dano, cadência, recarga, vida, regen, redução de
-  dano, velocidade, reserva de munição, +Scrap, +XP).
+  5 tiers com pré-requisitos e níveis mínimos 2/5/9/14/20 (dano, cadência,
+  recarga, vida, regen, redução de dano, velocidade, reserva de munição,
+  +Scrap, +XP).
+- **Arsenal permanente**: o ecrã `ARMORY` permite comprar armas elegíveis com
+  Credits e equipá-las nos slots 1/2; nível, compatibilidade e compra ficam no save.
 - **Mastery por classe** (persistente, recompensa em Credits):
   EXTERMINATOR (100 abates), STORM RIDER (nível de ameaça 5 numa partida),
   SCAVENGER (500 Scrap recolhido).
@@ -108,12 +111,13 @@ desaparece pouco depois.
 Low-poly CC0 (kit Quaternius Zombie Apocalypse) + primitivas graybox para
 protótipos. Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
 Quaternius para modelos e animações (cobre todos os movimentos necessários);
-Mixamo parqueado. Próximo passo de arte: pack CC0 "Animated Guns" (armas) e
-packs de edifícios (downloads do utilizador).
+Mixamo parqueado. As armas visíveis continuam a ser as malhas embutidas nos
+modelos; armas externas só serão reconsideradas com `BoneAttachment3D`. O
+próximo passo de arte é melhorar os edifícios/POIs quando houver assets aprovados.
 
 ## Interface
 
-Menu principal, seleção de classes (com mastery), skill tree, definições
+Menu principal, seleção de classes (com mastery), `ARMORY`, skill tree, definições
 (janela/resolução/VSync/sensibilidade/som), pausa, derrota. HUD minimalista:
 vida, munição + arma, faixa de ameaça, Scrap, feed de mensagens. Mapa tático
 (`Tab`): setores, visitados, loot, POIs, inimigos, bússola. FPS overlay (`F3`)

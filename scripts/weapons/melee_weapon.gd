@@ -13,6 +13,7 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @export_range(0.1, 5.0, 0.05) var attack_cooldown: float = 0.6
 @export_range(0.05, 1.0, 0.05) var swing_duration: float = 0.2
 @export_range(1.0, 20.0, 0.1) var aim_range: float = 10.0
+@export var attack_animation: StringName = &"Slash"
 
 @onready var attack_area: Area3D = %AttackArea
 @onready var attack_collision: CollisionShape3D = %AttackCollision

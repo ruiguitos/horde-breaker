@@ -116,7 +116,7 @@ func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
 	var embedded_weapon_name := _get_embedded_weapon_name(weapon_id)
 	if _embedded_weapon_meshes.has(embedded_weapon_name):
 		_embedded_weapon_meshes[embedded_weapon_name].visible = true
-	if weapon_id == &"worn_sword":
+	if weapon_id in [&"worn_sword", &"spear"]:
 		idle_animation = &"Idle"
 		move_animation = &"Walk"
 		run_animation = &"Run_Stab"
@@ -139,6 +139,8 @@ func _get_embedded_weapon_name(weapon_id: StringName) -> StringName:
 		return &"Shotgun"
 	if weapon_id == &"worn_sword":
 		return &"Knife"
+	if weapon_id == &"spear":
+		return &"Spear"
 	return &""
 
 
@@ -231,9 +233,14 @@ func _play_action(action_name: StringName) -> bool:
 
 
 func _play_melee_attack(_hit_count: int) -> void:
-	if not _animation_player.has_animation(&"Slash"):
+	var attack_name := &"Slash"
+	if _active_weapon != null:
+		var configured_animation := StringName(_active_weapon.get(&"attack_animation"))
+		if configured_animation != &"":
+			attack_name = configured_animation
+	if not _animation_player.has_animation(attack_name):
 		return
-	_action_animation = &"Slash"
+	_action_animation = attack_name
 	_animation_player.play(_action_animation)
 
 

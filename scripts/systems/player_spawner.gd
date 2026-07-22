@@ -18,7 +18,12 @@ func _ready() -> void:
 	if not player.has_method(&"configure_character"):
 		push_error("Player scenes must implement configure_character(CharacterData).")
 		return
-	player.call(&"configure_character", character_data)
+	player.call(
+		&"configure_character",
+		character_data,
+		SaveManager.get_primary_weapon(character_data.character_id),
+		SaveManager.get_secondary_weapon(character_data.character_id)
+	)
 	add_child(player)
 
 

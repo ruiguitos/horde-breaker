@@ -14,11 +14,18 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	back_button.pressed.connect(GameManager.open_character_selection)
 	SaveManager.skill_points_changed.connect(_on_skill_points_changed)
+	SaveManager.character_progress_changed.connect(_on_character_progress_changed)
 	_rebuild()
 	back_button.grab_focus()
 
 
 func _on_skill_points_changed(_character_id: StringName) -> void:
+	_rebuild()
+
+
+func _on_character_progress_changed(
+	_character_id: StringName, _level: int, _xp: int
+) -> void:
 	_rebuild()
 
 
@@ -29,13 +36,18 @@ func _rebuild() -> void:
 		character_data.display_name if character_data != null else String(character_id)
 	)
 	title_label.text = "%s  —  SKILL TREE" % character_name
-	points_label.text = "SKILL POINTS  ·  %d" % SaveManager.get_available_skill_points(
-		character_id
-	)
+	var level := SaveManager.get_character_level(character_id)
+	points_label.text = "LV %d  ·  %d PTS  ·  NEXT LV %d" % [
+		level,
+		SaveManager.get_available_skill_points(character_id),
+		SaveManager.get_next_skill_point_level(character_id),
+	]
 	for child in branches_container.get_children():
+		branches_container.remove_child(child)
 		child.queue_free()
 	for branch in SkillTree.BRANCHES:
 		branches_container.add_child(_build_branch_column(character_id, branch))
+	UiAnimations.enhance_buttons(self)
 
 
 func _build_branch_column(
@@ -79,7 +91,11 @@ func _build_node_card(
 	var title := Label.new()
 	title.add_theme_font_size_override(&"font_size", 16)
 	title.add_theme_color_override(&"font_color", Color(0.965, 0.949, 0.91, 1.0))
-	title.text = "%d · %s" % [int(node_definition["tier"]), String(node_definition["title"])]
+	title.text = "%d · %s  [LV %d]" % [
+		int(node_definition["tier"]),
+		String(node_definition["title"]),
+		SkillTree.get_required_level(node_id),
+	]
 	content.add_child(title)
 
 	var description := Label.new()
@@ -98,8 +114,27 @@ func _build_node_card(
 		button.pressed.connect(_on_unlock_pressed.bind(node_id))
 		content.add_child(button)
 	else:
-		content.add_child(_make_state_label("LOCKED", LOCKED_COLOR))
+		content.add_child(
+			_make_state_label(
+				_get_locked_reason(character_id, node_id), LOCKED_COLOR
+			)
+		)
 	return card
+
+
+func _get_locked_reason(character_id: StringName, node_id: StringName) -> String:
+	var required_level := SkillTree.get_required_level(node_id)
+	if SaveManager.get_character_level(character_id) < required_level:
+		return "REQUIRES LEVEL %d" % required_level
+	var prerequisite := SkillTree.get_prerequisite_id(node_id)
+	if (
+		prerequisite != &""
+		and not SaveManager.is_skill_node_unlocked(character_id, prerequisite)
+	):
+		return "REQUIRES PREVIOUS SKILL"
+	if SaveManager.get_available_skill_points(character_id) <= 0:
+		return "NO SKILL POINTS"
+	return "LOCKED"
 
 
 func _make_state_label(text: String, color: Color) -> Label:

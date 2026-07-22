@@ -39,6 +39,7 @@ reload_duration = 2.4
 pellet_count = 8
 spread_degrees = 7.0
 automatic_fire = false
+proximity_auto_fire_range = 4.5
 weapon_id = &"shotgun"
 display_name = "Shotgun"
 

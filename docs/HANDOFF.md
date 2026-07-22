@@ -55,24 +55,26 @@ cooldown 0,9 s) e morte (`Death`, cadáver 2,5 s sem colisão/hitboxes).
 **Orçamento de IA**: além de 40 m, repath a 1,2 s e steering cacheado (0,3 s).
 
 ### Personagens & Armas — 🟡
-3 classes (Recruit/Renegade/Medic) com passivos e loadout 1/2. Armas de fogo
-(AR/Pistol/Shotgun) + Worn Sword, com os visuais **embutidos nos modelos dos
+3 classes (Recruit/Renegade/Medic) com passivos e loadout permanente 1/2. Armas
+de fogo (AR/Pistol/Shotgun) + Worn Sword + Spear, com os visuais **embutidos nos modelos dos
 personagens** (animados pelo rig — decisão confirmada por playtest: o pack
 "Animated Guns" foi experimentado e **revertido**, porque visuais ancorados ao
 `WeaponPivot` estático flutuam fora das mãos; futuros modelos exigem
 `BoneAttachment3D` ou vir embutidos no rig). **Armas encontráveis pela
 exploração** (caixas nos setores; largam a arma substituída no chão). Falta:
-❌ 2ª arma do Medic, ❌ armas novas (SMG/Marksman/Katana — dependem de modelos
-compatíveis), ❌ UI de loja de armas. Mixamo parqueado.
+O `ARMORY` compra armas elegíveis com Credits e equipa os slots 1/2. A Spear é
+a secundária do Medic e usa `Stab`. Faltam armas novas (SMG/Fire Axe, apenas
+com malhas embutidas compatíveis) e playtest de equilíbrio. Mixamo parqueado.
 
 ### Progressão — ✅ grande salto
-XP por personagem, **sem limite de níveis**, 1 ponto de skill por nível.
+XP por personagem, **sem limite de níveis**, 1 ponto de skill a cada 2 níveis.
 **Skill tree permanente por personagem** (`scripts/systems/skill_tree.gd`): 3 ramos
-(Offense/Survival/Expedition) × 5 tiers com pré-requisitos, guardada no save,
+(Offense/Survival/Expedition) × 5 tiers com pré-requisitos e níveis mínimos
+2/5/9/14/20, guardada no save,
 aplicada a cada partida por `character_skills.gd` (dano, cadência, recarga, vida,
 regen, redução de dano, velocidade, reserva de munição, +Scrap, +XP). UI:
 `skill_tree_screen` (botão na seleção de personagens). O antigo "Field Upgrade"
-entre rondas foi **removido**. Falta: ❌ objetivos de mastery por personagem.
+entre rondas foi **removido**. Mastery por personagem também está funcional.
 
 ### Mundo Aberto / Mapa — 🟡 (PRÓXIMO)
 Grelha 4×4 (256×256 m) gerada por seed, streaming em **worker threads**
@@ -102,7 +104,7 @@ Resupply Range, Scavenging — 3 níveis cada). Backlog: construção livre.
 
 ### UI / UX — ✅
 Menu principal, seleção de personagens (com **mastery**), pausa, derrota,
-definições, skill tree, HUD **minimalista** in-game, mapa tático (visitados
+definições, skill tree, `ARMORY`, HUD **minimalista** in-game, mapa tático (visitados
 persistidos), auto-pickup, transições fade, tudo em **inglês**. Painel de
 vitória antigo removido.
 
@@ -119,7 +121,7 @@ não se aplica a setores gerados em runtime). `GDD`/`ARCHITECTURE`/`ROADMAP`
 - Autoloads: `autoload/{settings_manager,save_manager,game_manager,fps_overlay}.gd`
 - Diretor de horda: `scripts/systems/wave_manager.gd` (spawns contínuos, threat level, boss)
 - Mundo: `scripts/systems/{world_streamer,sector_generator,pickup_randomizer,arena_navigation}.gd`
-- Progressão: `scripts/systems/{skill_tree,character_skills,character_progression}.gd`, `autoload/save_manager.gd`
+- Progressão/arsenal: `scripts/systems/{skill_tree,character_skills,character_progression,weapon_catalog}.gd`, `autoload/save_manager.gd`
 - Economia/base: `scripts/systems/{camp_economy,camp_core,camp_core_interaction,fortification_site}.gd`
 - Inimigos: `scripts/enemies/{normal_zombie,boss_breaker,spit_projectile}.gd` + cenas em `scenes/enemies/`
 - Armas: `scripts/weapons/{weapon_controller,hitscan_weapon,melee_weapon}.gd`
@@ -141,12 +143,10 @@ Grupos-chave: `player`, `enemy`, `enemy_target`, `enemy_spawn_point`,
 
 ## Próximos passos sugeridos (novo chat)
 
-1. **Milestone 20 (ver `ROADMAP.md`):** integrar o pack CC0 **Quaternius
-   Animated Guns** (bloqueado: aguarda download do utilizador para
-   `assets/models/quaternius_animated_guns/`) e ligar disparo/recarga ao
-   `WeaponController`; avaliar SMG/Marksman como armas novas.
+1. **Playtest do Milestone 20:** Recruit/Renegade/Medic, compra/equipamento no
+   `ARMORY`, ritmo dos skill points, Spear e valores de dano/alcance/regeneração.
 2. **Ambiente:** pack CC0 de edifícios (download do utilizador) para substituir
    os POIs graybox dos setores gerados.
-3. **Playtest e balanceamento:** curva do diretor de horda + decisões pendentes
-   (auto-fire 2–3 m vs 6 m, disparo manual, 2ª arma do Medic).
+3. **Playtest e balanceamento:** curva do diretor de horda + alcance automático
+   por arma e permanência do disparo manual.
 4. (Quando pedido) resolver o mini-hitch da geração encaixando o setor por frames.

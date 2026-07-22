@@ -32,7 +32,7 @@
 - [ ] Afinar entre 2 e 3 metros e decidir se o disparo manual permanece depois do playtest das três classes. **Bloqueado: decisão do playtest.**
 - [x] Alterar a IA para perseguir apenas o jogador e remover núcleo, acampamento e fortificações da seleção de alvos e das condições de derrota.
 - [x] Adicionar feedback visual no próprio inimigo e feedback sonoro distinto para impacto no corpo e headshot.
-- [ ] Definir uma arma ou ferramenta secundária própria para o Medic após playtest da Pistol e da regeneração. **Bloqueado: decisão do playtest.**
+- [x] Definir a Spear como arma secundária do Medic, usando a malha embutida e a animação `Stab`.
 - [x] Implementar a primeira escolha de melhoria entre rondas, inspirada nos jogos analisados em `docs/INSPIRATIONS.md`.
 - [x] Adotar survival contínuo com núcleo, exploração, Scrap e construção progressiva do acampamento.
 - [x] Criar o primeiro ponto fixo para construir, reparar e reconstruir uma barricada com Scrap.
@@ -70,7 +70,8 @@
   gerado aparece (o `add_child` regista ~64 malhas de uma vez). Próximo passo
   possível: encaixar as peças do setor em 2-3 frames em vez de todas de uma vez.
 - [x] Remover o limite de níveis das personagens e adicionar uma árvore de
-  habilidades permanente por personagem (skill tree), com pontos ganhos por nível.
+  habilidades permanente por personagem (skill tree), com um ponto a cada dois
+  níveis e requisitos de nível 2/5/9/14/20 por tier.
 - [x] Remover o "Field Upgrade" (melhorias entre rondas), substituído pela skill tree.
 - [x] Ao apanhar uma arma do chão, largar a arma substituída no chão para poder
   voltar a apanhá-la.
@@ -103,13 +104,11 @@
   só funcionam presos ao osso da mão (`BoneAttachment3D`) ou embutidos no rig.
   As armas novas (Hunting/Marksman/Revolver) foram removidas junto com o pack;
   o design (stats/custos) fica no histórico git para quando houver modelos.
-- [ ] Ecrã de compra de armas ("ARMORY" na seleção de classes): lista com estado
-  possuída/comprável/bloqueada, compra com Credits e escolha do slot. A lógica
-  (requisitos nível+Credits, `purchase_weapon`) já existe no SaveManager.
+- [x] Ecrã de compra de armas (`ARMORY` na seleção de classes): lista com estado
+  possuída/comprável/bloqueada, compra com Credits e escolha persistente do slot.
 - [ ] Armas novas com as malhas **embutidas** nos modelos Quaternius (ficam bem
-  nas mãos, zero assets novos): **SMG** (nível 3 · 400 cr, cadência alta/dano
-  baixo), **Fire Axe** (`Axe`, nível 4 · 500 cr, melee lento/forte), **Spear**
-  (nível 6 · 700 cr, melee com alcance). Candidatas a 2ª arma do Medic.
+  nas mãos, zero assets novos): **SMG** (cadência alta/dano baixo) e **Fire Axe**
+  (`Axe`, melee lento/forte). A **Spear** já foi implementada no Medic.
 
 ## Regra
 
