@@ -109,14 +109,22 @@ func _build_weapon_card(
 	var content := HBoxContainer.new()
 	content.add_theme_constant_override(&"separation", 18)
 	margin.add_child(content)
+	var icon_frame := PanelContainer.new()
+	var icon_frame_style := StyleBoxFlat.new()
+	icon_frame_style.bg_color = Color(0.13, 0.16, 0.18, 0.92)
+	icon_frame_style.border_color = Color(0.34, 0.4, 0.44, 0.72)
+	icon_frame_style.set_border_width_all(1)
+	icon_frame.add_theme_stylebox_override(&"panel", icon_frame_style)
+	icon_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(icon_frame)
 	var weapon_icon := TextureRect.new()
-	weapon_icon.custom_minimum_size = Vector2(72, 56)
+	weapon_icon.custom_minimum_size = Vector2(96, 60)
 	weapon_icon.texture = UiVisualCatalog.get_weapon_icon(weapon_data.weapon_id)
 	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	weapon_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	weapon_icon.modulate = Color.WHITE if not level_locked else Color(0.5, 0.54, 0.58, 0.62)
-	content.add_child(weapon_icon)
+	weapon_icon.modulate = Color(1.65, 1.65, 1.65, 1.0) if not level_locked else Color(0.58, 0.62, 0.66, 0.62)
+	icon_frame.add_child(weapon_icon)
 
 	var details := VBoxContainer.new()
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL

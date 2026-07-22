@@ -35,6 +35,9 @@ func _capture() -> void:
 		quit(1)
 		return
 	await scene_changed
+	var fps_overlay := root.get_node_or_null("FpsOverlay") as CanvasLayer
+	if fps_overlay != null:
+		fps_overlay.visible = false
 	await _wait_frames(35 if MENU_SCENES.has(target) else 100)
 	DisplayServer.window_set_size(capture_size)
 	if not MENU_SCENES.has(target):
