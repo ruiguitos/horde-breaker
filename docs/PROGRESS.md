@@ -731,6 +731,22 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   seleção, ARMORY, skill tree, definições e arena correram 60 frames headless
   sem `SCRIPT ERROR`.
 
+- [x] UI Tier 3 concluído: vida do HUD interpolada, pulso discreto de munição
+  baixa e ameaça, skill tree com ligações e cores por ramo, pausa e derrota com
+  profundidade em dois níveis, estados mais claros no ARMORY, controlos das
+  definições alinhados com o tema e mapa tático com grelha/legenda refinadas.
+- O menu principal passou a mostrar o loadout persistente escolhido no ARMORY,
+  incluindo a Spear; os ícones das armas receberam maior contraste e suporte
+  visual sem alterar compras, saves ou equipamento.
+- Foi acrescentada `tools/capture_ui_screen.gd` para regenerar capturas dos nove
+  ecrãs. A inspeção final OpenGL confirmou todos os ecrãs sem texto cortado a
+  1152 × 648 e 1920 × 1080; o overlay técnico de FPS é ocultado apenas durante
+  esta validação.
+- Validação Tier 3: importação headless sem erros; main menu, seleção, ARMORY,
+  skill tree e definições executados isoladamente; arena executada durante 240
+  frames; capturas finais de HUD, pausa, derrota e mapa tático inspecionadas nas
+  duas resoluções sem regressões do fluxo funcional.
+
 ## Decisões pendentes
 
 - resolução inicial;

@@ -115,8 +115,11 @@
 
 - [x] UI Tier 2: tipografia Rajdhani OFL, retratos das classes, ícones das cinco
   armas jogáveis no ARMORY/HUD e sons discretos de interação.
-- [ ] UI Tier 3: polimento final do HUD, skill tree, pausa/derrota, ARMORY,
+- [x] UI Tier 3: polimento final do HUD, skill tree, pausa/derrota, ARMORY,
   definições e mapa tático, com validação visual por ecrã.
+- [ ] Melhorar a separação ou agregação de marcadores coincidentes no mapa
+  tático quando vários pickups ocupam a mesma zona. Melhoria futura; não
+  bloqueia o Tier 3.
 
 ## Regra
 
