@@ -1,6 +1,9 @@
 extends Control
 
 const ACCENT_COLOR := Color(0.957, 0.694, 0.31, 1.0)
+const OWNED_COLOR := Color(0.44, 0.82, 0.59, 1.0)
+const AVAILABLE_COLOR := Color(0.82, 0.88, 0.92, 1.0)
+const LOCKED_COLOR := Color(0.42, 0.47, 0.52, 1.0)
 
 @onready var back_button: Button = %BackButton
 @onready var title_label: Label = %TitleLabel
@@ -75,8 +78,28 @@ func _build_weapon_card(
 		weapon_data.weapon_id == primary_weapon
 		or weapon_data.weapon_id == secondary_weapon
 	)
+	var is_owned := SaveManager.is_weapon_purchased(
+		character_id, weapon_data.weapon_id
+	)
+	var character_level := SaveManager.get_character_level(character_id)
+	var level_locked := character_level < weapon_data.required_level
+	var credits_short := SaveManager.get_credits() < weapon_data.credit_cost
+	var state_text := _get_weapon_state_text(
+		is_equipped, is_owned, level_locked, credits_short, weapon_data
+	)
+	var state_color := _get_weapon_state_color(
+		is_equipped, is_owned, level_locked, credits_short
+	)
 	var card := PanelContainer.new()
-	card.theme_type_variation = &"SelectedCard" if is_equipped else &"CardPanel"
+	var card_variation := &"CardPanel"
+	if is_equipped:
+		card_variation = &"SelectedCard"
+	elif not is_owned and (level_locked or credits_short):
+		card_variation = &"LockedCard"
+	card.theme_type_variation = card_variation
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	card.mouse_entered.connect(_set_card_hovered.bind(card, true))
+	card.mouse_exited.connect(_set_card_hovered.bind(card, false))
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(&"margin_left", 16)
 	margin.add_theme_constant_override(&"margin_top", 12)
@@ -92,6 +115,7 @@ func _build_weapon_card(
 	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	weapon_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	weapon_icon.modulate = Color.WHITE if not level_locked else Color(0.5, 0.54, 0.58, 0.62)
 	content.add_child(weapon_icon)
 
 	var details := VBoxContainer.new()
@@ -100,19 +124,15 @@ func _build_weapon_card(
 	content.add_child(details)
 	var name_label := Label.new()
 	name_label.add_theme_font_size_override(&"font_size", 20)
-	name_label.add_theme_color_override(&"font_color", ACCENT_COLOR)
+	name_label.add_theme_color_override(&"font_color", state_color)
 	name_label.text = weapon_data.display_name.to_upper()
 	details.add_child(name_label)
 	var role_label := Label.new()
 	role_label.theme_type_variation = &"MutedLabel"
-	role_label.text = "%s  -  %s" % [
-		_get_weapon_role(weapon_data.weapon_id),
-		(
-			"OWNED"
-			if SaveManager.is_weapon_purchased(character_id, weapon_data.weapon_id)
-			else "REQUIRES LEVEL %d" % weapon_data.required_level
-		),
+	role_label.text = "%s  ·  %s" % [
+		_get_weapon_role(weapon_data.weapon_id), state_text
 	]
+	role_label.add_theme_color_override(&"font_color", state_color)
 	details.add_child(role_label)
 
 	var actions := HBoxContainer.new()
@@ -120,7 +140,7 @@ func _build_weapon_card(
 	actions.alignment = BoxContainer.ALIGNMENT_END
 	actions.add_theme_constant_override(&"separation", 10)
 	content.add_child(actions)
-	if SaveManager.is_weapon_purchased(character_id, weapon_data.weapon_id):
+	if is_owned:
 		actions.add_child(
 			_make_equip_button(
 				character_id, weapon_data, &"primary", weapon_data.weapon_id == primary_weapon
@@ -139,6 +159,51 @@ func _build_weapon_card(
 	return card
 
 
+func _get_weapon_state_text(
+	is_equipped: bool,
+	is_owned: bool,
+	level_locked: bool,
+	credits_short: bool,
+	weapon_data: WeaponData
+) -> String:
+	if is_equipped:
+		return "EQUIPPED"
+	if is_owned:
+		return "OWNED"
+	if level_locked:
+		return "LEVEL %d REQUIRED" % weapon_data.required_level
+	if credits_short:
+		return "CREDITS SHORT"
+	return "AVAILABLE  ·  %d CREDITS" % weapon_data.credit_cost
+
+
+func _get_weapon_state_color(
+	is_equipped: bool,
+	is_owned: bool,
+	level_locked: bool,
+	credits_short: bool
+) -> Color:
+	if is_equipped:
+		return ACCENT_COLOR
+	if is_owned:
+		return OWNED_COLOR
+	if level_locked or credits_short:
+		return LOCKED_COLOR
+	return AVAILABLE_COLOR
+
+
+func _set_card_hovered(card: PanelContainer, is_hovered: bool) -> void:
+	var tween := card.create_tween()
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.tween_property(
+		card,
+		"modulate",
+		Color(1.06, 1.03, 0.96, 1.0) if is_hovered else Color.WHITE,
+		0.12
+	)
+
+
 func _make_equip_button(
 	character_id: StringName,
 	weapon_data: WeaponData,
@@ -151,6 +216,8 @@ func _make_equip_button(
 		"EQUIPPED [%s]" if is_equipped else "EQUIP [%s]"
 	) % ("1" if slot == &"primary" else "2")
 	button.disabled = is_equipped
+	if is_equipped:
+		button.add_theme_color_override(&"font_disabled_color", ACCENT_COLOR)
 	if not is_equipped:
 		button.pressed.connect(
 			_on_equip_pressed.bind(character_id, weapon_data, slot)
