@@ -46,6 +46,10 @@ var _visited_sectors: Dictionary[Vector2i, bool] = {}
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Visited sectors persist per profile, so the map keeps its knowledge
+	# across runs.
+	for coords in SaveManager.get_visited_sector_coords():
+		_visited_sectors[Vector2i(coords)] = true
 
 
 # _input instead of _unhandled_input: Tab is also the built-in ui_focus_next
@@ -75,8 +79,13 @@ func _process(_delta: float) -> void:
 func _track_visited_sector() -> void:
 	if not is_instance_valid(_player):
 		_refresh_references()
-	if is_instance_valid(_player):
-		_visited_sectors[_get_player_sector_coords()] = true
+	if not is_instance_valid(_player):
+		return
+	var coords := _get_player_sector_coords()
+	if _visited_sectors.has(coords):
+		return
+	_visited_sectors[coords] = true
+	SaveManager.mark_sector_visited(coords)
 
 
 func _notification(what: int) -> void:

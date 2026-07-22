@@ -225,6 +225,12 @@ position = Vector3(-3.5, 0, 5.5)
 [node name="FortificationSite" parent="." instance=ExtResource("19_fortification_site")]
 position = Vector3(-3.5, 0, 1.5)
 
+[node name="FortificationSiteWest" parent="." instance=ExtResource("19_fortification_site")]
+position = Vector3(-7.5, 0, 5.5)
+
+[node name="FortificationSiteEast" parent="." instance=ExtResource("19_fortification_site")]
+position = Vector3(0.5, 0, 5.5)
+
 [node name="Pickups" type="Node3D" parent="."]
 script = ExtResource("25_pickup_randomizer")
 

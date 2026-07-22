@@ -29,12 +29,17 @@ const EAST_COORDS := Vector2i(1, 0)
 @export_range(8.0, 240.0, 1.0) var unload_distance: float = 96.0
 
 var _player: Node3D
-var _run_seed: int = randi()
+# Drawn from the save on ready: the layout is stable across runs per profile.
+var _run_seed: int = 0
+# Last sector build/load time in milliseconds, surfaced by the FPS overlay.
+var last_build_ms: float = 0.0
 var _definitions_by_id: Dictionary[StringName, Dictionary] = {}
 var _instances: Dictionary[StringName, Node3D] = {}
 var _request_started_ticks: Dictionary[StringName, int] = {}
 var _sector_states: Dictionary[StringName, Dictionary] = {}
-var _beacon_activated: Dictionary[StringName, bool] = {}
+# Sector ambushes re-arm once per horde cycle, so revisiting or holding a sector
+# across cycles keeps producing encounters instead of a single one per run.
+var _cycle_connected: bool = false
 # Generated sectors are built on worker threads so the heavy node construction
 # never hitches the main thread; results are added to the tree once ready.
 var _generation_tasks: Dictionary[StringName, int] = {}
@@ -46,6 +51,7 @@ var _generation_mutex := Mutex.new()
 func _ready() -> void:
 	if unload_distance <= load_distance:
 		push_error("WorldStreamer unload distance must be greater than its load distance.")
+	_run_seed = SaveManager.ensure_world_seed()
 	_build_grid_definitions()
 	call_deferred(&"_find_player")
 
@@ -66,6 +72,7 @@ func _physics_process(_delta: float) -> void:
 			unload_sector(sector_id)
 	_poll_pending_requests()
 	_poll_generation_tasks()
+	_ensure_cycle_connection()
 	_update_sector_ambushes()
 
 
@@ -155,7 +162,7 @@ func get_east_sector() -> Node3D:
 
 
 func is_east_beacon_activated() -> bool:
-	return bool(_beacon_activated.get(EAST_SECTOR_ID, false))
+	return SaveManager.is_east_beacon_activated()
 
 
 func _build_grid_definitions() -> void:
@@ -248,6 +255,7 @@ func _finalize_generated_sector(sector_id: StringName, sector: Node3D) -> void:
 	add_child(sector)
 	_instances[sector_id] = sector
 	var elapsed_ms := (Time.get_ticks_usec() - int(meta.get("start", 0))) / 1000.0
+	last_build_ms = elapsed_ms
 	print(
 		"WorldStreamer: sector '%s' built on a worker thread in %.1f ms (seed %d)."
 		% [sector_id, elapsed_ms, int(meta.get("seed", 0))]
@@ -266,6 +274,7 @@ func _get_or_create_sector_state(
 			"ammo_collected": false,
 			"weapon_collected": false,
 			"ambush_triggered": false,
+			"ambush_enemies": [],
 		}
 	return _sector_states[sector_id]
 
@@ -306,6 +315,23 @@ func _on_sector_weapon_collected(sector_id: StringName) -> void:
 	sector_state_changed.emit(sector_id)
 
 
+func _ensure_cycle_connection() -> void:
+	if _cycle_connected:
+		return
+	var wave_manager := get_tree().get_first_node_in_group(WAVE_MANAGER_GROUP)
+	if wave_manager == null or not wave_manager.has_signal(&"cycle_completed"):
+		return
+	wave_manager.connect(&"cycle_completed", _on_cycle_completed)
+	_cycle_connected = true
+
+
+func _on_cycle_completed(_cycle_number: int) -> void:
+	# Re-arm every sector's ambush; the living-enemy guard in the trigger keeps a
+	# fresh wave from stacking on top of one that is still being fought.
+	for state in _sector_states.values():
+		state["ambush_triggered"] = false
+
+
 func _update_sector_ambushes() -> void:
 	for sector_id in _instances:
 		var definition: Dictionary = _definitions_by_id.get(sector_id, {})
@@ -313,6 +339,8 @@ func _update_sector_ambushes() -> void:
 			continue
 		var state: Dictionary = _sector_states.get(sector_id, {})
 		if state.is_empty() or bool(state.get("ambush_triggered", false)):
+			continue
+		if not _ambush_enemies_cleared(state):
 			continue
 		var distance := _player.global_position.distance_to(
 			Vector3(definition["position"])
@@ -322,6 +350,14 @@ func _update_sector_ambushes() -> void:
 		if _try_spawn_sector_ambush(sector_id, state):
 			state["ambush_triggered"] = true
 			sector_state_changed.emit(sector_id)
+
+
+func _ambush_enemies_cleared(state: Dictionary) -> bool:
+	var living: Array = state.get("ambush_enemies", [])
+	for enemy in living:
+		if is_instance_valid(enemy):
+			return false
+	return true
 
 
 func _try_spawn_sector_ambush(sector_id: StringName, state: Dictionary) -> bool:
@@ -364,6 +400,7 @@ func _try_spawn_sector_ambush(sector_id: StringName, state: Dictionary) -> bool:
 		))
 	if spawned_enemies.is_empty():
 		return false
+	state["ambush_enemies"] = spawned_enemies
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	if camp_economy != null and camp_economy.has_method(&"request_feedback"):
 		var coords: Vector2i = _definitions_by_id[sector_id]["coords"]
@@ -415,6 +452,7 @@ func _instantiate_scene_sector(
 	_instances[sector_id] = sector
 	if sector_id == EAST_SECTOR_ID:
 		_configure_east_beacon(sector)
+	last_build_ms = float(elapsed_ms)
 	print("WorldStreamer: sector '%s' ready in %d ms (background)." % [sector_id, elapsed_ms])
 	sector_loaded.emit(sector_id)
 
@@ -442,5 +480,5 @@ func _configure_east_beacon(sector: Node3D) -> void:
 func _on_east_beacon_activated() -> void:
 	if is_east_beacon_activated():
 		return
-	_beacon_activated[EAST_SECTOR_ID] = true
+	SaveManager.set_east_beacon_activated()
 	sector_state_changed.emit(EAST_SECTOR_ID)

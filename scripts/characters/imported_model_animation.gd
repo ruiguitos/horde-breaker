@@ -18,15 +18,27 @@ const EMBEDDED_WEAPON_NAMES: Array[StringName] = [
 @export var run_animation: StringName = &"Run"
 @export var crouch_animation: StringName = &"Duck"
 @export var airborne_animation: StringName = &"Jump_Idle"
+## Played once when the movement body emits `attacked` (enemy strikes).
+## Empty disables it; player attacks come from weapon signals instead.
+@export var attack_animation: StringName = &""
+## Played (rate-limited) when the movement body emits `health_changed`.
+@export var hit_react_animation: StringName = &""
+## Played once when the movement body emits `died`; locks the model in its
+## final pose so the corpse stops animating.
+@export var death_animation: StringName = &""
 @export_range(0.01, 10.0, 0.01) var movement_threshold: float = 0.1
 @export_range(0.0, 1.0, 0.01) var crouch_pose_ratio: float = 0.08
 @export var hide_embedded_weapons: bool = true
+
+const HIT_REACT_COOLDOWN_MSEC := 900
 
 var _animation_player: AnimationPlayer
 var _movement_body: CharacterBody3D
 var _embedded_weapon_meshes: Dictionary[StringName, GeometryInstance3D] = {}
 var _active_weapon: Node3D
 var _action_animation: StringName = &""
+var _is_dead: bool = false
+var _next_hit_react_msec: int = 0
 
 
 func _ready() -> void:
@@ -44,6 +56,9 @@ func _ready() -> void:
 	_set_animation_loop(run_animation)
 	_set_animation_loop(airborne_animation)
 	_play_animation(idle_animation)
+	_connect_body_attack()
+	_connect_body_hit_react()
+	_connect_body_death()
 	call_deferred(&"_connect_weapon_controller")
 
 
@@ -147,6 +162,72 @@ func _get_locomotion_animation() -> StringName:
 	):
 		return run_animation
 	return move_animation
+
+
+func _connect_body_attack() -> void:
+	# Enemies emit `attacked` when they strike; the clip plays as an action so
+	# the locomotion loop resumes automatically when it finishes.
+	if attack_animation == &"" or _movement_body == null:
+		return
+	if not _movement_body.has_signal(&"attacked"):
+		push_error("Imported model attack animation requires an attacked signal.")
+		return
+	_movement_body.connect(&"attacked", _on_body_attacked)
+
+
+func _on_body_attacked(_target: Node, _damage: float) -> void:
+	if _is_dead:
+		return
+	_play_action(attack_animation)
+
+
+func _connect_body_hit_react() -> void:
+	if hit_react_animation == &"" or _movement_body == null:
+		return
+	if not _movement_body.has_signal(&"health_changed"):
+		push_error("Imported model hit react requires a health_changed signal.")
+		return
+	_movement_body.connect(&"health_changed", _on_body_health_changed)
+
+
+func _on_body_health_changed(_current: float, _maximum: float) -> void:
+	# Rate-limited so sustained fire cannot stun-lock the model, and never
+	# interrupting an attack or death action already playing.
+	if _is_dead or _action_animation != &"":
+		return
+	if Time.get_ticks_msec() < _next_hit_react_msec:
+		return
+	if _play_action(hit_react_animation):
+		_next_hit_react_msec = Time.get_ticks_msec() + HIT_REACT_COOLDOWN_MSEC
+
+
+func _connect_body_death() -> void:
+	if death_animation == &"" or _movement_body == null:
+		return
+	if not _movement_body.has_signal(&"died"):
+		push_error("Imported model death animation requires a died signal.")
+		return
+	_movement_body.connect(&"died", _on_body_died)
+
+
+func _on_body_died(_source: Node = null) -> void:
+	if _is_dead:
+		return
+	_is_dead = true
+	# Stop the locomotion loop for good; the death clip holds its last pose.
+	set_process(false)
+	_action_animation = &""
+	_play_action(death_animation)
+
+
+func _play_action(action_name: StringName) -> bool:
+	if not _animation_player.has_animation(action_name):
+		return false
+	var animation := _animation_player.get_animation(action_name)
+	animation.loop_mode = Animation.LOOP_NONE
+	_action_animation = action_name
+	_animation_player.play(_action_animation)
+	return true
 
 
 func _play_melee_attack(_hit_count: int) -> void:

@@ -45,19 +45,25 @@ ombro, hitscan com dano por zonas (corpo 1× / cabeça 2×), disparo automático
 proximidade (6 m, com throttle de raycasts), melee (Worn Sword), feedback de
 impacto (números, flash no inimigo, sons sintetizados), knockback ao jogador.
 
-### Inimigos — ✅ variedade base
+### Inimigos — ✅ completo
 Normal Zombie, Runner, **Brute** (tanque + knockback), **Spitter** (à distância,
 projétil), **Boss "The Breaker"** (invoca minions). Diretor de horda **contínuo**
 (sem rondas): spawns aleatórios à volta do jogador, escalada por "threat level"
-(a cada 75 s), boss a cada 5 níveis. Falta: ❌ simulação de inimigos distantes /
-orçamento de IA (otimização).
+(a cada 75 s), boss a cada 5 níveis. **Animações completas** via
+`imported_model_animation.gd`: ataque (`Idle_Attack`), reação a dano (`HitReact`,
+cooldown 0,9 s) e morte (`Death`, cadáver 2,5 s sem colisão/hitboxes).
+**Orçamento de IA**: além de 40 m, repath a 1,2 s e steering cacheado (0,3 s).
 
 ### Personagens & Armas — 🟡
 3 classes (Recruit/Renegade/Medic) com passivos e loadout 1/2. Armas de fogo
-(AR/Pistol/Shotgun) + Worn Sword. **Armas encontráveis pela exploração** (caixas
-nos setores; equipam no slot secundário e **largam a arma substituída no chão**).
-Falta: ❌ 2ª arma do Medic, ❌ armas alternativas planeadas (SMG, Marksman, Katana…),
-❌ Mixamo/arte final (bloqueado: assets).
+(AR/Pistol/Shotgun) + Worn Sword, com os visuais **embutidos nos modelos dos
+personagens** (animados pelo rig — decisão confirmada por playtest: o pack
+"Animated Guns" foi experimentado e **revertido**, porque visuais ancorados ao
+`WeaponPivot` estático flutuam fora das mãos; futuros modelos exigem
+`BoneAttachment3D` ou vir embutidos no rig). **Armas encontráveis pela
+exploração** (caixas nos setores; largam a arma substituída no chão). Falta:
+❌ 2ª arma do Medic, ❌ armas novas (SMG/Marksman/Katana — dependem de modelos
+compatíveis), ❌ UI de loja de armas. Mixamo parqueado.
 
 ### Progressão — ✅ grande salto
 XP por personagem, **sem limite de níveis**, 1 ponto de skill por nível.
@@ -72,31 +78,41 @@ entre rondas foi **removido**. Falta: ❌ objetivos de mastery por personagem.
 Grelha 4×4 (256×256 m) gerada por seed, streaming em **worker threads**
 (`WorldStreamer` + `SectorGenerator`), navegação contínua entre setores, estado
 por setor (loot/emboscada/arma, só sessão), céu procedural, props ambientais,
-mapa tático melhorado (`Tab`). POIs com interiores existem só na arena feita à
-mão. **Falta:** ❌ POIs/interiores nos setores gerados, ❌ emboscadas por ciclo (agora
-1×/partida), ❌ persistência do estado dos setores no save, ❌ medição de desempenho.
+mapa tático melhorado (`Tab`). **POIs com interiores exploráveis já existem nos
+setores gerados:** ~metade dos setores tem um edifício graybox (muros
+`navigation_blocker` com uma porta de 4 m, chão interior, cache de 50 de Scrap lá
+dentro, marcador `point_of_interest` no mapa e etiqueta 3D) — `SectorGenerator._add_poi_building`.
+A porta é a única abertura que a grelha de navegação deixa livre, por isso o
+jogador entra para o loot e os inimigos perseguem-no lá para dentro. As
+**emboscadas dos setores são por ciclo** (re-armadas via `cycle_completed`, com
+guarda de inimigos vivos). **Persistência no save:** seed do mundo fixo por
+perfil (layout estável entre partidas; loot volta a cada partida por decisão de
+design), setores visitados e farol este. **Métricas:** o overlay `F3` mostra
+setores carregados + ms do último build.
 **Bug conhecido em espera:** mini-hitch no instante em que um setor gerado é
 adicionado à cena (`add_child` de ~64 malhas de uma vez). Próximo passo: encaixar
 as peças do setor em 2-3 frames em vez de todas de uma vez.
 
-### Acampamento / Economia — 🟡 (PRÓXIMO)
+### Acampamento / Economia — ✅
 Núcleo com vida, depositar/reparar Scrap, **zona de reabastecimento** (cura +
-munição perto do núcleo), caches de Scrap randomizadas por partida, 1 barricada
-fixa. **Falta:** ❌ construção livre / várias estruturas, ❌ melhorias permanentes da
-base.
+munição perto do núcleo, raio/valores crescem com upgrades), caches de Scrap
+randomizadas por partida, **3 pontos de barricada** e **melhorias da base**
+compradas com Scrap armazenado em pedestais junto ao núcleo (Resupply Rate,
+Resupply Range, Scavenging — 3 níveis cada). Backlog: construção livre.
 
 ### UI / UX — ✅
-Menu principal, seleção de personagens, pausa, derrota, definições, skill tree,
-HUD **minimalista** in-game, mapa tático, auto-pickup, transições fade, tudo em
-**inglês**. 🟡 painel de vitória fora de uso (estilo antigo).
+Menu principal, seleção de personagens (com **mastery**), pausa, derrota,
+definições, skill tree, HUD **minimalista** in-game, mapa tático (visitados
+persistidos), auto-pickup, transições fade, tudo em **inglês**. Painel de
+vitória antigo removido.
 
-### Técnico / Docs — 🟡
-Definições (janela/fullscreen, resolução, VSync, som). Contador de FPS (`F3`).
-Primeira ronda de otimização (throttle de raycasts do auto-fire, repath dos
-inimigos escalonado, geração em worker thread, streaming 72/96 m). **Falta:**
-❌ navmesh de editor (em vez da grelha runtime), ❌ **sincronizar GDD/ARCHITECTURE/
-ROADMAP** — descrevem ainda o jogo antigo (rondas, PT, 3 m, núcleo como alvo).
-`PROGRESS.md` e `TODO.md` estão em dia.
+### Técnico / Docs — ✅
+Definições (janela/fullscreen, resolução, VSync, som). Overlay `F3` com FPS +
+métricas de streaming. Otimizações: throttle de raycasts do auto-fire, repath
+escalonado + **orçamento de IA a >40 m**, geração em worker thread, streaming
+72/96 m. **Decisão:** manter a grelha de navegação runtime (navmesh de editor
+não se aplica a setores gerados em runtime). `GDD`/`ARCHITECTURE`/`ROADMAP`
+**sincronizados** com o jogo real; `PROGRESS.md` e `TODO.md` em dia.
 
 ## Arquitetura (mapa rápido de ficheiros)
 
@@ -125,9 +141,12 @@ Grupos-chave: `player`, `enemy`, `enemy_target`, `enemy_spawn_point`,
 
 ## Próximos passos sugeridos (novo chat)
 
-1. **Mundo Aberto:** POIs com interiores nos setores gerados + emboscadas por
-   ciclo; depois persistência do estado dos setores no save.
-2. **Acampamento:** melhorias permanentes da base (comprar upgrades com Scrap
-   armazenado) e/ou mais pontos de construção.
-3. Sincronizar `GDD.md` / `ARCHITECTURE.md` / `ROADMAP.md` com o estado real.
+1. **Milestone 20 (ver `ROADMAP.md`):** integrar o pack CC0 **Quaternius
+   Animated Guns** (bloqueado: aguarda download do utilizador para
+   `assets/models/quaternius_animated_guns/`) e ligar disparo/recarga ao
+   `WeaponController`; avaliar SMG/Marksman como armas novas.
+2. **Ambiente:** pack CC0 de edifícios (download do utilizador) para substituir
+   os POIs graybox dos setores gerados.
+3. **Playtest e balanceamento:** curva do diretor de horda + decisões pendentes
+   (auto-fire 2–3 m vs 6 m, disparo manual, 2ª arma do Medic).
 4. (Quando pedido) resolver o mini-hitch da geração encaixando o setor por frames.

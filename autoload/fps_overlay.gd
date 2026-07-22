@@ -8,8 +8,11 @@ const GOOD_COLOR := Color(0.55, 0.9, 0.62, 1.0)
 const WARNING_COLOR := Color(0.96, 0.78, 0.34, 1.0)
 const DANGER_COLOR := Color(0.95, 0.42, 0.4, 1.0)
 
+const WORLD_STREAMER_GROUP := &"world_streamer"
+
 var _label: Label
 var _accumulated_time := 0.0
+var _world_streamer: Node
 
 
 func _ready() -> void:
@@ -50,7 +53,18 @@ func _input(event: InputEvent) -> void:
 
 func _update_label() -> void:
 	var fps := Engine.get_frames_per_second()
-	_label.text = "%d FPS" % fps
+	var text := "%d FPS" % fps
+	# Streaming metrics show up whenever a world streamer is active in-game.
+	if not is_instance_valid(_world_streamer):
+		_world_streamer = get_tree().get_first_node_in_group(WORLD_STREAMER_GROUP)
+	if is_instance_valid(_world_streamer):
+		text += "  ·  SECTORS %d" % int(
+			_world_streamer.call(&"get_loaded_sector_count")
+		)
+		var build_ms := float(_world_streamer.get(&"last_build_ms"))
+		if build_ms > 0.0:
+			text += "  ·  BUILD %.0f ms" % build_ms
+	_label.text = text
 	if fps >= 55:
 		_label.add_theme_color_override(&"font_color", GOOD_COLOR)
 	elif fps >= 30:

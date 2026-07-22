@@ -26,6 +26,20 @@ const STREET_LIGHT_SCENE := preload("res://assets/models/quaternius_zombie_apoca
 
 const SECTOR_HALF_SIZE := 32.0
 const SPAWN_MARKER_COUNT := 3
+# Explorable point of interest: a walled graybox building with one doorway and a
+# reward cache inside. The cache reuses the per-sector cache state under a
+# reserved index so it never reappears once collected during a run.
+const POI_SPAWN_CHANCE := 0.5
+const POI_BUILDING_HALF := 5.5
+const POI_WALL_THICKNESS := 0.5
+const POI_WALL_HEIGHT := 3.2
+const POI_DOORWAY_WIDTH := 4.0
+const POI_CACHE_INDEX := 90
+const POI_REWARD_SCRAP := 50
+const POI_NAMES: Array[String] = ["OUTPOST", "DEPOT", "BUNKER", "RUINS"]
+const POI_WALL_COLOR := Color(0.34, 0.36, 0.4, 1.0)
+const POI_FLOOR_COLOR := Color(0.2, 0.22, 0.25, 1.0)
+const POI_LABEL_COLOR := Color(0.95, 0.77, 0.3, 1.0)
 const LANDMARK_VARIANTS: Array[Vector3] = [
 	Vector3(12.0, 5.0, 10.0),
 	Vector3(8.0, 3.5, 8.0),
@@ -88,6 +102,8 @@ static func add_content_stage(context: Dictionary) -> void:
 	var rng: RandomNumberGenerator = context["rng"]
 	var config: Dictionary = context["config"]
 	var blocked_areas: Array[Rect2] = context["blocked_areas"]
+	# Reserve the point of interest first so nothing else lands on its footprint.
+	_add_poi_building(sector, rng, config, blocked_areas)
 	_add_landmarks(sector, rng, blocked_areas)
 	_add_containers(sector, rng, blocked_areas)
 	_add_set_dressing(sector, rng, blocked_areas)
@@ -121,6 +137,144 @@ static func _add_floor(sector: Node3D) -> void:
 	collision.shape = floor_shape
 	floor_body.add_child(collision)
 	sector.add_child(floor_body)
+
+
+static func _add_poi_building(
+	sector: Node3D,
+	rng: RandomNumberGenerator,
+	config: Dictionary,
+	blocked_areas: Array[Rect2]
+) -> void:
+	# Roughly half the generated sectors get an explorable building: three solid
+	# walls plus a front wall split around a wide doorway. The walls are
+	# navigation blockers, so the doorway is the only gap the runtime nav grid
+	# leaves open — the player loots the reward inside and enemies chase in
+	# through the same opening.
+	if rng.randf() >= POI_SPAWN_CHANCE:
+		return
+	var footprint := Vector3(
+		POI_BUILDING_HALF * 2.0, POI_WALL_HEIGHT, POI_BUILDING_HALF * 2.0
+	)
+	var placement := _find_free_position(rng, footprint, blocked_areas)
+	if placement == Vector2.INF:
+		return
+	var building := Node3D.new()
+	building.name = "PointOfInterest"
+	sector.add_child(building)
+	building.position = Vector3(placement.x, 0.0, placement.y)
+	# The square footprint keeps its axis-aligned reservation valid after the
+	# quarter-turn, which just points the doorway at a different street.
+	building.rotation.y = rng.randi_range(0, 3) * (PI / 2.0)
+
+	var wall_material := StandardMaterial3D.new()
+	wall_material.albedo_color = POI_WALL_COLOR
+	wall_material.roughness = 0.9
+
+	var half := POI_BUILDING_HALF
+	var height := POI_WALL_HEIGHT
+	var thickness := POI_WALL_THICKNESS
+	var span := half * 2.0
+	_add_poi_wall(
+		building, "WallNorth", Vector3(0.0, height * 0.5, -half),
+		Vector3(span, height, thickness), wall_material
+	)
+	_add_poi_wall(
+		building, "WallEast", Vector3(half, height * 0.5, 0.0),
+		Vector3(thickness, height, span), wall_material
+	)
+	_add_poi_wall(
+		building, "WallWest", Vector3(-half, height * 0.5, 0.0),
+		Vector3(thickness, height, span), wall_material
+	)
+	var segment_length := (span - POI_DOORWAY_WIDTH) * 0.5
+	var segment_offset := POI_DOORWAY_WIDTH * 0.5 + segment_length * 0.5
+	_add_poi_wall(
+		building, "WallFrontLeft", Vector3(-segment_offset, height * 0.5, half),
+		Vector3(segment_length, height, thickness), wall_material
+	)
+	_add_poi_wall(
+		building, "WallFrontRight", Vector3(segment_offset, height * 0.5, half),
+		Vector3(segment_length, height, thickness), wall_material
+	)
+
+	var floor_patch := MeshInstance3D.new()
+	floor_patch.name = "InteriorFloor"
+	var floor_mesh := BoxMesh.new()
+	floor_mesh.size = Vector3(span - thickness, 0.1, span - thickness)
+	var floor_material := StandardMaterial3D.new()
+	floor_material.albedo_color = POI_FLOOR_COLOR
+	floor_material.roughness = 0.95
+	floor_mesh.material = floor_material
+	floor_patch.mesh = floor_mesh
+	building.add_child(floor_patch)
+	floor_patch.position = Vector3(0.0, 0.05, 0.0)
+
+	var marker := Marker3D.new()
+	marker.name = "PoiMarker"
+	marker.add_to_group(&"point_of_interest")
+	building.add_child(marker)
+
+	var label := Label3D.new()
+	label.name = "PoiLabel"
+	label.text = POI_NAMES[rng.randi_range(0, POI_NAMES.size() - 1)]
+	label.font_size = 24
+	label.outline_size = 8
+	label.modulate = POI_LABEL_COLOR
+	label.outline_modulate = Color(0.04, 0.02, 0.01, 1.0)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.position = Vector3(0.0, height + 1.2, 0.0)
+	building.add_child(label)
+
+	_add_poi_loot(building, config)
+
+	blocked_areas.append(
+		Rect2(placement - Vector2(half, half), Vector2(span, span))
+	)
+
+
+static func _add_poi_wall(
+	building: Node3D,
+	wall_name: String,
+	local_position: Vector3,
+	size: Vector3,
+	material: StandardMaterial3D
+) -> void:
+	var wall := StaticBody3D.new()
+	wall.name = wall_name
+	wall.add_to_group(&"navigation_blocker")
+	building.add_child(wall)
+	wall.position = local_position
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "Mesh"
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = size
+	box_mesh.material = material
+	mesh_instance.mesh = box_mesh
+	wall.add_child(mesh_instance)
+	var collision := CollisionShape3D.new()
+	collision.name = "Collision"
+	var box_shape := BoxShape3D.new()
+	box_shape.size = size
+	collision.shape = box_shape
+	wall.add_child(collision)
+
+
+static func _add_poi_loot(building: Node3D, config: Dictionary) -> void:
+	var collected_caches: Array = config.get("collected_caches", [])
+	if POI_CACHE_INDEX in collected_caches:
+		return
+	var cache := SCRAP_PICKUP_SCENE.instantiate() as Area3D
+	cache.name = "PoiCache"
+	cache.set(&"scrap_amount", POI_REWARD_SCRAP)
+	building.add_child(cache)
+	cache.position = Vector3(0.0, 0.25, 0.0)
+	var cache_callable: Callable = config.get("cache_collected_callable", Callable())
+	if cache_callable.is_valid():
+		cache.connect(
+			&"collected",
+			cache_callable.bind(StringName(config["id"]), POI_CACHE_INDEX)
+		)
 
 
 static func _add_landmarks(

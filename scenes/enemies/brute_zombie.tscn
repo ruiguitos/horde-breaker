@@ -30,6 +30,9 @@ rotation = Vector3(0, 3.14159, 0)
 scale = Vector3(1.75, 2.0, 1.75)
 script = ExtResource("3_model_animation")
 move_animation = &"Walk"
+attack_animation = &"Idle_Attack"
+hit_react_animation = &"HitReact"
+death_animation = &"Death"
 
 [node name="Aura" type="OmniLight3D" parent="VisualRoot"]
 position = Vector3(0, 0.6, 0)

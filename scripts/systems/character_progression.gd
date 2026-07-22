@@ -23,6 +23,7 @@ func _ready() -> void:
 	wave_manager.connect(&"enemy_defeated", _on_enemy_defeated)
 	wave_manager.connect(&"wave_completed", _on_wave_completed)
 	wave_manager.connect(&"cycle_completed", _on_cycle_completed)
+	SaveManager.mastery_completed.connect(_on_mastery_completed)
 
 
 func _on_enemy_defeated(xp_reward: int) -> void:
@@ -31,6 +32,7 @@ func _on_enemy_defeated(xp_reward: int) -> void:
 	var boosted := roundi(xp_reward * _xp_multiplier)
 	session_xp += boosted
 	SaveManager.add_character_xp(_character_id, boosted)
+	SaveManager.record_mastery_progress(_character_id, &"kills_100", 1)
 	session_progress_changed.emit(session_xp, session_credits)
 
 
@@ -38,7 +40,26 @@ func _on_wave_completed(wave_number: int) -> void:
 	var xp_reward := roundi(wave_xp_multiplier * wave_number * _xp_multiplier)
 	session_xp += xp_reward
 	SaveManager.add_character_xp(_character_id, xp_reward)
+	SaveManager.record_mastery_progress(_character_id, &"threat_5", wave_number)
 	session_progress_changed.emit(session_xp, session_credits)
+
+
+func _on_mastery_completed(
+	character_id: StringName, objective_id: StringName
+) -> void:
+	if character_id != _character_id:
+		return
+	var objective := CharacterMastery.get_objective(objective_id)
+	var camp_economy := get_tree().get_first_node_in_group(&"camp_economy")
+	if camp_economy != null and camp_economy.has_method(&"request_feedback"):
+		camp_economy.call(
+			&"request_feedback",
+			"MASTERY COMPLETE: %s  •  +%d CREDITS" % [
+				String(objective.get("name", "")),
+				int(objective.get("reward_credits", 0)),
+			],
+			4.0
+		)
 
 
 func _on_cycle_completed(_cycle_number: int) -> void:

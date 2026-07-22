@@ -13,6 +13,13 @@ const RANGED_DISTANCE_MARGIN := 1.5
 # frame for every zombie causes frame spikes, so each one repaths on a fixed
 # interval, staggered per instance so they never all repath on the same frame.
 const REPATH_INTERVAL := 0.35
+# How long the corpse lingers so the death clip can play before freeing.
+const DEATH_LINGER_SECONDS := 2.5
+# Distant enemies run on a simulation budget: paths and steering refresh far
+# less often, while close-range behaviour stays untouched.
+const FAR_SIMULATION_DISTANCE := 40.0
+const FAR_REPATH_INTERVAL := 1.2
+const FAR_STEER_INTERVAL := 0.3
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 50.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 2.5
@@ -38,6 +45,8 @@ var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_grav
 var _target: PhysicsBody3D
 var _cached_target: PhysicsBody3D
 var _repath_time: float = 0.0
+var _steer_time: float = 0.0
+var _cached_direction := Vector3.ZERO
 var _hit_flash_material: StandardMaterial3D
 var _hit_flash_tween: Tween
 
@@ -150,8 +159,25 @@ func take_damage(amount: float) -> float:
 	_play_hit_flash()
 	if is_zero_approx(current_health):
 		died.emit(self)
-		queue_free()
+		_begin_death()
 	return applied_damage
+
+
+func _begin_death() -> void:
+	# Leave a short-lived corpse for the death animation: no AI, no physics
+	# collision, no target group, and hitboxes off so shots pass through to
+	# live enemies behind it.
+	set_physics_process(false)
+	if is_in_group(&"enemy"):
+		remove_from_group(&"enemy")
+	collision_layer = 0
+	collision_mask = 0
+	for area in find_children("*", "Area3D", true, false):
+		var area_node := area as Area3D
+		area_node.set_deferred(&"monitoring", false)
+		area_node.set_deferred(&"monitorable", false)
+		area_node.collision_layer = 0
+	get_tree().create_timer(DEATH_LINGER_SECONDS).timeout.connect(queue_free)
 
 
 func _apply_gravity(delta: float) -> void:
@@ -162,32 +188,44 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _pursue_target(delta: float) -> void:
+	var is_far := _horizontal_distance_to_target() > FAR_SIMULATION_DISTANCE
 	if _repath_time <= 0.0:
-		_repath_time = REPATH_INTERVAL
+		_repath_time = FAR_REPATH_INTERVAL if is_far else REPATH_INTERVAL
 		if navigation_agent.target_position.distance_to(
 			_target.global_position
 		) >= TARGET_REPATH_DISTANCE:
 			navigation_agent.target_position = _target.global_position
-	var navigation_map := navigation_agent.get_navigation_map()
-	if NavigationServer3D.map_get_iteration_id(navigation_map) == 0:
-		_stop_horizontal_movement()
-		return
-	if navigation_agent.is_navigation_finished():
-		_stop_horizontal_movement()
-		return
+	# Near enemies steer every frame; far ones reuse the cached direction
+	# between refreshes so the per-frame NavigationServer queries drop away.
+	_steer_time -= delta
+	if not is_far or _steer_time <= 0.0:
+		_steer_time = FAR_STEER_INTERVAL
+		if not _refresh_steering():
+			return
+	velocity.x = _cached_direction.x * move_speed
+	velocity.z = _cached_direction.z * move_speed
 
-	var next_path_position := navigation_agent.get_next_path_position()
-	next_path_position.y = global_position.y
-	var movement_direction := global_position.direction_to(next_path_position)
-	movement_direction = movement_direction.normalized()
-	velocity.x = movement_direction.x * move_speed
-	velocity.z = movement_direction.z * move_speed
-
-	if movement_direction != Vector3.ZERO:
-		var target_rotation := atan2(-movement_direction.x, -movement_direction.z)
+	if _cached_direction != Vector3.ZERO:
+		var target_rotation := atan2(-_cached_direction.x, -_cached_direction.z)
 		visual_root.rotation.y = rotate_toward(
 			visual_root.rotation.y, target_rotation, rotation_speed * delta
 		)
+
+
+func _refresh_steering() -> bool:
+	var navigation_map := navigation_agent.get_navigation_map()
+	if NavigationServer3D.map_get_iteration_id(navigation_map) == 0:
+		_stop_horizontal_movement()
+		_cached_direction = Vector3.ZERO
+		return false
+	if navigation_agent.is_navigation_finished():
+		_stop_horizontal_movement()
+		_cached_direction = Vector3.ZERO
+		return false
+	var next_path_position := navigation_agent.get_next_path_position()
+	next_path_position.y = global_position.y
+	_cached_direction = global_position.direction_to(next_path_position)
+	return true
 
 
 func _face_target(delta: float) -> void:

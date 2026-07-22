@@ -74,8 +74,10 @@ func _refresh() -> void:
 	)
 	if selected_data == null:
 		return
-	weapon_context_label.text = "%s  —  %s" % [
-		selected_data.display_name, selected_data.class_description
+	weapon_context_label.text = "%s  —  %s\n%s" % [
+		selected_data.display_name,
+		selected_data.class_description,
+		_get_mastery_detail(selected_data.character_id),
 	]
 	primary_weapon_label.text = _get_weapon_name(
 		selected_data.primary_weapon_id
@@ -118,9 +120,32 @@ func _configure_character(
 func _get_progress_text(character_data: CharacterData) -> String:
 	var level := SaveManager.get_character_level(character_data.character_id)
 	var xp := SaveManager.get_character_xp(character_data.character_id)
-	return "LEVEL %d  •  XP %d / %d" % [
-		level, xp, SaveManager.get_xp_required_for_next_level(level)
+	return "LEVEL %d  •  XP %d / %d  •  %s" % [
+		level,
+		xp,
+		SaveManager.get_xp_required_for_next_level(level),
+		_get_mastery_summary(character_data.character_id),
 	]
+
+
+func _get_mastery_summary(character_id: StringName) -> String:
+	var completed := 0
+	for objective_id in CharacterMastery.OBJECTIVES:
+		if SaveManager.is_mastery_completed(character_id, objective_id):
+			completed += 1
+	return "MASTERY %d / %d" % [completed, CharacterMastery.OBJECTIVES.size()]
+
+
+func _get_mastery_detail(character_id: StringName) -> String:
+	var parts: PackedStringArray = []
+	for objective_id in CharacterMastery.OBJECTIVES:
+		var objective := CharacterMastery.get_objective(objective_id)
+		parts.append("%s %d/%d" % [
+			String(objective["name"]),
+			SaveManager.get_mastery_progress(character_id, objective_id),
+			int(objective["goal"]),
+		])
+	return "MASTERY  ·  " + "  ·  ".join(parts)
 
 
 func _get_weapon_name(weapon_id: StringName) -> String:

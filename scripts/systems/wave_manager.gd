@@ -12,7 +12,6 @@ signal wave_completed(threat_level: int)
 signal intermission_started(next_level: int, duration: float)
 signal preparation_time_changed(seconds_remaining: int)
 signal enemy_defeated(xp_reward: int)
-signal all_waves_completed
 signal cycle_completed(cycle_number: int)
 
 const PLAYER_GROUP := &"player"

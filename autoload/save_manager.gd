@@ -7,6 +7,8 @@ signal selected_character_changed(character_id: StringName)
 signal weapon_purchased(character_id: StringName, weapon_id: StringName)
 signal selected_weapon_changed(character_id: StringName, weapon_id: StringName)
 signal skill_points_changed(character_id: StringName)
+signal mastery_progress_changed(character_id: StringName, objective_id: StringName)
+signal mastery_completed(character_id: StringName, objective_id: StringName)
 
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
@@ -67,6 +69,46 @@ func save_progress() -> bool:
 		push_error("SaveManager could not save player progress: %s" % save_error)
 		return false
 	return true
+
+
+func get_world_seed() -> int:
+	return int(_config.get_value("world", "seed", 0))
+
+
+func ensure_world_seed() -> int:
+	# The world layout is fixed per profile: the first run draws the seed and
+	# every later run reuses it, so sector layouts stay familiar. Loot state is
+	# intentionally per-run. Zero means "not drawn yet".
+	var world_seed := get_world_seed()
+	if world_seed == 0:
+		world_seed = (randi() & 0x7FFFFFFF) | 1
+		_config.set_value("world", "seed", world_seed)
+		save_progress()
+	return world_seed
+
+
+func get_visited_sector_coords() -> Array:
+	return Array(_config.get_value("world", "visited_sectors", []))
+
+
+func mark_sector_visited(coords: Vector2i) -> void:
+	var visited := get_visited_sector_coords()
+	if coords in visited:
+		return
+	visited.append(coords)
+	_config.set_value("world", "visited_sectors", visited)
+	save_progress()
+
+
+func is_east_beacon_activated() -> bool:
+	return bool(_config.get_value("world", "east_beacon_activated", false))
+
+
+func set_east_beacon_activated() -> void:
+	if is_east_beacon_activated():
+		return
+	_config.set_value("world", "east_beacon_activated", true)
+	save_progress()
 
 
 func get_credits() -> int:
@@ -215,6 +257,44 @@ func unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
 
 func get_skill_bonuses(character_id: StringName) -> Dictionary:
 	return SkillTree.get_bonuses(Array(get_unlocked_skill_nodes(character_id)))
+
+
+func get_mastery_progress(character_id: StringName, objective_id: StringName) -> int:
+	return int(
+		_config.get_value(String(character_id), "mastery_%s" % objective_id, 0)
+	)
+
+
+func is_mastery_completed(character_id: StringName, objective_id: StringName) -> bool:
+	var objective := CharacterMastery.get_objective(objective_id)
+	if objective.is_empty():
+		return false
+	return get_mastery_progress(character_id, objective_id) >= int(objective["goal"])
+
+
+func record_mastery_progress(
+	character_id: StringName, objective_id: StringName, amount: int
+) -> void:
+	var objective := CharacterMastery.get_objective(objective_id)
+	if objective.is_empty() or amount <= 0:
+		return
+	var was_completed := is_mastery_completed(character_id, objective_id)
+	var progress := get_mastery_progress(character_id, objective_id)
+	if bool(objective["track_highest"]):
+		if amount <= progress:
+			return
+		progress = amount
+	else:
+		progress += amount
+	progress = mini(progress, int(objective["goal"]))
+	_config.set_value(String(character_id), "mastery_%s" % objective_id, progress)
+	save_progress()
+	mastery_progress_changed.emit(character_id, objective_id)
+	# The clamp keeps completed objectives at their goal, so the reward can
+	# only ever be paid on the crossing call.
+	if not was_completed and progress >= int(objective["goal"]):
+		add_credits(int(objective["reward_credits"]))
+		mastery_completed.emit(character_id, objective_id)
 
 
 func get_purchased_weapons(character_id: StringName) -> PackedStringArray:
@@ -408,6 +488,13 @@ func _ensure_defaults() -> bool:
 		_set_default(String(MEDIC_ID), "selected_secondary_weapon", "")
 		or defaults_added
 	)
+	# The short-lived Revolver experiment stored itself as the medic secondary;
+	# clean it back to the empty slot.
+	if String(
+		_config.get_value(String(MEDIC_ID), "selected_secondary_weapon", "")
+	) == "revolver":
+		_config.set_value(String(MEDIC_ID), "selected_secondary_weapon", "")
+		defaults_added = true
 	defaults_added = (
 		_ensure_purchased_weapons(
 			RECRUIT_ID, PackedStringArray([String(ASSAULT_RIFLE_ID), String(PISTOL_ID)])

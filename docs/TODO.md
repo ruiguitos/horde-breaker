@@ -19,7 +19,8 @@
 - [x] Grelha 4 × 4 de setores implementada com geração procedural por seed, estado de caches por setor e navegação contínua; a extração do setor inicial foi substituída pela decisão de manter o acampamento persistente.
 - [x] Adicionar encontros (emboscada única por setor), spawns próprios, caixa de munições com estado e geração distribuída por vários frames aos setores gerados.
 - [x] Fazer as hordas nascerem nos pontos de spawn mais próximos do jogador, incluindo os marcadores dos setores carregados.
-- [ ] Adicionar POIs com interiores exploráveis aos setores gerados e repor emboscadas por ciclo em vez de uma única por partida.
+- [x] Adicionar POIs com interiores exploráveis aos setores gerados (edifício graybox com muros, uma porta, chão interior e cache de recompensa lá dentro; marcador no mapa tático).
+- [x] Repor emboscadas por ciclo em vez de uma única por partida: o `WorldStreamer` liga-se ao `cycle_completed` do diretor de horda e re-arma as emboscadas dos setores a cada ciclo (~3 níveis de ameaça), com guarda que impede duplicar enquanto os inimigos anteriores estiverem vivos.
 - [x] Implementar classes com loadout principal/secundário, passivos do Recruit, Renegade e Medic, e troca de arma com `1`/`2`.
 - [x] Adicionar andar, corrida com `Shift`, salto com `Space`, agachamento com `Ctrl`, interação com `F`, vista frontal com `C` e mira com o botão direito do rato.
 - [x] Criar um pickup de munições de teste e corrigir o visual suspenso da Worn Sword no Renegade.
@@ -73,6 +74,39 @@
 - [x] Remover o "Field Upgrade" (melhorias entre rondas), substituído pela skill tree.
 - [x] Ao apanhar uma arma do chão, largar a arma substituída no chão para poder
   voltar a apanhá-la.
+- [x] Animar o ataque dos inimigos com o clip `Idle_Attack` já existente nos
+  modelos Quaternius, disparado pelo sinal `attacked`.
+- [x] Persistir o estado do mundo no save: seed fixo por perfil, setores
+  visitados e farol este (loot continua por partida, por decisão de design).
+- [x] Melhorias da base com Scrap armazenado: pedestais de Resupply Rate,
+  Resupply Range e Scavenging junto ao núcleo, 3 níveis cada.
+- [x] `HitReact` e animação de morte (`Death`) nos inimigos, com cadáver breve
+  sem colisão nem hitboxes.
+- [x] Dois pontos de fortificação extra à volta do acampamento (total 3).
+- [x] Objetivos de mastery por personagem com recompensa em Credits, visíveis
+  na seleção de classes.
+- [x] Orçamento de IA para inimigos distantes (repath e steering reduzidos
+  além de 40 m).
+- [x] Métricas de streaming no overlay de FPS (`F3`).
+- [x] Painel de vitória antigo removido; sinal morto `all_waves_completed`
+  retirado.
+- [x] Decisão do navmesh registada: manter a grelha runtime (setores gerados
+  em runtime não podem usar navmesh de editor).
+- [x] `GDD.md`, `ARCHITECTURE.md` e `ROADMAP.md` sincronizados com o jogo real.
+- [x] **Experiência do pack "Animated Guns" revertida por decisão de playtest:**
+  o visual da arma na cena (ancorado ao `WeaponPivot` estático) nunca assenta
+  bem nas mãos — as malhas embutidas nos personagens (animadas pelo próprio
+  esqueleto) continuam a ser o padrão. Aprendizagem: futuros modelos de armas
+  só funcionam presos ao osso da mão (`BoneAttachment3D`) ou embutidos no rig.
+  As armas novas (Hunting/Marksman/Revolver) foram removidas junto com o pack;
+  o design (stats/custos) fica no histórico git para quando houver modelos.
+- [ ] Ecrã de compra de armas ("ARMORY" na seleção de classes): lista com estado
+  possuída/comprável/bloqueada, compra com Credits e escolha do slot. A lógica
+  (requisitos nível+Credits, `purchase_weapon`) já existe no SaveManager.
+- [ ] Armas novas com as malhas **embutidas** nos modelos Quaternius (ficam bem
+  nas mãos, zero assets novos): **SMG** (nível 3 · 400 cr, cadência alta/dano
+  baixo), **Fire Axe** (`Axe`, nível 4 · 500 cr, melee lento/forte), **Spear**
+  (nível 6 · 700 cr, melee com alcance). Candidatas a 2ª arma do Medic.
 
 ## Regra
 

@@ -334,6 +334,69 @@ zona de reabastecimento e todo o jogo em inglês.
 - [x] Ecrã de skill tree acessível por um botão na seleção de personagens, que constrói os cartões dinamicamente com estados desbloqueado/disponível/bloqueado e pontos disponíveis.
 - [x] "Field Upgrade" (painel de melhorias entre rondas) removido por completo, substituído pela skill tree permanente.
 - [x] Ao equipar uma arma encontrada, a arma substituída é largada no chão como pickup, podendo ser reapanhada com `F`.
+- [x] POIs com interiores exploráveis nos setores gerados: cerca de metade dos
+  setores recebe um edifício graybox de 11 × 11 m (`SectorGenerator._add_poi_building`)
+  com três muros sólidos e uma frente partida à volta de uma porta de 4 m. Os
+  muros são `navigation_blocker`, por isso a porta é a única abertura que a grelha
+  de navegação em runtime deixa livre — o jogador entra para recolher a cache de
+  recompensa (50 de Scrap) e os inimigos perseguem-no para dentro pela mesma porta.
+- [x] Cache interior do POI reutiliza o estado por setor sob um índice reservado
+  (`POI_CACHE_INDEX`), não reaparecendo depois de recolhida durante a partida.
+- [x] Cada POI ganhou um marcador no grupo `point_of_interest` (visível no mapa
+  tático em `Tab`) e uma etiqueta 3D (OUTPOST/DEPOT/BUNKER/RUINS).
+- [x] Ataques dos inimigos animados: novo `attack_animation` no componente
+  `imported_model_animation.gd`, ligado ao sinal `attacked` que os zombies já
+  emitem; Normal, Runner, Brute, Spitter (herdado) e Boss tocam `Idle_Attack`
+  (1,67 s, sem loop) ao atacar, voltando à locomoção quando o clip termina. O
+  jogador não é afetado (ataques continuam a vir dos sinais das armas).
+- [x] Decisão de assets: manter Quaternius para todos os movimentos (Mixamo
+  parqueado); todos os clips necessários já existem nos modelos atuais.
+- [x] Emboscadas dos setores repostas por ciclo em vez de uma única por partida:
+  o `WorldStreamer` liga-se ao sinal `cycle_completed` do diretor de horda e, a
+  cada ciclo (~3 níveis de ameaça), re-arma a emboscada de todos os setores; uma
+  guarda de inimigos vivos (`_ambush_enemies_cleared`) impede que uma nova vaga
+  se sobreponha à anterior enquanto ainda está a ser combatida.
+
+- [x] Estado do mundo persistido no save: seed fixo por perfil (o layout dos
+  setores mantém-se entre partidas; loot volta a cada partida por decisão de
+  design), setores visitados (memória do mapa tático) e farol este; secção
+  `[world]` no `SaveManager`.
+- [x] Melhorias da base compradas com Scrap armazenado: três pedestais junto ao
+  núcleo (`camp_upgrade_station`) — Resupply Rate (+cura/+munição por segundo),
+  Resupply Range (+raio) e Scavenging (+% Scrap), 3 níveis com custos crescentes,
+  estado e efeitos no `CampEconomy`, raio/valores efetivos no `CampCore`.
+- [x] `HitReact` nos inimigos ao levar dano (via `health_changed`, cooldown de
+  0,9 s, nunca interrompe o ataque) e animação de morte `Death`: o inimigo emite
+  `died` como antes e fica como cadáver 2,5 s sem colisão, grupos ou hitboxes
+  (os tiros atravessam para os inimigos vivos atrás).
+- [x] Dois pontos de fortificação extra (oeste e este do núcleo), reutilizando a
+  cena existente — total de 3 barricadas construíveis.
+- [x] Objetivos de mastery por personagem (`character_mastery.gd` + API no
+  `SaveManager`): EXTERMINATOR (100 abates), STORM RIDER (nível de ameaça 5 numa
+  partida, guarda o máximo), SCAVENGER (500 Scrap); recompensa em Credits paga
+  uma única vez, progresso persistido, resumo nos cartões da seleção de classes
+  e detalhe no painel de loadout, feedback no HUD ao completar.
+- [x] Orçamento de IA para inimigos distantes: a mais de 40 m o repath passa de
+  0,35 s para 1,2 s e o steering (query de caminho por frame) é cacheado e
+  refrescado a 0,3 s; comportamento de perto inalterado.
+- [x] Métricas de streaming no overlay de FPS (`F3`): setores carregados e
+  duração do último build de setor.
+- [x] Painel de vitória antigo removido (`wave_complete_panel` cena+script) e o
+  sinal morto `all_waves_completed` retirado do diretor de horda.
+- [x] Decisão registada: navmesh de editor não se aplica (setores gerados em
+  runtime); mantém-se a grelha de navegação construída na worker thread.
+- [x] `GDD.md`, `ARCHITECTURE.md` e `ROADMAP.md` reescritos e sincronizados com
+  o jogo real (horda contínua, mundo aberto, inglês, skill tree, mastery).
+
+- [x] **Pack "Animated Guns" experimentado e revertido** (decisão de playtest):
+  os visuais animados nas cenas das armas, ancorados ao `WeaponPivot` estático,
+  nunca assentaram bem nas mãos do personagem — mesmo após recentrar o pivot, a
+  arma "flutua" porque as mãos mexem com as animações do rig e o pivot não.
+  Rollback completo: malhas embutidas restauradas, pivot original, armas novas
+  (Hunting/Marksman/Revolver) removidas com limpeza de save, assets apagados.
+  Aprendizagem registada: modelos de armas futuros exigem `BoneAttachment3D` ao
+  osso da mão ou vir embutidos no rig do personagem.
+
 
 ## Milestone atual
 
@@ -341,15 +404,54 @@ zona de reabastecimento e todo o jogo em inglês.
 
 ## Próxima tarefa
 
-Playtest manual do sandbox: atravessar o mundo a sentir a horda contínua a
-crescer, usar o acampamento como ponto de reabastecimento entre incursões,
-recolher loot randomizado e ler o mapa tático. Depois: dar aos setores gerados
-POIs com interiores e balancear a curva do diretor de horda (intervalo de
-subida, dimensão dos lotes e limite simultâneo) com base na sensação de jogo.
+Milestone 20 (ver `ROADMAP.md`): integrar o pack CC0 **Quaternius Animated
+Guns** (aguarda download do utilizador) e ligar as animações de disparo/recarga
+ao `WeaponController`. Em paralelo: playtest do lote novo (upgrades da base,
+mastery, cadáveres) e balanceamento da curva do diretor de horda.
 
 ## Validação
 
 - Godot disponível: `4.7.stable.mono.official.5b4e0cb0f`.
+- Emboscadas por ciclo: teste headless (`SceneTree`) confirmou que um inimigo
+  vivo impede o re-arme, que uma lista limpa conta como pronta, que
+  `_on_cycle_completed` repõe `ambush_triggered` em todos os setores e que o
+  `WorldStreamer` se liga ao sinal `cycle_completed` de um wave manager fictício
+  e re-arma ao recebê-lo.
+- Emboscadas por ciclo: `test_arena` em headless durante 300 frames correu sem
+  erros com a ligação ao diretor de horda real ativa.
+- Ataques animados: teste com renderer OpenGL confirmou que os cinco inimigos
+  tocam `Idle_Attack` (sem loop) ao emitir `attacked`, com captura visual do
+  pose de ataque; `test_arena` em headless durante 240 frames sem erros.
+- Persistência do mundo: teste headless com save isolado confirmou seed estável
+  entre chamadas e reloads, deduplicação de setores visitados, farol persistido
+  e o `WorldStreamer` a usar o seed do save (9 asserts).
+- Upgrades da base: teste headless confirmou custos 40→80→120, recusa quando
+  maxado ou sem Scrap, bónus (+12 cura/s, +6 munição/s no nível 3), Scavenging
+  a converter 100→115, compra pela estação com etiqueta atualizada, 3 estações
+  nomeadas no núcleo e raio efetivo 12→16 (14 asserts).
+- HitReact/Death: teste headless confirmou HitReact ao dano com cooldown sem
+  restart, prioridade do ataque, `died` emitido uma vez, cadáver com `Death`,
+  sem colisão/grupo/hitboxes, imune a dano e libertado após 2,5 s (9 asserts).
+- Mastery: teste headless com save isolado confirmou acumulação, modo máximo,
+  clamp no objetivo, recompensa paga uma única vez, persistência após reload e
+  captura OpenGL da seleção de classes com resumo e detalhe legíveis (7 asserts).
+- Arena completa: 3 fortificações e 3 estações verificadas por script; run
+  headless de 1700 frames (~28 s com horda ativa) sem erros com o orçamento de
+  IA e as métricas de streaming ativos.
+- Armas animadas: teste confirmou o clip de Fire a tocar em `shot_fired` e o de
+  Reload à velocidade certa (0,54×) em `reload_started`; orientações das três
+  armas validadas por capturas de perfil com guias de muzzle; arena com o
+  renderer OpenGL sem erros (os avisos de material em headless são ruído do
+  renderer dummy com FBX skinned).
+- POIs: teste headless (`SceneTree`) sobre 60 seeds confirmou POIs em 33/60
+  setores (55%), os cinco muros no grupo `navigation_blocker` com `Collision`, o
+  marcador em `point_of_interest`, a cache interior de 50 de Scrap e — via malha
+  de navegação em runtime — a célula caminhável mais próxima do centro interior a
+  0,56 m e da porta a 0,42 m (interior alcançável pela porta, não murado).
+- POIs: `test_arena` em headless durante 240 frames carregou dois setores gerados
+  (com POIs) em worker threads sem erros de navegação ou de colisão.
+- POIs: captura OpenGL a 1152 × 648 confirmou os muros, a porta, o chão interior
+  e a cache de recompensa dentro do edifício, entre os marcos existentes.
 - Importação do projeto em modo headless concluída com código de saída 0.
 - Cena principal executada em modo headless durante dois frames com código de saída 0.
 - Cena executada com o renderer OpenGL e gravada durante dois frames com código de saída 0.

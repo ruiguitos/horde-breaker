@@ -5,6 +5,13 @@ signal destroyed
 
 const PLAYER_GROUP := &"player"
 const CAMP_ECONOMY_GROUP := &"camp_economy"
+const UPGRADE_STATION_SCENE := preload("res://scenes/world/camp_upgrade_station.tscn")
+# Pedestal layout around the core; each buys one CampEconomy upgrade track.
+const UPGRADE_STATION_LAYOUT: Dictionary[StringName, Vector3] = {
+	&"resupply_rate": Vector3(-3.2, 0.0, 2.6),
+	&"resupply_range": Vector3(0.0, 0.0, 4.0),
+	&"scavenging": Vector3(3.2, 0.0, 2.6),
+}
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 500.0
 @export_range(0.1, 5.0, 0.1) var attack_target_radius: float = 1.1
@@ -19,23 +26,27 @@ var current_health: float
 var _is_destroyed: bool = false
 var _resupply_tick_time: float = 0.0
 var _player_inside_resupply: bool = false
+var _camp_economy: Node
 
 
 func _ready() -> void:
 	current_health = maximum_health
 	_update_world_label()
+	_spawn_upgrade_stations()
 
 
 func _physics_process(delta: float) -> void:
 	# The camp acts as the run's safe hub: standing near the core slowly
-	# heals the operative and trickles reserve ammunition back in.
+	# heals the operative and trickles reserve ammunition back in. Camp
+	# upgrades bought with stored scrap raise the rate and the radius.
 	if _is_destroyed:
 		return
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP) as Node3D
 	if player == null:
 		return
 	var player_inside := (
-		global_position.distance_to(player.global_position) <= resupply_radius
+		global_position.distance_to(player.global_position)
+		<= get_effective_resupply_radius()
 	)
 	if player_inside and not _player_inside_resupply:
 		_request_feedback("CAMP RESUPPLY ACTIVE")
@@ -47,10 +58,38 @@ func _physics_process(delta: float) -> void:
 	if _resupply_tick_time < 1.0:
 		return
 	_resupply_tick_time -= 1.0
+	var economy := _get_camp_economy()
+	var heal_per_second := resupply_heal_per_second
+	var ammo_per_second := resupply_ammo_per_second
+	if economy != null:
+		heal_per_second += float(economy.call(&"get_resupply_heal_bonus"))
+		ammo_per_second += int(economy.call(&"get_resupply_ammo_bonus"))
 	if player.has_method(&"heal"):
-		player.call(&"heal", resupply_heal_per_second)
+		player.call(&"heal", heal_per_second)
 	if player.has_method(&"add_ammunition"):
-		player.call(&"add_ammunition", resupply_ammo_per_second)
+		player.call(&"add_ammunition", ammo_per_second)
+
+
+func get_effective_resupply_radius() -> float:
+	var economy := _get_camp_economy()
+	if economy == null:
+		return resupply_radius
+	return resupply_radius + float(economy.call(&"get_resupply_radius_bonus"))
+
+
+func _get_camp_economy() -> Node:
+	if not is_instance_valid(_camp_economy):
+		_camp_economy = get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
+	return _camp_economy
+
+
+func _spawn_upgrade_stations() -> void:
+	for upgrade_id in UPGRADE_STATION_LAYOUT:
+		var station := UPGRADE_STATION_SCENE.instantiate()
+		station.name = "UpgradeStation_%s" % upgrade_id
+		station.set(&"upgrade_id", upgrade_id)
+		add_child(station)
+		station.position = UPGRADE_STATION_LAYOUT[upgrade_id]
 
 
 func _request_feedback(message: String) -> void:

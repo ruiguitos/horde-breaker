@@ -2,384 +2,126 @@
 
 ## Estado
 
-Nome provisório: **Horde Breaker**
-
-Género: ação 3D em terceira pessoa, arena survival e progressão permanente.
-
-Plataforma inicial: Windows.
-
-Modo inicial: single-player offline.
+Sincronizado com o jogo real a 2026-07-22. Substitui a versão antiga baseada em
+rondas; o histórico detalhado vive em `docs/PROGRESS.md`.
 
 ## Visão do jogo
 
-O jogador entra numa arena, enfrenta vagas de zombies, recebe recompensas e desenvolve personagens com estilos de combate diferentes.
-
-A experiência deve ser:
-
-- fácil de compreender;
-- rápida a iniciar;
-- satisfatória a cada eliminação;
-- progressivamente mais exigente;
-- baseada em movimento, posicionamento e decisões de progressão.
+Horde shooter 3D na terceira pessoa, single-player, para Windows. O jogador
+explora um **mundo aberto compacto** (4 × 4 setores, 256 × 256 m) enquanto uma
+**horda contínua** nasce à sua volta e escala com o tempo. O acampamento central
+é o porto seguro: zona de reabastecimento, depósito de Scrap e melhorias da
+base. Todo o texto do jogo está em **inglês**; a documentação em português.
 
 ## Core loop
 
-```text
-Selecionar personagem e arma
--> entrar na arena
--> explorar e melhorar o acampamento
--> enfrentar hordas que perseguem o operacional
--> eliminar inimigos
--> receber Scrap, Credits e XP
--> escolher melhorias
--> iniciar ataque mais difícil
--> sobreviver enquanto o operacional resistir
--> terminar a partida por queda do operacional
--> guardar progressão permanente
-```
+`Explorar setores → combater a horda contínua → recolher Scrap/munições/armas →
+reabastecer e melhorar a base no acampamento → subir de nível e desbloquear
+skills/mastery → aguentar níveis de ameaça cada vez mais altos → morrer →
+recomeçar com progressão permanente.`
+
+Não há rondas nem vitória formal: a partida termina com a morte do jogador. A
+progressão permanente (XP, skill tree, mastery, Credits) transita entre partidas.
 
 ## Personagens
 
-### Recruit
+Três classes com loadout primário/secundário (`1`/`2`) e passivos:
 
-Personagem inicial e gratuita.
+- **Recruit** (Assault): Assault Rifle + Pistol; recarrega 30% mais rápido.
+- **Renegade** (Vanguard): Shotgun + Worn Sword; 140 de vida. Desbloqueio: 500 Credits.
+- **Medic** (Support): Pistol; regenera 4 HP/s após 3 s sem dano. Desbloqueio: 750 Credits.
+  (2ª arma própria por decidir após playtest.)
 
-Estilo: armas de fogo e combate à distância.
+Movimento: andar 4 m/s, correr 7 m/s (`Shift`), salto (`Space`), agachar
+(`Ctrl`), interação (`F`), vista frontal (`C`), mira sobre o ombro (botão
+direito), mapa tático (`Tab`).
 
-Características:
+## Combate
 
-- dano equilibrado;
-- segurança à distância;
-- munição e recarga;
-- recarga 30% mais rápida do que as restantes classes;
-- vulnerável quando é cercado.
+- **Hitscan** com dano por zonas: corpo 1×, cabeça 2×.
+- **Disparo automático por proximidade**: armas de fogo disparam sozinhas contra
+  o inimigo visível mais próximo até **6 m**; disparo manual continua disponível.
+- **Melee** (Worn Sword) com golpe frontal em área e headshot apontado.
+- Feedback: números de dano, flash no inimigo, HitReact, sons sintetizados,
+  hit-marker, knockback ao jogador (Brute/Boss).
 
-Loadout inicial:
+## Inimigos
 
-- principal: Assault Rifle;
-- secundária: Pistol.
+Perseguem **apenas o jogador** — núcleo, acampamento e fortificações não são
+alvos nem condição de derrota.
 
-Armas planeadas:
+| Inimigo | Papel | Notas |
+|---|---|---|
+| Normal Zombie | base | 100 HP |
+| Runner | rápido | 60 HP, 4,5 m/s |
+| Brute | tanque | 320 HP, knockback forte |
+| Spitter | à distância | mantém distância, projétil de ácido |
+| The Breaker (boss) | clímax | 1200 HP, knockback, invoca minions |
 
-| Arma | Nível mínimo | Credits | Estado |
-|---|---:|---:|---|
-| Assault Rifle | 1 | 0 | Inicial |
-| Pistol | 1 | 0 | Inicial secundária |
-| SMG | 3 | 400 | Planeada |
-| Marksman Rifle | 8 | 1500 | Planeada |
+**Diretor de horda contínuo**: spawns em lotes nos pontos mais próximos do
+jogador (≥ 12 m), nível de ameaça sobe a cada 75 s (mais inimigos, tipos mais
+pesados, intervalos mais curtos), boss a cada 5 níveis. Um "ciclo" = 3 níveis de
+ameaça (recompensa 100 Credits, reposição de loot dos POIs, re-arme das
+emboscadas). Ao morrer, o inimigo toca a animação de morte e o cadáver
+desaparece pouco depois.
 
-### Renegade
+## Mundo aberto
 
-Personagem desbloqueável.
+- Grelha 4 × 4 de setores 64 × 64 m: acampamento (0,0) persistente, setor este
+  feito à mão (1,0), os restantes **gerados por seed** em worker threads.
+- **O seed do mundo é fixo por perfil** (guardado no save): o layout mantém-se
+  entre partidas. Loot volta a cada partida — decisão de design: mundo familiar,
+  exploração sempre recompensada.
+- Setores gerados têm estradas, marcos, props CC0, caches de Scrap, caixa de
+  munições, ~1/3 com caixa de arma e ~1/2 com **POI explorável** (edifício
+  graybox com porta única e cache de 50 Scrap no interior).
+- **Emboscadas por setor** ao aproximar, re-armadas a cada ciclo.
+- Setores **visitados persistem no save** (memória do mapa tático).
+- POIs feitos à mão na arena: hospital, armazém, posto militar, estação de
+  combustível — com interiores, loot e encontros por ciclo.
 
-Preço provisório: 500 Credits.
+## Acampamento
 
-Estilo: combate agressivo a curta distância.
-
-Características:
-
-- dano elevado;
-- ataque em arco;
-- possibilidade de atingir vários inimigos;
-- 140 pontos de vida, acima das restantes classes;
-- Shotgun para abrir espaço antes do combate corpo a corpo;
-- maior risco por proximidade.
-
-Loadout inicial:
-
-- principal: Shotgun;
-- secundária: Worn Sword.
-
-Armas planeadas:
-
-| Arma | Nível mínimo | Credits | Estado |
-|---|---:|---:|---|
-| Worn Sword | 1 | 0 | Inicial |
-| Shotgun | 1 | 0 | Inicial principal |
-| Katana | 3 | 500 | Planeada |
-| Heavy Blade | 5 | 900 | Planeada |
-| Energy Blade | 8 | 1800 | Planeada |
-
-### Medic
-
-Personagem desbloqueável.
-
-Preço provisório: 750 Credits.
-
-Estilo: sobrevivência e recuperação sustentada.
-
-Características:
-
-- 100 pontos de vida;
-- regenera 4 pontos de vida por segundo após 3 segundos sem sofrer dano;
-- usa uma Pistol;
-- menor poder imediato do que Recruit e Renegade.
-
-Loadout inicial:
-
-- principal: Pistol;
-- secundária: vazia até ser definida uma arma ou ferramenta médica adequada.
-
-## Dano por zonas
-
-- Um impacto no corpo aplica o dano base da arma.
-- Um impacto na cabeça aplica provisoriamente `2 ×` o dano base.
-- A regra aplica-se a todas as armas de fogo e armas brancas do jogador.
-- Nas armas melee, apenas o inimigo cuja cabeça esteja sob o centro da mira recebe o multiplicador; os restantes alvos do mesmo golpe recebem dano de corpo.
-- O multiplicador é configurável por hitbox e deve ser afinado através de playtests.
-
-Valores provisórios após o primeiro balanceamento conjunto de vida e dano:
-
-| Arma | Corpo | Cabeça | Observação |
-|---|---:|---:|---|
-| Assault Rifle | 30 | 60 | Dano por bala; fogo automático. |
-| Pistol | 35 | 70 | Dano por bala; fogo semiautomático. |
-| Shotgun | 12 por pellet | 24 por pellet | Oito pellets; máximo teórico de 96 no corpo. |
-| Worn Sword | 50 | 100 | Pode atingir vários inimigos no mesmo golpe. |
-
-### Disparo automático por proximidade
-
-- Assault Rifle, Pistol e Shotgun procuram o inimigo mais próximo até 3 metros.
-- O disparo automático só acontece com linha de visão e continua a respeitar munição, recarga, cadência, dispersão e dano por zonas.
-- O automático aponta ao corpo; premir o ataque dá prioridade à mira manual e permite procurar headshots.
-- O disparo manual permanece disponível durante o protótipo para permitir comparar os dois estilos em playtest.
-- A Worn Sword mantém ataque manual e o seu volume corpo a corpo próprio.
+- **Zona de reabastecimento**: perto do núcleo cura e repõe munição por segundo.
+- **Depósito**: `F` no núcleo guarda o Scrap transportado; Scrap armazenado
+  compra reparações e melhorias.
+- **Melhorias da base** (por partida, compradas nos pedestais junto ao núcleo):
+  Resupply Rate, Resupply Range e Scavenging (+% Scrap), 3 níveis cada.
+- **3 pontos de fortificação** com barricada (30 Scrap, 200 HP, reparável).
 
 ## Progressão
 
-### Character XP
-
-Cada personagem tem:
-
-- nível próprio;
-- XP próprio;
-- armas compradas próprias;
-- loadout principal/secundário próprio.
-
-O XP ganho ao jogar com uma personagem só progride essa personagem.
-
-Fórmula provisória:
-
-```text
-XP para o próximo nível = 100 + ((nível atual - 1) × 50)
-```
-
-Nível máximo inicial: 10.
-
-Valores provisórios de XP:
-
-| Ação | XP |
-|---|---:|
-| Zombie normal | 5 |
-| Runner | 8 |
-| Spitter | 12 |
-| Brute | 15 |
-| Boss | 100 |
-| Completar ataque | 20 × ataque |
-
-O XP obtido é mantido mesmo quando o jogador perde.
-
-### Credits
-
-Moeda permanente.
-
-Serve para:
-
-- desbloquear personagens;
-- comprar armas cujo nível mínimo já foi atingido;
-- futuramente comprar cosméticos ou arenas.
-
-Completar cada ciclo de três ataques atribui provisoriamente 100 Credits.
-
-### Scrap
-
-Moeda temporária da expedição. O protótipo atual separa:
-
-- **Scrap transportado**: encontrado em caches espalhados pelo mapa e ainda na posse do jogador;
-- **Scrap na base**: depositado no núcleo do acampamento e disponível para utilização.
-
-Existem provisoriamente onze caches de 25 Scrap em simultâneo: oito são estáticos
-no exterior, um pertence ao armazém e dois pertencem à estação de combustível.
-As três caches interiores são repostas após cada ciclo de três ataques apenas se
-tiverem sido recolhidas. `F` recolhe uma cache próxima e, junto do núcleo, deposita
-todo o Scrap transportado.
-
-Durante uma fase de exploração, `F` junto do núcleo também permite reparar até
-50 pontos de vida por interação. Cada unidade de Scrap repara 5 pontos de vida,
-pelo que uma reparação completa custa no máximo 10 Scrap.
-
-O primeiro ponto fixo de defesa permite construir uma barricada por 30 Scrap.
-A barricada também usa a proporção de 5 pontos de vida por Scrap nas reparações.
-
-Futuramente também poderá servir para melhorias temporárias entre ataques:
-
-- dano;
-- vida máxima;
-- velocidade;
-- cadência;
-- recarga;
-- tamanho de carregador;
-- crítico;
-- alcance corpo a corpo.
-
-O Scrap é reiniciado no fim da partida.
-
-## Inimigos planeados
-
-### Normal Zombie
-
-- lento;
-- 100 pontos de vida;
-- vida e dano médios;
-- persegue o jogador e não escolhe o núcleo ou as fortificações como alvos;
-- inimigo base.
-
-### Runner
-
-- rápido;
-- 60 pontos de vida;
-- pouca vida;
-- força o jogador a reposicionar-se.
-
-### Brute
-
-- lento;
-- muita vida;
-- ataque forte;
-- pode empurrar o jogador.
-
-### Spitter
-
-- ataque à distância;
-- cria pressão de posicionamento.
-
-### Boss: Breaker
-
-Planeado para uma fase posterior.
-
-- muita vida;
-- investida;
-- ataque de área;
-- invoca inimigos;
-- recompensa elevada.
-
-## Núcleo do acampamento
-
-- É a âncora da exploração, depósito de recursos e ponto de evolução do acampamento.
-- Começa provisoriamente com 500 pontos de vida.
-- Na direção aprovada, os zombies perseguem o jogador e não atacam diretamente o núcleo.
-- A derrota deve resultar da morte do jogador, não da destruição do acampamento.
-- Durante a exploração, aceita o depósito de Scrap e reparações de 5 pontos de vida por Scrap.
-- Melhorias, construção livre e persistência da base ficam para etapas posteriores.
-- O protótipo atual ainda permite dano no núcleo; a remoção desse comportamento fica pendente para uma alteração funcional própria.
-
-## Fortificação provisória
-
-- Existe um único ponto fixo de defesa junto do núcleo.
-- Só pode ser construída ou reparada durante uma fase de exploração.
-- A construção custa 30 Scrap armazenado e cria uma barricada com 200 pontos de vida.
-- A reparação recupera até 50 pontos de vida por interação, à razão de 5 pontos por Scrap.
-- Enquanto está construída, bloqueia movimento, mas não deve tornar-se um alvo escolhido pelos zombies.
-- Quando é destruída, o ponto fica novamente disponível para reconstrução na exploração seguinte.
-- Posicionamento livre, rotação, múltiplas estruturas e persistência ficam fora deste slice.
-
-## Ataques provisórios
-
-| Ataque do ciclo | Composição base |
-|---:|---|
-| 1 | 5 Normal Zombies |
-| 2 | 10 Normal Zombies |
-| 3 | 15 Normal Zombies + 2 Runners |
-
-O ciclo repete-se continuamente e cada ciclo completo acrescenta provisoriamente
-dois Normal Zombies a cada composição. Os valores e a variedade de inimigos
-devem ser ajustados após playtests. Antes do primeiro ataque existem 30 segundos
-de exploração; entre ataques existem provisoriamente 45 segundos para explorar,
-recolher recursos e reparar o núcleo.
-
-Para o futuro mapa aberto, as hordas devem surgir com aviso e perseguir o jogador
-através dos setores carregados. O jogador não é obrigado a regressar para defender
-o acampamento, porque a base não é um alvo direto. Os temporizadores atuais
-permanecem inalterados até existir um sistema de aviso próprio.
-
-## Exploração provisória
-
-- O mapa de teste mede 64 × 64 metros e usa uma grelha modular de estradas.
-- Os quatro bairros repetidos foram substituídos por silhuetas graybox próprias: hospital, armazém, posto militar e estação de combustível.
-- Cada POI tem um acesso navegável e pelo menos uma cache de Scrap próxima.
-- Os pontos de aparecimento dos inimigos continuam distribuídos nas zonas exteriores.
-- As ruas mantêm caminhos contínuos até ao núcleo e permitem testar deslocações mais longas.
-- O armazém é o primeiro interior explorável, com entrada aberta, iluminação graybox, uma cache de Scrap e um pickup de munições.
-- Entrar no armazém durante uma fase de exploração ativa uma emboscada de dois Normal Zombies, uma vez por ciclo.
-- Os zombies da emboscada concedem XP, mas não pertencem à contagem da vaga; o loot do armazém é reposto no ciclo seguinte sem duplicar pickups não recolhidos.
-- O hospital é o segundo interior explorável e funciona como ponto de apoio, com entrada aberta, iluminação fria, duas camas e um medkit.
-- `F` junto do medkit recupera até 40 pontos de vida. O pickup não é consumido com a vida cheia e reaparece após cada ciclo de três ataques.
-- O posto militar é o terceiro interior explorável e representa uma zona de risco elevado, com duas caixas de 12 munições.
-- Entrar no posto militar durante a exploração ativa dois Normal Zombies e um Runner, uma vez por ciclo. Os três concedem 18 XP total sem alterar a contagem da vaga.
-- As munições do posto militar reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar caixas ainda presentes.
-- A estação de combustível é o quarto interior explorável, com entrada aberta, iluminação quente, balcão e duas caches de 25 Scrap.
-- Aproximar-se da estação durante a exploração ativa três Runners, uma vez por ciclo. Os três concedem 24 XP total sem alterar a contagem da vaga.
-- As duas caches da estação reaparecem no ciclo seguinte apenas quando foram recolhidas, sem duplicar loot ainda presente.
-- O tamanho final do mapa e a distribuição de futuros POIs ficam para etapas posteriores.
-
-O primeiro protótipo de mundo aberto compacto acrescenta um setor leste graybox
-de 64 × 64 metros. Este setor é carregado ao aproximar-se da fronteira e removido
-depois do regresso ao acampamento, enquanto jogador, base e sistemas globais
-permanecem na cena. Um farol de reconhecimento funciona como primeiro objetivo
-de expedição e mantém o estado ativado durante a sessão mesmo após recarregar o
-setor.
+- **Scrap**: moeda da partida (desaparece no fim).
+- **Credits**: moeda permanente (ciclos e mastery) — desbloqueia classes.
+- **Character XP**: por classe, **sem teto de nível**; 1 skill point por nível.
+- **Skill tree permanente** por classe: 3 ramos (Offense/Survival/Expedition) ×
+  5 tiers com pré-requisitos (dano, cadência, recarga, vida, regen, redução de
+  dano, velocidade, reserva de munição, +Scrap, +XP).
+- **Mastery por classe** (persistente, recompensa em Credits):
+  EXTERMINATOR (100 abates), STORM RIDER (nível de ameaça 5 numa partida),
+  SCAVENGER (500 Scrap recolhido).
+- **Armas encontráveis**: caixas de arma nos setores substituem o slot
+  secundário durante a partida; a arma trocada cai no chão e pode ser reapanhada.
 
 ## Direção visual
 
-Primeiro protótipo:
+Low-poly CC0 (kit Quaternius Zombie Apocalypse) + primitivas graybox para
+protótipos. Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
+Quaternius para modelos e animações (cobre todos os movimentos necessários);
+Mixamo parqueado. Próximo passo de arte: pack CC0 "Animated Guns" (armas) e
+packs de edifícios (downloads do utilizador).
 
-- primitivas 3D;
-- materiais simples;
-- arena cinzenta;
-- iluminação funcional;
-- efeitos mínimos.
+## Interface
 
-Versão posterior:
-
-- personagens e zombies humanoides do Adobe Mixamo;
-- importação por Blender para glTF/GLB quando necessário;
-- ambiente pós-apocalíptico;
-- leitura visual clara entre tipos de inimigos.
-
-## Interface planeada
-
-Durante a partida:
-
-- vida;
-- vida do núcleo do acampamento;
-- munição;
-- ataque;
-- inimigos restantes;
-- Scrap da sessão;
-- XP ganho na sessão.
-- mapa tático aberto com `Tab`, mostrando setores, jogador, acampamento, POIs e
-  inimigos ativos.
-
-Menu principal:
-
-- saldo de Credits;
-- personagem selecionada;
-- nível e XP;
-- classe, passivo e loadout principal/secundário;
-- armas disponíveis, bloqueadas e compradas quando existirem alternativas;
-- iniciar partida.
-
-Definições:
-
-- o modo Janela ou Ecrã completo deve refletir e guardar o estado escolhido;
-- em Ecrã completo, a resolução apresentada corresponde à resolução real do monitor;
-- em Janela, a resolução selecionada redimensiona e centra imediatamente a janela.
+Menu principal, seleção de classes (com mastery), skill tree, definições
+(janela/resolução/VSync/sensibilidade/som), pausa, derrota. HUD minimalista:
+vida, munição + arma, faixa de ameaça, Scrap, feed de mensagens. Mapa tático
+(`Tab`): setores, visitados, loot, POIs, inimigos, bússola. FPS overlay (`F3`)
+com métricas de streaming.
 
 ## Princípios de design
 
-- A dificuldade deve aumentar por composição e comportamento, não apenas por quantidade.
-- Cada personagem deve mudar a forma de jogar.
-- Uma arma nova deve oferecer um estilo diferente, não apenas mais dano.
-- O jogador deve receber progresso mesmo após perder.
-- O combate deve funcionar antes de animações e arte final.
-- Os números deste documento são hipóteses, não valores finais.
+1. A horda pressiona sempre; o descanso é uma escolha tática (voltar à base).
+2. Exploração recompensada: loot, armas, POIs e emboscadas dão razões para sair.
+3. Progressão dupla: dentro da partida (Scrap/upgrades) e permanente (XP/skills/mastery).
+4. Simplicidade técnica primeiro: primitivas e CC0 até o gameplay estar fechado.
