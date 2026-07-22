@@ -1,7 +1,12 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/character_selection.gd" id="1_selection_script"]
 [ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/ui/character_preview.gd" id="3_preview_script"]
+[ext_resource type="Shader" path="res://assets/shaders/menu_panel_surface.gdshader" id="4_panel_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel_surface"]
+shader = ExtResource("4_panel_shader")
 
 [node name="CharacterSelection" type="Control"]
 layout_mode = 3
@@ -115,12 +120,82 @@ layout_mode = 2
 size_flags_vertical = 6
 theme_override_constants/separation = 16
 
+[node name="PreviewPanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_type_variation = &"MenuPanel"
+
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Content/Characters/PreviewPanel"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="PageMargin/Content/Characters/PreviewPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Content" type="VBoxContainer" parent="PageMargin/Content/Characters/PreviewPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Caption" type="Label" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "SELECTED OPERATIVE"
+horizontal_alignment = 1
+
+[node name="PreviewContainer" type="SubViewportContainer" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content"]
+custom_minimum_size = Vector2(244, 280)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+stretch = true
+
+[node name="PreviewViewport" type="SubViewport" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer"]
+handle_input_locally = false
+transparent_bg = true
+size = Vector2i(244, 280)
+render_target_update_mode = 4
+
+[node name="CharacterPreview" type="Node3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport"]
+unique_name_in_owner = true
+script = ExtResource("3_preview_script")
+
+[node name="ModelAnchor" type="Node3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport/CharacterPreview"]
+unique_name_in_owner = true
+
+[node name="KeyLight" type="DirectionalLight3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport/CharacterPreview"]
+rotation = Vector3(-0.62, -0.72, 0)
+light_color = Color(1, 0.78, 0.55, 1)
+light_energy = 1.6
+shadow_enabled = true
+
+[node name="FillLight" type="OmniLight3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport/CharacterPreview"]
+position = Vector3(-1.8, 1.5, 2.2)
+light_color = Color(0.36, 0.55, 0.78, 1)
+light_energy = 2.2
+omni_range = 6.0
+
+[node name="Camera3D" type="Camera3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport/CharacterPreview"]
+position = Vector3(0, 1.15, 3.35)
+rotation = Vector3(-0.03, 0, 0)
+current = true
+fov = 38.0
+
 [node name="RecruitPanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SelectedCard"
+
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Content/Characters/RecruitPanel"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="PageMargin/Content/Characters/RecruitPanel"]
 layout_mode = 2
@@ -227,6 +302,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"CardPanel"
 
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Content/Characters/RenegadePanel"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
+
 [node name="Margin" type="MarginContainer" parent="PageMargin/Content/Characters/RenegadePanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
@@ -332,6 +412,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"CardPanel"
 
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Content/Characters/MedicPanel"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
+
 [node name="Margin" type="MarginContainer" parent="PageMargin/Content/Characters/MedicPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
@@ -433,7 +518,12 @@ text = "UNLOCK  ·  750"
 [node name="LoadoutPanel" type="PanelContainer" parent="PageMargin/Content"]
 custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
-theme_type_variation = &"CardPanel"
+theme_type_variation = &"MenuPanel"
+
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Content/LoadoutPanel"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="PageMargin/Content/LoadoutPanel"]
 layout_mode = 2
@@ -459,7 +549,7 @@ text = "CLASS LOADOUT"
 [node name="WeaponContextLabel" type="Label" parent="PageMargin/Content/LoadoutPanel/Margin/Content/Context"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Recruit  —  automatic weapons specialist."
 autowrap_mode = 2
 

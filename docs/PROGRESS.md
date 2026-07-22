@@ -5,7 +5,7 @@
 Fase: mundo aberto compacto 4×4 com diretor de horda contínuo, acampamento como
 zona de reabastecimento e todo o jogo em inglês.
 
-Última atualização: 2026-07-20.
+Última atualização: 2026-07-22.
 
 ## Concluído
 
@@ -387,6 +387,12 @@ zona de reabastecimento e todo o jogo em inglês.
   runtime); mantém-se a grelha de navegação construída na worker thread.
 - [x] `GDD.md`, `ARCHITECTURE.md` e `ROADMAP.md` reescritos e sincronizados com
   o jogo real (horda contínua, mundo aberto, inglês, skill tree, mastery).
+- [x] Facelift visual Tier 1 dos menus: backdrop 3D leve no menu principal com
+  estrada urbana, props existentes, núcleo apenas visual, céu/nevoeiro de
+  entardecer e órbita lenta; pré-visualização animada da classe selecionada com
+  os GLTF Quaternius diretos; hover/press reutilizáveis, entrada com fade+slide
+  e contagem animada de Credits; painéis com sombra, acento âmbar, gradiente,
+  ruído e scanlines procedurais subtis, sem assets externos nem gameplay.
 
 - [x] **Pack "Animated Guns" experimentado e revertido** (decisão de playtest):
   os visuais animados nas cenas das armas, ancorados ao `WeaponPivot` estático,
@@ -404,14 +410,23 @@ zona de reabastecimento e todo o jogo em inglês.
 
 ## Próxima tarefa
 
-Milestone 20 (ver `ROADMAP.md`): integrar o pack CC0 **Quaternius Animated
-Guns** (aguarda download do utilizador) e ligar as animações de disparo/recarga
-ao `WeaponController`. Em paralelo: playtest do lote novo (upgrades da base,
-mastery, cadáveres) e balanceamento da curva do diretor de horda.
+Fazer um playtest manual curto do facelift Tier 1 (hover/press com rato e
+teclado, mudança entre classes já desbloqueadas e legibilidade durante a órbita)
+e depois escolher entre o ecrã `ARMORY` ou as novas armas baseadas nas malhas
+embutidas do rig. Mixamo e armas externas continuam parqueados.
 
 ## Validação
 
 - Godot disponível: `4.7.stable.mono.official.5b4e0cb0f`.
+- Facelift Tier 1: importação headless concluída sem erros; `main_menu.tscn` e
+  `character_selection.tscn` executados isoladamente durante 60 frames sem
+  `SCRIPT ERROR`.
+- Facelift Tier 1: teste headless alternou Recruit, Renegade e Medic no mesmo
+  `SubViewport`, confirmando uma única instância, `Idle_Gun` em reprodução e as
+  malhas embutidas Rifle, Shotgun e Pistol visíveis, respetivamente.
+- Facelift Tier 1: capturas OpenGL a 1152 × 648 confirmaram o backdrop 3D, a
+  vinheta, o modelo animado do Recruit, os cartões/mastery e o loadout sem
+  cortes nem sobreposições; o overlay F3 foi ocultado apenas durante a captura.
 - Emboscadas por ciclo: teste headless (`SceneTree`) confirmou que um inimigo
   vivo impede o re-arme, que uma lista limpa conta como pronta, que
   `_on_cycle_completed` repõe `ambush_triggered` em todos os setores e que o

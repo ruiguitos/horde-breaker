@@ -1,0 +1,145 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/menu_backdrop.gd" id="1_backdrop_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="2_road_grid"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="3_container_green"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="4_container_red"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/StreetLights.gltf" id="5_street_lights"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="6_traffic_barrier"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf" id="7_water_tower"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_backdrop"]
+sky_top_color = Color(0.09, 0.12, 0.19, 1)
+sky_horizon_color = Color(0.72, 0.46, 0.28, 1)
+sky_curve = 0.14
+ground_bottom_color = Color(0.04, 0.05, 0.07, 1)
+ground_horizon_color = Color(0.5, 0.35, 0.24, 1)
+sun_angle_max = 25.0
+sun_curve = 0.18
+
+[sub_resource type="Sky" id="Sky_backdrop"]
+sky_material = SubResource("SkyMaterial_backdrop")
+
+[sub_resource type="Environment" id="Environment_backdrop"]
+background_mode = 2
+sky = SubResource("Sky_backdrop")
+ambient_light_source = 3
+ambient_light_energy = 0.6
+fog_enabled = true
+fog_light_color = Color(0.42, 0.32, 0.26, 1)
+fog_density = 0.002
+fog_sky_affect = 0.15
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.115, 0.135, 0.15, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_ground"]
+material = SubResource("Material_ground")
+size = Vector2(48, 48)
+
+[sub_resource type="StandardMaterial3D" id="Material_core_base"]
+albedo_color = Color(0.13, 0.17, 0.2, 1)
+metallic = 0.65
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="Mesh_core_base"]
+material = SubResource("Material_core_base")
+size = Vector3(2.2, 0.35, 2.2)
+
+[sub_resource type="StandardMaterial3D" id="Material_core"]
+albedo_color = Color(0.18, 0.22, 0.24, 1)
+emission_enabled = true
+emission = Color(0.92, 0.34, 0.08, 1)
+emission_energy_multiplier = 2.5
+metallic = 0.4
+roughness = 0.25
+
+[sub_resource type="CylinderMesh" id="Mesh_core"]
+material = SubResource("Material_core")
+top_radius = 0.45
+bottom_radius = 0.62
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="Material_core_ring"]
+albedo_color = Color(0.94, 0.48, 0.12, 1)
+emission_enabled = true
+emission = Color(0.94, 0.32, 0.06, 1)
+emission_energy_multiplier = 1.8
+
+[sub_resource type="TorusMesh" id="Mesh_core_ring"]
+material = SubResource("Material_core_ring")
+inner_radius = 0.48
+outer_radius = 0.63
+rings = 12
+ring_segments = 20
+
+[node name="MenuBackdrop" type="Node3D"]
+script = ExtResource("1_backdrop_script")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_backdrop")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.872665, -0.523599, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 1.15
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.14, 0)
+mesh = SubResource("Mesh_ground")
+
+[node name="RoadGrid" parent="." instance=ExtResource("2_road_grid")]
+
+[node name="CampVisual" type="Node3D" parent="."]
+
+[node name="Base" type="MeshInstance3D" parent="CampVisual"]
+position = Vector3(0, 0.175, 0)
+mesh = SubResource("Mesh_core_base")
+
+[node name="Core" type="MeshInstance3D" parent="CampVisual"]
+position = Vector3(0, 1.05, 0)
+mesh = SubResource("Mesh_core")
+
+[node name="EnergyRing" type="MeshInstance3D" parent="CampVisual"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("Mesh_core_ring")
+
+[node name="CoreLight" type="OmniLight3D" parent="CampVisual"]
+position = Vector3(0, 1.25, 0)
+light_color = Color(1, 0.36, 0.08, 1)
+light_energy = 2.2
+omni_range = 5.0
+
+[node name="GreenContainer" parent="." instance=ExtResource("3_container_green")]
+position = Vector3(-7.5, 0, -4.5)
+rotation = Vector3(0, 0.35, 0)
+
+[node name="RedContainer" parent="." instance=ExtResource("4_container_red")]
+position = Vector3(7.5, 0, 5.5)
+rotation = Vector3(0, -1.1, 0)
+
+[node name="StreetLightsNorth" parent="." instance=ExtResource("5_street_lights")]
+position = Vector3(-4, 0, -7)
+
+[node name="StreetLightsSouth" parent="." instance=ExtResource("5_street_lights")]
+position = Vector3(4, 0, 7)
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="BarrierWest" parent="." instance=ExtResource("6_traffic_barrier")]
+position = Vector3(-3.2, 0, 2.4)
+rotation = Vector3(0, 0.25, 0)
+
+[node name="BarrierEast" parent="." instance=ExtResource("6_traffic_barrier")]
+position = Vector3(3.2, 0, -2.4)
+rotation = Vector3(0, 3.35, 0)
+
+[node name="WaterTower" parent="." instance=ExtResource("7_water_tower")]
+position = Vector3(-11, 0, 10)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+unique_name_in_owner = true
+current = true
+fov = 58.0
+far = 80.0

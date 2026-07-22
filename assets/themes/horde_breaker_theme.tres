@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=18 format=3]
+[gd_resource type="Theme" load_steps=19 format=3]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 content_margin_left = 18.0
@@ -7,12 +7,21 @@ content_margin_right = 18.0
 content_margin_bottom = 14.0
 bg_color = Color(0.031, 0.047, 0.063, 0.97)
 border_width_left = 1
-border_width_top = 1
+border_width_top = 2
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.2, 0.25, 0.3, 0.85)
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 10
+border_color = Color(0.906, 0.566, 0.239, 0.68)
+shadow_color = Color(0, 0, 0, 0.52)
+shadow_size = 12
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_menu_panel"]
+bg_color = Color(0.026, 0.041, 0.056, 0.96)
+border_width_top = 2
+border_color = Color(0.906, 0.566, 0.239, 0.9)
+shadow_color = Color(0, 0, 0, 0.58)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_card"]
 bg_color = Color(0.055, 0.075, 0.098, 0.94)
@@ -21,6 +30,9 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.22, 0.275, 0.325, 0.8)
+shadow_color = Color(0, 0, 0, 0.38)
+shadow_size = 7
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_selected_card"]
 bg_color = Color(0.09, 0.082, 0.062, 0.98)
@@ -31,6 +43,7 @@ border_width_bottom = 2
 border_color = Color(0.906, 0.566, 0.239, 1)
 shadow_color = Color(0.906, 0.566, 0.239, 0.15)
 shadow_size = 8
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_hud"]
 content_margin_left = 14.0
@@ -62,6 +75,8 @@ content_margin_bottom = 12.0
 bg_color = Color(0.125, 0.165, 0.2, 1)
 border_width_left = 3
 border_color = Color(0.906, 0.566, 0.239, 1)
+shadow_color = Color(0.906, 0.566, 0.239, 0.25)
+shadow_size = 8
 skew = Vector2(0.15, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_button_pressed"]
@@ -197,6 +212,8 @@ Label/colors/font_shadow_color = Color(0, 0, 0, 0.55)
 Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
 PanelContainer/styles/panel = SubResource("StyleBox_panel")
+MenuPanel/base_type = &"PanelContainer"
+MenuPanel/styles/panel = SubResource("StyleBox_menu_panel")
 ProgressBar/styles/background = SubResource("StyleBox_progress_background")
 ProgressBar/styles/fill = SubResource("StyleBox_progress_fill")
 HSeparator/constants/separation = 10

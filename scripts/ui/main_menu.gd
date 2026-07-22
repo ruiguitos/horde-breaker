@@ -18,6 +18,7 @@ const TEST_RECRUIT_XP := 0
 @onready var quit_button: Button = %QuitButton
 
 var _using_test_progress := false
+var _displayed_credits := 0
 
 
 func _ready() -> void:
@@ -32,8 +33,12 @@ func _ready() -> void:
 	SaveManager.selected_character_changed.connect(_on_selected_character_changed)
 	_refresh()
 	start_button.grab_focus()
-	UiAnimations.fade_in(%BrandColumn, 0.0)
-	UiAnimations.fade_in(%SummaryColumn, 0.12)
+	UiAnimations.enhance_buttons(self)
+	%BrandColumn.modulate.a = 0.0
+	%SummaryColumn.modulate.a = 0.0
+	await get_tree().process_frame
+	UiAnimations.slide_fade_in(%BrandColumn, Vector2(-28.0, 0.0), 0.0)
+	UiAnimations.slide_fade_in(%SummaryColumn, Vector2(28.0, 0.0), 0.1)
 
 
 func _refresh() -> void:
@@ -45,7 +50,15 @@ func _refresh() -> void:
 	var level := SaveManager.get_character_level(character_id)
 	var xp := SaveManager.get_character_xp(character_id)
 	var test_suffix := "  ·  TEST" if _using_test_progress else ""
-	credits_label.text = "CREDITS  ·  %d%s" % [SaveManager.get_credits(), test_suffix]
+	var credits := SaveManager.get_credits()
+	UiAnimations.count_integer(
+		credits_label,
+		_displayed_credits,
+		credits,
+		"CREDITS  ·  ",
+		test_suffix
+	)
+	_displayed_credits = credits
 	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
 		character_data.display_name,
 		_get_weapon_name(character_data.primary_weapon_id),

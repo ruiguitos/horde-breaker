@@ -93,6 +93,9 @@
 - [x] Decisão do navmesh registada: manter a grelha runtime (setores gerados
   em runtime não podem usar navmesh de editor).
 - [x] `GDD.md`, `ARCHITECTURE.md` e `ROADMAP.md` sincronizados com o jogo real.
+- [x] Facelift visual Tier 1 dos menus: backdrop 3D leve no menu principal,
+  pré-visualização animada da classe selecionada, interação dos botões,
+  transições internas, Credits animados e painéis com profundidade procedural.
 - [x] **Experiência do pack "Animated Guns" revertida por decisão de playtest:**
   o visual da arma na cena (ancorado ao `WeaponPivot` estático) nunca assenta
   bem nas mãos — as malhas embutidas nos personagens (animadas pelo próprio

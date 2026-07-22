@@ -25,6 +25,9 @@ const LOCKED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 @onready var secondary_weapon_label: Label = %SecondaryWeaponLabel
 @onready var back_button: Button = %BackButton
 @onready var skill_tree_button: Button = %SkillTreeButton
+@onready var character_preview: Node3D = %CharacterPreview
+
+var _displayed_credits := 0
 
 
 func _ready() -> void:
@@ -40,13 +43,28 @@ func _ready() -> void:
 	SaveManager.selected_character_changed.connect(_on_selected_character_changed)
 	_refresh()
 	back_button.grab_focus()
-	UiAnimations.fade_in($PageMargin/Content/TopBar, 0.0)
-	UiAnimations.fade_in($PageMargin/Content/Characters, 0.1)
-	UiAnimations.fade_in($PageMargin/Content/LoadoutPanel, 0.2)
+	UiAnimations.enhance_buttons(self)
+	$PageMargin/Content/TopBar.modulate.a = 0.0
+	$PageMargin/Content/Characters.modulate.a = 0.0
+	$PageMargin/Content/LoadoutPanel.modulate.a = 0.0
+	await get_tree().process_frame
+	UiAnimations.slide_fade_in(
+		$PageMargin/Content/TopBar, Vector2(0.0, -18.0), 0.0
+	)
+	UiAnimations.slide_fade_in(
+		$PageMargin/Content/Characters, Vector2(-24.0, 0.0), 0.08
+	)
+	UiAnimations.slide_fade_in(
+		$PageMargin/Content/LoadoutPanel, Vector2(0.0, 18.0), 0.16
+	)
 
 
 func _refresh() -> void:
-	credits_label.text = "CREDITS  ·  %d" % SaveManager.get_credits()
+	var credits := SaveManager.get_credits()
+	UiAnimations.count_integer(
+		credits_label, _displayed_credits, credits, "CREDITS  ·  "
+	)
+	_displayed_credits = credits
 	_configure_character(
 		RECRUIT_DATA,
 		recruit_panel,
@@ -74,6 +92,7 @@ func _refresh() -> void:
 	)
 	if selected_data == null:
 		return
+	character_preview.call(&"show_character", selected_data.character_id)
 	weapon_context_label.text = "%s  —  %s\n%s" % [
 		selected_data.display_name,
 		selected_data.class_description,
@@ -120,7 +139,7 @@ func _configure_character(
 func _get_progress_text(character_data: CharacterData) -> String:
 	var level := SaveManager.get_character_level(character_data.character_id)
 	var xp := SaveManager.get_character_xp(character_data.character_id)
-	return "LEVEL %d  •  XP %d / %d  •  %s" % [
+	return "LV %d  •  XP %d/%d  •  %s" % [
 		level,
 		xp,
 		SaveManager.get_xp_required_for_next_level(level),
@@ -133,7 +152,7 @@ func _get_mastery_summary(character_id: StringName) -> String:
 	for objective_id in CharacterMastery.OBJECTIVES:
 		if SaveManager.is_mastery_completed(character_id, objective_id):
 			completed += 1
-	return "MASTERY %d / %d" % [completed, CharacterMastery.OBJECTIVES.size()]
+	return "MASTERY %d/%d" % [completed, CharacterMastery.OBJECTIVES.size()]
 
 
 func _get_mastery_detail(character_id: StringName) -> String:

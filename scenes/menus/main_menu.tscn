@@ -1,7 +1,16 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_main_menu_script"]
 [ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/menus/menu_backdrop.tscn" id="3_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/menu_vignette.gdshader" id="4_vignette_shader"]
+[ext_resource type="Shader" path="res://assets/shaders/menu_panel_surface.gdshader" id="5_panel_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = ExtResource("4_vignette_shader")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel_surface"]
+shader = ExtResource("5_panel_shader")
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -13,6 +22,33 @@ grow_vertical = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_main_menu_script")
 
+[node name="BackdropContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="BackdropViewport" type="SubViewport" parent="BackdropContainer"]
+handle_input_locally = false
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="MenuBackdrop" parent="BackdropContainer/BackdropViewport" instance=ExtResource("3_backdrop")]
+
+[node name="BackdropVignette" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_vignette")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -21,7 +57,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.016, 0.027, 0.043, 1)
+color = Color(0.016, 0.027, 0.043, 0.18)
 
 [node name="DiagonalAccent" type="ColorRect" parent="Background"]
 layout_mode = 0
@@ -169,7 +205,12 @@ horizontal_alignment = 1
 
 [node name="SummaryCard" type="PanelContainer" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
-theme_type_variation = &"CardPanel"
+theme_type_variation = &"MenuPanel"
+
+[node name="PanelSurface" type="ColorRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard"]
+material = SubResource("ShaderMaterial_panel_surface")
+layout_mode = 2
+mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard"]
 layout_mode = 2
