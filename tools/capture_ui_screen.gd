@@ -1,0 +1,109 @@
+extends SceneTree
+
+const MENU_SCENES := {
+	"main_menu": "res://scenes/menus/main_menu.tscn",
+	"character_selection": "res://scenes/menus/character_selection.tscn",
+	"armory": "res://scenes/menus/armory_screen.tscn",
+	"skill_tree": "res://scenes/menus/skill_tree_screen.tscn",
+	"settings": "res://scenes/menus/settings_menu.tscn",
+}
+const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
+
+
+func _initialize() -> void:
+	call_deferred(&"_capture")
+
+
+func _capture() -> void:
+	await process_frame
+	var arguments := OS.get_cmdline_user_args()
+	if arguments.size() < 4:
+		push_error(
+			"Usage: capture_ui_screen.gd -- <target> <output.png> <width> <height>"
+		)
+		quit(1)
+		return
+	var target := arguments[0]
+	var output_path := arguments[1]
+	var capture_size := Vector2i(int(arguments[2]), int(arguments[3]))
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	DisplayServer.window_set_size(capture_size)
+	var scene_path := String(MENU_SCENES.get(target, ARENA_SCENE))
+	var scene_error := change_scene_to_file(scene_path)
+	if scene_error != OK:
+		push_error("UI capture could not load %s." % scene_path)
+		quit(1)
+		return
+	await scene_changed
+	await _wait_frames(35 if MENU_SCENES.has(target) else 100)
+	DisplayServer.window_set_size(capture_size)
+	if not MENU_SCENES.has(target):
+		if not _prepare_arena_target(target):
+			quit(1)
+			return
+	# Tweens use elapsed time, not frame count. Waiting briefly keeps captures
+	# deterministic even when the renderer runs hundreds of frames per second.
+	await create_timer(0.65, true).timeout
+	await _wait_frames(2)
+	var image := root.get_texture().get_image()
+	var output_directory := output_path.get_base_dir()
+	var directory_error := DirAccess.make_dir_recursive_absolute(output_directory)
+	if directory_error != OK:
+		push_error("UI capture could not create %s." % output_directory)
+		quit(1)
+		return
+	var save_error := image.save_png(output_path)
+	if save_error != OK:
+		push_error("UI capture could not save %s." % output_path)
+		quit(1)
+		return
+	print("CAPTURE: %s (%d x %d)" % [output_path, image.get_width(), image.get_height()])
+	quit(0)
+
+
+func _prepare_arena_target(target: String) -> bool:
+	if current_scene == null:
+		return false
+	if target == "hud":
+		var hud := current_scene.find_child("GameHUD", true, false)
+		if hud == null:
+			push_error("UI capture could not find GameHUD.")
+			return false
+		hud.call(&"_update_health", 62.0, 100.0)
+		hud.call(&"_update_ammunition", 5, 30, 60)
+		hud.call(&"_pulse_threat", 5)
+		hud.call(&"_show_feedback", "SECTOR CACHE SECURED", 5.0)
+		return true
+	if target == "pause":
+		var pause_menu := current_scene.find_child("PauseMenu", true, false)
+		if pause_menu == null:
+			push_error("UI capture could not find PauseMenu.")
+			return false
+		pause_menu.call(&"pause_game")
+		return true
+	if target == "defeat":
+		var defeat := current_scene.find_child("GameOverPanel", true, false)
+		if defeat == null:
+			push_error("UI capture could not find GameOverPanel.")
+			return false
+		defeat.call(
+			&"_show_game_over",
+			"The horde took your operative down.\nRegroup and try again."
+		)
+		return true
+	if target == "map":
+		var tactical_map := current_scene.find_child("TacticalMap", true, false)
+		if tactical_map == null:
+			push_error("UI capture could not find TacticalMap.")
+			return false
+		tactical_map.visible = true
+		tactical_map.call(&"_refresh_references")
+		tactical_map.queue_redraw()
+		return true
+	push_error("Unknown UI capture target: %s" % target)
+	return false
+
+
+func _wait_frames(frame_count: int) -> void:
+	for _frame_index in frame_count:
+		await process_frame
