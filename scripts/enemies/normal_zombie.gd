@@ -292,6 +292,7 @@ func _stop_horizontal_movement() -> void:
 func _setup_hit_flash() -> void:
 	_hit_flash_material = StandardMaterial3D.new()
 	_hit_flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_hit_flash_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_hit_flash_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	_hit_flash_material.albedo_color = HIT_FLASH_COLOR
 	for mesh_instance in visual_root.find_children("*", "MeshInstance3D", true, false):

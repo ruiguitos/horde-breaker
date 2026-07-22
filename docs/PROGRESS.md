@@ -415,6 +415,9 @@ zona de reabastecimento e todo o jogo em inglês.
   após 6 s e recarga 30% mais rápida; Renegade passa a 150 HP; Medic mantém
   100 HP e regenera 3 HP/s após 4 s. Alcances automáticos iniciais: AR 6 m,
   Pistol 5,5 m e Shotgun 4,5 m.
+- [x] Overlay do flash de dano dos inimigos corrigido para usar transparência
+  alfa explícita no renderer Compatibility, preservando as cores originais dos
+  modelos quando não estão a receber dano.
 
 
 ## Milestone atual
