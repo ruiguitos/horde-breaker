@@ -59,10 +59,12 @@ func _refresh() -> void:
 		test_suffix
 	)
 	_displayed_credits = credits
+	var primary_weapon_id := SaveManager.get_primary_weapon(character_id)
+	var secondary_weapon_id := SaveManager.get_secondary_weapon(character_id)
 	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
 		character_data.display_name,
-		_get_weapon_name(character_data.primary_weapon_id),
-		_get_weapon_name(character_data.secondary_weapon_id),
+		_get_weapon_name(primary_weapon_id),
+		_get_weapon_name(secondary_weapon_id),
 	]
 	var available_points := SaveManager.get_available_skill_points(character_id)
 	if available_points > 0:
@@ -86,15 +88,8 @@ func _load_test_progress_if_enabled() -> void:
 
 
 func _get_weapon_name(weapon_id: StringName) -> String:
-	if weapon_id == &"assault_rifle":
-		return "Assault Rifle"
-	if weapon_id == &"pistol":
-		return "Pistol"
-	if weapon_id == &"shotgun":
-		return "Shotgun"
-	if weapon_id == &"worn_sword":
-		return "Worn Sword"
-	return "—"
+	var weapon_data := WeaponCatalog.get_weapon_data(weapon_id)
+	return weapon_data.display_name if weapon_data != null else "—"
 
 
 func _on_credits_changed(_credits: int) -> void:
