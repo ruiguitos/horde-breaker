@@ -14,6 +14,9 @@ const HIT_MARKER_COLOR := Color(1.0, 0.62, 0.2, 1.0)
 const MAX_FEEDBACK_MESSAGES := 3
 const VIGNETTE_PULSE_BOOST := 0.35
 const VIGNETTE_MAX_INTENSITY := 0.85
+const HEALTH_INTERPOLATION_SPEED := 12.0
+const LOW_AMMO_RATIO := 0.25
+const LOW_AMMO_COLOR := Color(1.0, 0.68, 0.3, 1.0)
 
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_label: Label = %HealthLabel
@@ -34,15 +37,22 @@ const VIGNETTE_MAX_INTENSITY := 0.85
 var _weapon: Node
 var _weapon_controller: Node
 var _last_player_health: float = -1.0
+var _displayed_health: float = -1.0
+var _target_health: float = 0.0
+var _displayed_maximum_health: float = 1.0
 var _vignette_base_intensity: float = 0.0
 var _vignette_tween: Tween
 var _hit_marker_tween: Tween
 var _reload_tween: Tween
 var _banner_tween: Tween
+var _ammo_pulse_tween: Tween
+var _threat_pulse_tween: Tween
+var _last_threat_level := -1
 var _bar_fill_styles: Dictionary[Color, StyleBoxFlat] = {}
 
 
 func _ready() -> void:
+	set_process(false)
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	_weapon_controller = get_tree().get_first_node_in_group(WEAPON_CONTROLLER_GROUP)
@@ -80,10 +90,26 @@ func _ready() -> void:
 	_update_enemy_count(int(wave_manager.get("alive_enemy_count")))
 
 
+func _process(delta: float) -> void:
+	var interpolation_weight := 1.0 - exp(-HEALTH_INTERPOLATION_SPEED * delta)
+	_displayed_health = lerpf(
+		_displayed_health, _target_health, interpolation_weight
+	)
+	if absf(_displayed_health - _target_health) <= 0.05:
+		_displayed_health = _target_health
+		set_process(false)
+	_set_health_display(_displayed_health)
+
+
 func _update_health(current_health: float, maximum_health: float) -> void:
-	health_bar.max_value = maximum_health
-	health_bar.value = current_health
-	health_label.text = "%d" % roundi(current_health)
+	_target_health = current_health
+	_displayed_maximum_health = maxf(maximum_health, 1.0)
+	health_bar.max_value = _displayed_maximum_health
+	if _displayed_health < 0.0:
+		_displayed_health = current_health
+		_set_health_display(_displayed_health)
+	else:
+		set_process(true)
 	var health_ratio := current_health / maximum_health if maximum_health > 0.0 else 0.0
 	var health_color := _get_state_color(
 		health_ratio, HEALTH_GOOD_COLOR, HEALTH_WARNING_COLOR, HEALTH_DANGER_COLOR
@@ -99,6 +125,11 @@ func _update_health(current_health: float, maximum_health: float) -> void:
 		_pulse_damage_vignette()
 	else:
 		_set_vignette_intensity(_vignette_base_intensity)
+
+
+func _set_health_display(value: float) -> void:
+	health_bar.value = clampf(value, 0.0, _displayed_maximum_health)
+	health_label.text = "%d" % roundi(value)
 
 
 func _get_state_color(
@@ -152,12 +183,16 @@ func _pulse_damage_vignette() -> void:
 
 
 func _update_ammunition(
-	current_ammunition: int, _magazine_size: int, reserve_ammunition: int
+	current_ammunition: int, magazine_size: int, reserve_ammunition: int
 ) -> void:
 	ammunition_label.add_theme_font_size_override(&"font_size", 44)
 	ammunition_label.text = "%d / %d" % [
 		current_ammunition, reserve_ammunition
 	]
+	_set_low_ammo_pulse(
+		magazine_size > 0
+		and float(current_ammunition) / float(magazine_size) < LOW_AMMO_RATIO
+	)
 	_hide_reload_bar()
 
 
@@ -165,6 +200,7 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 	_disconnect_weapon_signals()
 	_weapon = active_weapon
 	_hide_reload_bar()
+	_stop_low_ammo_pulse()
 	var active_name := (
 		String(_weapon_controller.call("get_primary_weapon_name"))
 		if slot == 0
@@ -247,6 +283,7 @@ func _flash_hit_marker() -> void:
 
 
 func _show_reloading(duration: float) -> void:
+	_stop_low_ammo_pulse()
 	if _reload_tween != null and _reload_tween.is_valid():
 		_reload_tween.kill()
 	reload_bar.value = 0.0
@@ -265,13 +302,74 @@ func _hide_reload_bar() -> void:
 
 
 func _on_wave_started(threat_level: int) -> void:
+	var threat_increased := (
+		_last_threat_level >= 0 and threat_level > _last_threat_level
+	)
 	_update_wave(threat_level)
+	if threat_increased:
+		_pulse_threat(threat_level)
 	if threat_level > 1:
 		_show_banner("THE HORDE GROWS", "THREAT LEVEL %02d" % threat_level)
 
 
 func _update_wave(threat_level: int) -> void:
 	threat_label.text = "THREAT %02d" % threat_level
+	_last_threat_level = threat_level
+
+
+func _set_low_ammo_pulse(is_low: bool) -> void:
+	if not is_low:
+		_stop_low_ammo_pulse()
+		return
+	if _ammo_pulse_tween != null and _ammo_pulse_tween.is_valid():
+		return
+	ammunition_label.pivot_offset = ammunition_label.size * 0.5
+	_ammo_pulse_tween = create_tween()
+	_ammo_pulse_tween.set_loops()
+	_ammo_pulse_tween.set_trans(Tween.TRANS_SINE)
+	_ammo_pulse_tween.set_ease(Tween.EASE_IN_OUT)
+	_ammo_pulse_tween.set_parallel(true)
+	_ammo_pulse_tween.tween_property(
+		ammunition_label, "modulate", LOW_AMMO_COLOR, 0.48
+	)
+	_ammo_pulse_tween.tween_property(
+		ammunition_label, "scale", Vector2(1.035, 1.035), 0.48
+	)
+	_ammo_pulse_tween.chain().set_parallel(true)
+	_ammo_pulse_tween.tween_property(
+		ammunition_label, "modulate", Color.WHITE, 0.48
+	)
+	_ammo_pulse_tween.tween_property(
+		ammunition_label, "scale", Vector2.ONE, 0.48
+	)
+
+
+func _stop_low_ammo_pulse() -> void:
+	if _ammo_pulse_tween != null and _ammo_pulse_tween.is_valid():
+		_ammo_pulse_tween.kill()
+	_ammo_pulse_tween = null
+	ammunition_label.modulate = Color.WHITE
+	ammunition_label.scale = Vector2.ONE
+
+
+func _pulse_threat(threat_level: int) -> void:
+	if _threat_pulse_tween != null and _threat_pulse_tween.is_valid():
+		_threat_pulse_tween.kill()
+	threat_label.pivot_offset = threat_label.size * 0.5
+	threat_label.scale = Vector2(1.16, 1.16)
+	threat_label.modulate = (
+		HEALTH_DANGER_COLOR if threat_level % 5 == 0 else LOW_AMMO_COLOR
+	)
+	_threat_pulse_tween = create_tween()
+	_threat_pulse_tween.set_parallel(true)
+	_threat_pulse_tween.set_trans(Tween.TRANS_BACK)
+	_threat_pulse_tween.set_ease(Tween.EASE_OUT)
+	_threat_pulse_tween.tween_property(
+		threat_label, "scale", Vector2.ONE, 0.42
+	)
+	_threat_pulse_tween.tween_property(
+		threat_label, "modulate", Color.WHITE, 0.42
+	)
 
 
 func _update_enemy_count(remaining_enemies: int) -> void:
