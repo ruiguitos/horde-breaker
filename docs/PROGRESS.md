@@ -711,6 +711,15 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Pesquisa por caracteres acentuados confirmou zero strings em português nos scripts, cenas e dados do jogo.
 - Capturas com janela real a `1152 × 648` confirmaram o menu principal em inglês, o mapa tático com setor atual destacado e marcadores de Scrap/munição, e um setor gerado com postes de iluminação, camião e a zona de reabastecimento ativa.
 
+- [x] Inimigos passaram a poder largar um único pickup de Scrap ao morrer:
+  Normal 15% (1–2), Runner 20% (1–2), Spitter 30% (2–3), Brute 60% (4–6)
+  e Boss 100% (15–20). Os drops desaparecem ao fim de 25 segundos e ficam
+  limitados aos 40 mais recentes, sem alterar as caches e POIs existentes.
+- Teste headless determinístico confirmou uma taxa Normal de 14,5% em 2000
+  mortes, quantidades e overrides corretos, máximo de um pickup por inimigo,
+  despawn e limite de 40. Importação headless e arena durante 240 frames
+  terminaram sem SCRIPT ERROR.
+
 ## Decisões pendentes
 
 - resolução inicial;

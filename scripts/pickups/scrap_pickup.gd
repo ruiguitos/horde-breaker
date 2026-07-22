@@ -6,12 +6,25 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 const PLAYER_GROUP := &"player"
 
 @export_range(1, 500, 1) var scrap_amount: int = 25
+@export_range(0.0, 300.0, 0.5) var despawn_seconds: float = 0.0
 
 var _collected := false
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	if despawn_seconds > 0.0:
+		_schedule_despawn()
+
+
+func _schedule_despawn() -> void:
+	var pickup_reference: WeakRef = weakref(self)
+	get_tree().create_timer(despawn_seconds).timeout.connect(
+		func() -> void:
+			var pickup: Node = pickup_reference.get_ref() as Node
+			if is_instance_valid(pickup) and not pickup.is_queued_for_deletion():
+				pickup.queue_free()
+	)
 
 
 func _on_body_entered(body: Node3D) -> void:

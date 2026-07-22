@@ -7,6 +7,8 @@ signal died(enemy: Node)
 const PLAYER_GROUP := &"player"
 const ALIVE_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
+const ENEMY_SCRAP_DROP_GROUP := &"enemy_scrap_drop"
+const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
 const HIT_FLASH_COLOR := Color(1.0, 0.82, 0.6, 0.0)
 const RANGED_DISTANCE_MARGIN := 1.5
 # Navigation paths are the expensive part of the chase. Recomputing every
@@ -20,6 +22,12 @@ const DEATH_LINGER_SECONDS := 2.5
 const FAR_SIMULATION_DISTANCE := 40.0
 const FAR_REPATH_INTERVAL := 1.2
 const FAR_STEER_INTERVAL := 0.3
+const SCRAP_DROP_LIFETIME_SECONDS := 25.0
+const MAX_ACTIVE_SCRAP_DROPS := 40
+const SCRAP_DROP_HEIGHT := 0.25
+const SCRAP_DROP_MIN_OFFSET := 0.15
+const SCRAP_DROP_MAX_OFFSET := 0.65
+const SCRAP_DROP_CREATED_META := &"enemy_drop_created_usec"
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 50.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 2.5
@@ -28,6 +36,9 @@ const FAR_STEER_INTERVAL := 0.3
 @export_range(0.1, 10.0, 0.1) var attack_cooldown: float = 1.0
 @export_range(0.1, 30.0, 0.1) var rotation_speed: float = 8.0
 @export_range(0, 1000, 1) var xp_reward: int = 5
+@export_range(0.0, 1.0, 0.01) var drop_chance: float = 0.15
+@export_range(0, 100, 1) var drop_amount_min: int = 1
+@export_range(0, 100, 1) var drop_amount_max: int = 2
 @export_range(0.0, 30.0, 0.5) var knockback_force: float = 0.0
 @export var is_ranged: bool = false
 @export_range(3.0, 24.0, 0.5) var preferred_distance: float = 9.0
@@ -49,6 +60,7 @@ var _steer_time: float = 0.0
 var _cached_direction := Vector3.ZERO
 var _hit_flash_material: StandardMaterial3D
 var _hit_flash_tween: Tween
+var _scrap_drop_attempted := false
 
 
 func _ready() -> void:
@@ -164,6 +176,7 @@ func take_damage(amount: float) -> float:
 
 
 func _begin_death() -> void:
+	_try_drop_scrap()
 	# Leave a short-lived corpse for the death animation: no AI, no physics
 	# collision, no target group, and hitboxes off so shots pass through to
 	# live enemies behind it.
@@ -178,6 +191,69 @@ func _begin_death() -> void:
 		area_node.set_deferred(&"monitorable", false)
 		area_node.collision_layer = 0
 	get_tree().create_timer(DEATH_LINGER_SECONDS).timeout.connect(queue_free)
+
+
+func _try_drop_scrap() -> void:
+	var amount := _roll_scrap_drop()
+	if amount > 0:
+		_spawn_scrap_drop(amount)
+
+
+func _roll_scrap_drop() -> int:
+	if _scrap_drop_attempted:
+		return 0
+	_scrap_drop_attempted = true
+	if drop_chance <= 0.0 or randf() >= drop_chance:
+		return 0
+	var minimum := mini(drop_amount_min, drop_amount_max)
+	var maximum := maxi(drop_amount_min, drop_amount_max)
+	return randi_range(minimum, maximum)
+
+
+func _spawn_scrap_drop(amount: int) -> void:
+	if amount <= 0:
+		return
+	var pickup := SCRAP_PICKUP_SCENE.instantiate() as Area3D
+	if pickup == null:
+		push_error("NormalZombie could not instantiate the ScrapPickup scene.")
+		return
+	_remove_oldest_scrap_drop_if_needed()
+	pickup.set(&"scrap_amount", amount)
+	pickup.set(&"despawn_seconds", SCRAP_DROP_LIFETIME_SECONDS)
+	pickup.set_meta(SCRAP_DROP_CREATED_META, Time.get_ticks_usec())
+	pickup.add_to_group(ENEMY_SCRAP_DROP_GROUP)
+	var spawn_parent := get_tree().current_scene
+	if spawn_parent == null:
+		spawn_parent = get_tree().root
+	spawn_parent.add_child(pickup)
+	var angle := randf_range(0.0, TAU)
+	var distance := randf_range(SCRAP_DROP_MIN_OFFSET, SCRAP_DROP_MAX_OFFSET)
+	pickup.global_position = global_position + Vector3(
+		cos(angle) * distance,
+		SCRAP_DROP_HEIGHT,
+		sin(angle) * distance
+	)
+
+
+func _remove_oldest_scrap_drop_if_needed() -> void:
+	var active_drops: Array[Node] = []
+	for node in get_tree().get_nodes_in_group(ENEMY_SCRAP_DROP_GROUP):
+		if is_instance_valid(node) and not node.is_queued_for_deletion():
+			active_drops.append(node)
+	if active_drops.size() < MAX_ACTIVE_SCRAP_DROPS:
+		return
+	var oldest := active_drops[0]
+	var oldest_created := int(
+		oldest.get_meta(SCRAP_DROP_CREATED_META, Time.get_ticks_usec())
+	)
+	for pickup in active_drops:
+		var created := int(
+			pickup.get_meta(SCRAP_DROP_CREATED_META, Time.get_ticks_usec())
+		)
+		if created < oldest_created:
+			oldest = pickup
+			oldest_created = created
+	oldest.queue_free()
 
 
 func _apply_gravity(delta: float) -> void:

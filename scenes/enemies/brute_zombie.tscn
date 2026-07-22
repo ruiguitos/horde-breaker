@@ -15,6 +15,9 @@ attack_damage = 26.0
 attack_range = 1.9
 attack_cooldown = 1.6
 xp_reward = 20
+drop_chance = 0.6
+drop_amount_min = 4
+drop_amount_max = 6
 knockback_force = 12.0
 
 [node name="Visual" parent="VisualRoot" index="0"]

@@ -110,6 +110,9 @@
   nas mãos, zero assets novos): **SMG** (cadência alta/dano baixo) e **Fire Axe**
   (`Axe`, melee lento/forte). A **Spear** já foi implementada no Medic.
 
+- [x] Adicionar drop de Scrap por tipo de inimigo ao morrer, com quantidades
+  configuráveis, despawn após 25 segundos e limite de 40 pickups ativos.
+
 ## Regra
 
 Estes itens não alteram o âmbito do milestone atual. Quando forem concluídos, atualizar também `docs/PROGRESS.md`.
