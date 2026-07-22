@@ -5,6 +5,8 @@ signal pause_changed(is_paused: bool)
 const SETTINGS_SCENE := preload("res://scenes/menus/settings_menu.tscn")
 
 @onready var panel_container: PanelContainer = %PausePanel
+@onready var background: ColorRect = %Background
+@onready var depth_shade: ColorRect = %DepthShade
 @onready var resume_button: Button = %ResumeButton
 @onready var settings_button: Button = %SettingsButton
 @onready var main_menu_button: Button = %MainMenuButton
@@ -42,7 +44,9 @@ func pause_game() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	resume_button.grab_focus()
-	UiAnimations.slide_in_left(panel_container)
+	UiAnimations.fade_in(background, 0.0, 0.18)
+	UiAnimations.fade_in(depth_shade, 0.05, 0.22)
+	UiAnimations.pop_in(panel_container, 0.24)
 	pause_changed.emit(true)
 
 

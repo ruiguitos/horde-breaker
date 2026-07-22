@@ -2,7 +2,9 @@ extends Control
 
 const PLAYER_GROUP := &"player"
 
-@onready var panel_container: PanelContainer = $CenterContainer/PanelContainer
+@onready var panel_container: PanelContainer = %PanelContainer
+@onready var background: ColorRect = %Background
+@onready var depth_shade: ColorRect = %DepthShade
 @onready var message_label: Label = %Message
 @onready var restart_button: Button = %RestartButton
 @onready var main_menu_button: Button = %MainMenuButton
@@ -39,6 +41,8 @@ func _show_game_over(message: String) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	restart_button.grab_focus()
 	get_tree().paused = true
+	UiAnimations.fade_in(background, 0.0, 0.22)
+	UiAnimations.fade_in(depth_shade, 0.06, 0.28)
 	UiAnimations.pop_in(panel_container)
 
 

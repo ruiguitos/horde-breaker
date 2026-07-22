@@ -16,13 +16,25 @@ theme = ExtResource("2_theme")
 script = ExtResource("1_pause_script")
 
 [node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.008, 0.014, 0.022, 0.82)
+color = Color(0.008, 0.014, 0.022, 0.58)
+
+[node name="DepthShade" type="ColorRect" parent="Background"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.38
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0, 0.0, 0.0, 0.34)
 
 [node name="TopRail" type="ColorRect" parent="Background"]
 layout_mode = 1
@@ -40,6 +52,7 @@ anchors_preset = 9
 anchor_bottom = 1.0
 offset_right = 430.0
 grow_vertical = 2
+theme_type_variation = &"MenuPanel"
 
 [node name="Margin" type="MarginContainer" parent="PausePanel"]
 layout_mode = 2

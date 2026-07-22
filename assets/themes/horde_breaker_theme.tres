@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=22 format=3]
+[gd_resource type="Theme" load_steps=23 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/Rajdhani-Regular.ttf" id="1_font_regular"]
 [ext_resource type="FontFile" path="res://assets/fonts/Rajdhani-SemiBold.ttf" id="2_font_semibold"]
@@ -48,6 +48,21 @@ border_color = Color(0.906, 0.566, 0.239, 1)
 shadow_color = Color(0.906, 0.566, 0.239, 0.15)
 shadow_size = 8
 shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_defeat_panel"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.052, 0.025, 0.032, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.34, 0.3, 0.92)
+shadow_color = Color(0.55, 0.08, 0.08, 0.35)
+shadow_size = 16
+shadow_offset = Vector2(0, 5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_hud"]
 content_margin_left = 14.0
@@ -230,6 +245,8 @@ CardPanel/base_type = &"PanelContainer"
 CardPanel/styles/panel = SubResource("StyleBox_card")
 SelectedCard/base_type = &"PanelContainer"
 SelectedCard/styles/panel = SubResource("StyleBox_selected_card")
+DefeatPanel/base_type = &"PanelContainer"
+DefeatPanel/styles/panel = SubResource("StyleBox_defeat_panel")
 HudPanel/base_type = &"PanelContainer"
 HudPanel/styles/panel = SubResource("StyleBox_hud")
 PrimaryButton/base_type = &"Button"
