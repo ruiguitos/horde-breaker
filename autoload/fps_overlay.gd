@@ -7,6 +7,7 @@ const UPDATE_INTERVAL := 0.25
 const GOOD_COLOR := Color(0.55, 0.9, 0.62, 1.0)
 const WARNING_COLOR := Color(0.96, 0.78, 0.34, 1.0)
 const DANGER_COLOR := Color(0.95, 0.42, 0.4, 1.0)
+const NUMERIC_FONT := preload("res://assets/fonts/Rajdhani-SemiBold.ttf")
 
 const WORLD_STREAMER_GROUP := &"world_streamer"
 
@@ -30,6 +31,7 @@ func _ready() -> void:
 	panel.add_theme_stylebox_override(&"panel", style)
 	_label = Label.new()
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_label.add_theme_font_override(&"font", NUMERIC_FONT)
 	_label.add_theme_font_size_override(&"font_size", 15)
 	_label.text = "-- FPS"
 	panel.add_child(_label)

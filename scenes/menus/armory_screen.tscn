@@ -83,6 +83,7 @@ horizontal_alignment = 1
 [node name="TitleLabel" type="Label" parent="PageMargin/Content/TopBar/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"TitleLabel"
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
 theme_override_font_sizes/font_size = 28
 text = "RECRUIT ARMORY"
@@ -97,6 +98,7 @@ theme_type_variation = &"HudPanel"
 [node name="CreditsLabel" type="Label" parent="PageMargin/Content/TopBar/CreditsCard"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"NumericLabel"
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
 theme_override_font_sizes/font_size = 15
 text = "CREDITS  -  0"
@@ -132,6 +134,7 @@ text = "SELECTED OPERATIVE"
 [node name="ClassLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"TitleLabel"
 theme_override_font_sizes/font_size = 28
 text = "Recruit"
 

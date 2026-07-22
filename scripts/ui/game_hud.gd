@@ -18,6 +18,7 @@ const VIGNETTE_MAX_INTENSITY := 0.85
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_label: Label = %HealthLabel
 @onready var active_weapon_label: Label = %ActiveWeaponLabel
+@onready var active_weapon_icon: TextureRect = %ActiveWeaponIcon
 @onready var ammunition_label: Label = %AmmunitionLabel
 @onready var threat_label: Label = %ThreatLabel
 @onready var hostiles_label: Label = %HostilesLabel
@@ -170,6 +171,11 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 		else String(_weapon_controller.call("get_secondary_weapon_name"))
 	)
 	active_weapon_label.text = active_name
+	var weapon_id := (
+		StringName(_weapon.get(&"weapon_id")) if _weapon != null else &""
+	)
+	active_weapon_icon.texture = UiVisualCatalog.get_weapon_icon(weapon_id)
+	active_weapon_icon.visible = active_weapon_icon.texture != null
 	if _weapon == null:
 		aim_point.hide()
 		ammunition_label.add_theme_font_size_override(&"font_size", 18)

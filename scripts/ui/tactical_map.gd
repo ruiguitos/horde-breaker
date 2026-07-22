@@ -390,7 +390,7 @@ func _draw_text(
 	width := -1.0
 ) -> void:
 	draw_string(
-		ThemeDB.fallback_font,
+		get_theme_default_font(),
 		position,
 		text,
 		alignment,

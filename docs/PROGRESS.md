@@ -720,6 +720,17 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   despawn e limite de 40. Importação headless e arena durante 240 frames
   terminaram sem SCRIPT ERROR.
 
+- [x] UI Tier 2 concluído: Rajdhani Regular/SemiBold/Bold integrada no tema,
+  títulos e números com pesos próprios, mapa tático/FPS/dano 3D atualizados,
+  oito retratos/ícones transparentes gerados a partir dos modelos Quaternius e
+  usados na seleção, ARMORY e HUD, e sons subtis de hover/clique sintetizados
+  em runtime. A fonte veio do Google Fonts sob SIL OFL 1.1 e a origem/licença
+  ficaram guardadas em `assets/fonts/`.
+- Validação Tier 2: importação headless sem erros, gerador OpenGL produziu os
+  oito PNGs, inspeção visual confirmou retratos e armas centrados, e main menu,
+  seleção, ARMORY, skill tree, definições e arena correram 60 frames headless
+  sem `SCRIPT ERROR`.
+
 ## Decisões pendentes
 
 - resolução inicial;

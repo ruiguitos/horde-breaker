@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/damage_number_3d.gd" id="1_damage_number"]
+[ext_resource type="FontFile" path="res://assets/fonts/Rajdhani-SemiBold.ttf" id="2_damage_font"]
 
 [node name="DamageNumber3D" type="Label3D" groups=["damage_number"]]
 billboard = 1
@@ -9,6 +10,7 @@ fixed_size = true
 render_priority = 10
 pixel_size = 0.005
 outline_modulate = Color(0.015, 0.02, 0.025, 0.95)
+font = ExtResource("2_damage_font")
 font_size = 16
 outline_size = 4
 text = "25"

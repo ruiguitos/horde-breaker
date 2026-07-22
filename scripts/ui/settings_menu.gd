@@ -31,6 +31,7 @@ func _ready() -> void:
 	sensitivity_slider.value_changed.connect(_on_sensitivity_changed)
 	volume_slider.value_changed.connect(_on_volume_changed)
 	back_button.pressed.connect(_close)
+	UiAnimations.enhance_buttons(self)
 	back_button.grab_focus()
 
 

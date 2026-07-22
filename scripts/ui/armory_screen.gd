@@ -86,6 +86,13 @@ func _build_weapon_card(
 	var content := HBoxContainer.new()
 	content.add_theme_constant_override(&"separation", 18)
 	margin.add_child(content)
+	var weapon_icon := TextureRect.new()
+	weapon_icon.custom_minimum_size = Vector2(72, 56)
+	weapon_icon.texture = UiVisualCatalog.get_weapon_icon(weapon_data.weapon_id)
+	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	weapon_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(weapon_icon)
 
 	var details := VBoxContainer.new()
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL

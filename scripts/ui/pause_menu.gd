@@ -20,6 +20,7 @@ func _ready() -> void:
 	settings_button.pressed.connect(_open_settings)
 	main_menu_button.pressed.connect(_open_main_menu)
 	quit_button.pressed.connect(GameManager.quit_game)
+	UiAnimations.enhance_buttons(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:

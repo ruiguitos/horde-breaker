@@ -113,6 +113,11 @@
 - [x] Adicionar drop de Scrap por tipo de inimigo ao morrer, com quantidades
   configuráveis, despawn após 25 segundos e limite de 40 pickups ativos.
 
+- [x] UI Tier 2: tipografia Rajdhani OFL, retratos das classes, ícones das cinco
+  armas jogáveis no ARMORY/HUD e sons discretos de interação.
+- [ ] UI Tier 3: polimento final do HUD, skill tree, pausa/derrota, ARMORY,
+  definições e mapa tático, com validação visual por ecrã.
+
 ## Regra
 
 Estes itens não alteram o âmbito do milestone atual. Quando forem concluídos, atualizar também `docs/PROGRESS.md`.

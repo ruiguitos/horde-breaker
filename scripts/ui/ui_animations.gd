@@ -11,6 +11,10 @@ const BUTTON_PRESS_MODULATE := Color(1.32, 0.88, 0.42, 1.0)
 const BUTTON_TWEEN_META := &"ui_juice_tween"
 const BUTTON_CONNECTED_META := &"ui_juice_connected"
 const BUTTON_HOVERED_META := &"ui_juice_hovered"
+const SOUND_PLAYER_NAME := &"UiSoundPlayer"
+
+static var _hover_sound: AudioStreamWAV
+static var _click_sound: AudioStreamWAV
 
 
 static func fade_in(control: Control, delay: float = 0.0, duration: float = 0.3) -> void:
@@ -60,6 +64,7 @@ static func pop_in(control: Control, duration: float = 0.22) -> void:
 
 
 static func enhance_buttons(root: Node) -> void:
+	var sound_player := _get_or_create_sound_player(root)
 	for node in root.find_children("*", "Button", true, false):
 		var button := node as Button
 		if button == null or button.has_meta(BUTTON_CONNECTED_META):
@@ -67,11 +72,15 @@ static func enhance_buttons(root: Node) -> void:
 		button.set_meta(BUTTON_CONNECTED_META, true)
 		button.set_meta(BUTTON_HOVERED_META, false)
 		button.pivot_offset = button.size * 0.5
-		button.mouse_entered.connect(_on_button_hovered.bind(button, true))
+		button.mouse_entered.connect(
+			_on_button_hovered.bind(button, true, sound_player)
+		)
 		button.mouse_exited.connect(_on_button_hovered.bind(button, false))
-		button.focus_entered.connect(_on_button_hovered.bind(button, true))
+		button.focus_entered.connect(
+			_on_button_hovered.bind(button, true, sound_player)
+		)
 		button.focus_exited.connect(_on_button_hovered.bind(button, false))
-		button.button_down.connect(_on_button_down.bind(button))
+		button.button_down.connect(_on_button_down.bind(button, sound_player))
 		button.button_up.connect(_on_button_up.bind(button))
 
 
@@ -106,10 +115,17 @@ static func count_integer(
 	)
 
 
-static func _on_button_hovered(button: Button, is_hovered: bool) -> void:
+static func _on_button_hovered(
+	button: Button,
+	is_hovered: bool,
+	sound_player: AudioStreamPlayer = null
+) -> void:
+	var was_hovered := bool(button.get_meta(BUTTON_HOVERED_META, false))
 	button.set_meta(BUTTON_HOVERED_META, is_hovered)
 	if button.disabled and is_hovered:
 		return
+	if is_hovered and not was_hovered and sound_player != null:
+		_play_sound(sound_player, _get_hover_sound())
 	_animate_button(
 		button,
 		BUTTON_HOVER_SCALE if is_hovered else Vector2.ONE,
@@ -118,7 +134,11 @@ static func _on_button_hovered(button: Button, is_hovered: bool) -> void:
 	)
 
 
-static func _on_button_down(button: Button) -> void:
+static func _on_button_down(
+	button: Button, sound_player: AudioStreamPlayer = null
+) -> void:
+	if sound_player != null:
+		_play_sound(sound_player, _get_click_sound())
 	_animate_button(button, BUTTON_PRESS_SCALE, BUTTON_PRESS_MODULATE, 0.055)
 
 
@@ -157,3 +177,55 @@ static func _set_integer_label(
 	value: float, label: Label, prefix: String, suffix: String
 ) -> void:
 	label.text = "%s%d%s" % [prefix, roundi(value), suffix]
+
+
+static func _get_or_create_sound_player(root: Node) -> AudioStreamPlayer:
+	var existing := root.get_node_or_null(NodePath(SOUND_PLAYER_NAME)) as AudioStreamPlayer
+	if existing != null:
+		return existing
+	var player := AudioStreamPlayer.new()
+	player.name = SOUND_PLAYER_NAME
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
+	player.volume_db = -18.0
+	root.add_child(player)
+	return player
+
+
+static func _play_sound(player: AudioStreamPlayer, stream: AudioStreamWAV) -> void:
+	player.stream = stream
+	player.play()
+
+
+static func _get_hover_sound() -> AudioStreamWAV:
+	if _hover_sound == null:
+		_hover_sound = _create_tone(920.0, 0.035, 0.18)
+	return _hover_sound
+
+
+static func _get_click_sound() -> AudioStreamWAV:
+	if _click_sound == null:
+		_click_sound = _create_tone(430.0, 0.055, 0.25)
+	return _click_sound
+
+
+static func _create_tone(
+	frequency: float, duration: float, amplitude: float
+) -> AudioStreamWAV:
+	const SAMPLE_RATE := 22050
+	var sample_count := maxi(1, floori(duration * SAMPLE_RATE))
+	var sample_data := PackedByteArray()
+	sample_data.resize(sample_count * 2)
+	for sample_index in sample_count:
+		var progress := float(sample_index) / float(sample_count)
+		var envelope := (1.0 - progress) * (1.0 - progress)
+		var value := sin(TAU * frequency * progress * duration)
+		var encoded := clampi(
+			roundi(value * envelope * amplitude * 32767.0), -32768, 32767
+		)
+		sample_data.encode_s16(sample_index * 2, encoded)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = SAMPLE_RATE
+	stream.stereo = false
+	stream.data = sample_data
+	return stream

@@ -13,6 +13,7 @@ func _ready() -> void:
 	hide()
 	restart_button.pressed.connect(_restart_current_scene)
 	main_menu_button.pressed.connect(GameManager.open_main_menu)
+	UiAnimations.enhance_buttons(self)
 
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
 	if player == null:
