@@ -6,6 +6,8 @@ signal destroyed
 const PLAYER_GROUP := &"player"
 const CAMP_ECONOMY_GROUP := &"camp_economy"
 const UPGRADE_STATION_SCENE := preload("res://scenes/world/camp_upgrade_station.tscn")
+const RESUPPLY_VISUAL_SCENE := preload("res://scenes/structures/camp_upgrade_visuals/resupply_station_lv2.tscn")
+const SCAVENGING_VISUAL_SCENE := preload("res://scenes/structures/camp_upgrade_visuals/scavenging_depot.tscn")
 # Pedestal layout around the core; each buys one CampEconomy upgrade track.
 const UPGRADE_STATION_LAYOUT: Dictionary[StringName, Vector3] = {
 	&"resupply_rate": Vector3(-3.2, 0.0, 2.6),
@@ -21,6 +23,7 @@ const UPGRADE_STATION_LAYOUT: Dictionary[StringName, Vector3] = {
 
 @onready var health_label: Label3D = %HealthLabel
 @onready var core_light: OmniLight3D = %CoreLight
+@onready var upgrade_visuals: Node3D = %UpgradeVisuals
 
 var current_health: float
 var _is_destroyed: bool = false
@@ -33,6 +36,7 @@ func _ready() -> void:
 	current_health = maximum_health
 	_update_world_label()
 	_spawn_upgrade_stations()
+	call_deferred(&"_connect_upgrade_visuals")
 
 
 func _physics_process(delta: float) -> void:
@@ -90,6 +94,46 @@ func _spawn_upgrade_stations() -> void:
 		station.set(&"upgrade_id", upgrade_id)
 		add_child(station)
 		station.position = UPGRADE_STATION_LAYOUT[upgrade_id]
+
+
+func _connect_upgrade_visuals() -> void:
+	var economy := _get_camp_economy()
+	if economy == null:
+		return
+	var callable := Callable(self, "_on_upgrade_purchased")
+	if not economy.is_connected(&"upgrade_purchased", callable):
+		economy.connect(&"upgrade_purchased", callable)
+	for upgrade_id in [&"resupply_rate", &"scavenging"]:
+		var level := int(economy.call(&"get_upgrade_level", upgrade_id))
+		if level > 0:
+			_on_upgrade_purchased(upgrade_id, level)
+
+
+func _on_upgrade_purchased(upgrade_id: StringName, new_level: int) -> void:
+	match upgrade_id:
+		&"resupply_rate":
+			if new_level >= 2:
+				_install_upgrade_visual(
+					&"ResupplyStationLv2", RESUPPLY_VISUAL_SCENE, Vector3(-5.2, 0.0, -2.4)
+				)
+		&"scavenging":
+			if new_level >= 1:
+				_install_upgrade_visual(
+					&"ScavengingDepot", SCAVENGING_VISUAL_SCENE, Vector3(5.0, 0.0, -2.2)
+				)
+
+
+func _install_upgrade_visual(
+	visual_name: StringName, scene: PackedScene, local_position: Vector3
+) -> void:
+	if upgrade_visuals.get_node_or_null(NodePath(String(visual_name))) != null:
+		return
+	var instance := scene.instantiate() as Node3D
+	if instance == null:
+		return
+	instance.name = String(visual_name)
+	upgrade_visuals.add_child(instance)
+	instance.position = local_position
 
 
 func _request_feedback(message: String) -> void:

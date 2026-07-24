@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="POIRegistry" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/poi_registry.gd" id="1_registry"]
+[ext_resource type="Script" path="res://scripts/data/poi_entry.gd" id="2_entry"]
+[ext_resource type="PackedScene" path="res://scenes/world/poi_facades/police_station_facade.tscn" id="3_police"]
+[ext_resource type="PackedScene" path="res://scenes/world/poi_facades/hospital_facade.tscn" id="4_hospital"]
+[ext_resource type="PackedScene" path="res://scenes/world/poi_facades/supermarket_facade.tscn" id="5_market"]
+
+[sub_resource type="Resource" id="POI_police"]
+script = ExtResource("2_entry")
+id = &"police_station"
+display_name = "POLICE STATION"
+facade_scene = ExtResource("3_police")
+
+[sub_resource type="Resource" id="POI_hospital"]
+script = ExtResource("2_entry")
+id = &"hospital"
+display_name = "FIELD HOSPITAL"
+facade_scene = ExtResource("4_hospital")
+
+[sub_resource type="Resource" id="POI_market"]
+script = ExtResource("2_entry")
+id = &"supermarket"
+display_name = "ABANDONED MARKET"
+facade_scene = ExtResource("5_market")
+
+[resource]
+script = ExtResource("1_registry")
+entries = [SubResource("POI_police"), SubResource("POI_hospital"), SubResource("POI_market")]

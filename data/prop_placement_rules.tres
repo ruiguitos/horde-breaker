@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PropPlacementRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/prop_placement_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+maximum_collidable_props = 15
+maximum_visual_props = 40
+ac_unit_chance_per_building = 0.35
+drain_chance_per_building = 0.7
+abandoned_car_minimum = 1
+abandoned_car_maximum = 2
+trash_pile_minimum = 5
+trash_pile_maximum = 11

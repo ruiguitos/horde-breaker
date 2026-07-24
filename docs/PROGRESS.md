@@ -2,10 +2,10 @@
 
 ## Estado atual
 
-Fase: mundo aberto compacto 4×4 com diretor de horda contínuo, acampamento como
-zona de reabastecimento e todo o jogo em inglês.
+Fase: mundo aberto compacto 4×4 com diretor de horda contínuo, cidade procedural
+enriquecida, acampamento com construção livre e todo o jogo em inglês.
 
-Última atualização: 2026-07-22.
+Última atualização: 2026-07-24.
 
 ## Concluído
 
@@ -475,6 +475,25 @@ zona de reabastecimento e todo o jogo em inglês.
   origem/colisão; teste confirmou 28 edifícios com colisão a <1,5 m do visível
   (antes 5–8 m).
 
+- [x] **Cidade mais densa + passadeiras corrigidas:** mais edifícios por setor
+  (3–6, média 4 vs 2,6), cada um com um **lote de betão** por baixo que esconde
+  as marcações/passadeiras da rua sob o prédio (assim os edifícios assentam num
+  lote em vez de flutuarem sobre a rua). O lote não tem colisão (a navegação
+  continua a usar só o nó `Collision`); a área do lote é reservada para os
+  edifícios manterem distância. Navegação saudável (min 2426 polígonos em 8
+  setores).
+
+- [x] **Layout urbano refeito (quarteirões e ruas):** o setor deixou de ser uma
+  grelha uniforme de 64 tiles de estrada (que punha passadeiras por todo o lado
+  e edifícios em cima delas). Passou a ser uma malha de 8×8 células de 8 m onde
+  as células do eixo central formam uma **cruz de ruas de 16 m** (com tiles
+  retos e cruzamento 4-way) e os quatro cantos são **quarteirões de 24×24 m**
+  pavimentados com passeio. Os **edifícios só são colocados dentro dos
+  quarteirões** (`_find_free_position_in_block`), pelo que nunca mais assentam
+  sobre marcações ou passadeiras. Os quarteirões são lajes planas (sem degrau,
+  movimento inalterado); as constantes mortas do antigo `city_road_grid` foram
+  removidas.
+
 ## Milestone atual
 
 **Milestone 20 — Arsenal e progressão controlada**
@@ -824,6 +843,60 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   frames; capturas finais de HUD, pausa, derrota e mapa tático inspecionadas nas
   duas resoluções sem regressões do fluxo funcional.
 
+
+## M24/M25 — cidade e construção livre
+
+- [x] Setores procedurais enriquecidos com AC de cobertura, drenos, carros
+  abandonados e lixo; a colocação usa `sector_seed + 999`, respeita os limites
+  de 15 props com colisão e 40 visuais e reserva corretamente veículos rodados.
+- [x] POIs gerados passaram a escolher deterministicamente entre fachadas de
+  esquadra, hospital e supermercado através de `POIRegistry`, mantendo o piso,
+  entrada, marcador e cache de loot existentes.
+- [x] Ambiente mundial isolado em cena própria e quatro presets de céu, luz e
+  nevoeiro ligados aos níveis de ameaça 0, 5, 10 e 15+.
+- [x] Construção livre integrada na arena: catálogo com cinco estruturas,
+  grelha de 2 m, reserva em torno do núcleo, snapping, rotação, ghost
+  verde/vermelho, custo em Scrap armazenado e bloqueios por upgrades.
+- [x] Estruturas colocadas atualizam a navegação, podem receber dano e ser
+  reparadas por interação; destruição liberta células e posição, rotação e vida
+  ficam persistidas na secção `base_layout` do save.
+- [x] Ações `build_mode_toggle`, `build_confirm`, `build_cancel` e
+  `build_rotate` adicionadas ao Input Map e ao sistema de keybindings.
+- [x] O modo de construção deixou de bloquear o `CharacterBody3D`: o jogador
+  pode deslocar-se com o catálogo aberto e mantém movimento completo, salto e
+  controlo da câmara durante o preview; armas e interação normal ficam
+  desativadas até sair do modo.
+- [x] O acampamento instala visuais adicionais ao atingir Resupply Rate nível 2
+  e Scavenging nível 1.
+- Validação estática concluída em 52 ficheiros e 157 referências de recursos,
+  sem caminhos em falta, IDs por resolver ou erros estruturais detetados.
+- A cidade/fachadas/props atuais ficam preservados apenas como protótipo. A
+  próxima iteração substitui também as estradas e caminhos por um grafo contínuo
+  entre setores, conforme `docs/CITY_REBUILD_PLAN.md`.
+
+## CITY_REBUILD_PLAN — fase 1+2 (grafo de debug e continuidade)
+
+- [x] `SectorEdgeContract` calcula os quatro conectores de aresta de cada
+  setor (posição, largura, tipo) a partir só da seed global e das
+  coordenadas — dois setores vizinhos chegam ao mesmo ponto sem comunicarem
+  entre si, canonicalizando pela coordenada menor no eixo partilhado.
+- [x] `RoadGraph` guarda o grafo resultante (nós/arestas idempotentes) e
+  valida sem dead-ends não intencionais, segmentos demasiado curtos ou
+  cruzamentos impossíveis.
+- [x] `CityLayoutGenerator` constrói o grafo para as 16 células da grelha,
+  desenha um visual de debug (reutilizando a técnica `ImmediateMesh` de
+  `build_grid.gd`) e expõe verificações de continuidade nas 24 fronteiras
+  internas e de determinismo com seeds repetidas.
+- [x] Overlay `CityGraphDebugOverlay` ligado a `test_arena.tscn`, corre ao
+  arrancar e reporta falhas via `push_warning`; ferramenta de editor
+  `validate_city_graph.gd` (`@tool extends EditorScript`) testa várias seeds
+  fixas de uma vez, fora do Play mode.
+- Trabalho inteiramente aditivo: não altera `sector_generator.gd`,
+  `city_road_grid.tscn` nem `east_sector.tscn`. Falta validação manual no
+  editor (sem binário Godot nem suite de testes neste ambiente) e as fases
+  3–7 (geometria real, quarteirões/lotes, reintegração de edifícios/POIs/
+  props/navegação).
+
 ## Decisões pendentes
 
 - resolução inicial;
@@ -837,7 +910,7 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
 - Os oito caches exteriores são estáticos; o Scrap do armazém e da estação reaparece por ciclo, ainda sem loot aleatório ou inventário.
-- Existe apenas um ponto fixo de barricada; ainda não existem posicionamento livre, outras fortificações, melhorias ou persistência da base.
+- A construção livre está funcional e permite movimento durante a colocação, mas custos, alcance, colisões, leitura do ghost e limites da grelha ainda precisam de playtest. A demolição/reembolso já tem comando próprio (`structure_demolish`, tecla X por omissão): fora do modo construção, junto de uma estrutura, devolve 50% do custo em Scrap armazenado.
 - O ataque da Worn Sword usa um volume retangular frontal como aproximação de um arco; alcance, dano e apresentação ainda precisam de playtest.
 - A Spear do Medic é funcional, mas dano, alcance e cadência ainda precisam de playtest.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
@@ -851,13 +924,13 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - O setor persistente ainda faz parte de `test_arena.tscn`; apenas o setor leste está isolado numa cena própria.
 - O setor leste já usa background loading medido (9–15 ms no graybox); falta repetir a medição com setores de geometria real.
 - A geração faseada elimina a pausa única, mas cada quadrante de estradas ainda custa ~35–45 ms no seu frame; dividir por peça de estrada ou usar um pool fica para depois de medir em jogo real.
-- Os setores gerados têm spawns, munições e emboscada, mas ainda não têm POIs com interiores; a emboscada é única por partida em vez de reposta por ciclo.
+- Os setores gerados têm POIs com fachada temática, entrada e interior simples, mas ainda não têm interiores detalhados; a emboscada é única por partida em vez de reposta por ciclo.
 - O estado por setor cobre caches, munições e emboscada; estruturas locais e descoberta de POIs ainda não têm estado.
 - Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
 - O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
-- Com a perseguição exclusiva do jogador, a vida do núcleo e a barricada perderam
-  a função defensiva original; reparação e construção continuam funcionais e devem
-  ganhar novo propósito na fase de mundo aberto.
+- Com a perseguição exclusiva do jogador, a vida do núcleo e as estruturas
+  construídas têm utilidade defensiva limitada; o bloqueio de navegação funciona,
+  mas o seu papel no combate precisa de playtest e objetivos próprios.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - O flash de dano e os sons sintetizados são provisórios; arte de reação (animações de hit) e áudio final ficam para milestones de arte.

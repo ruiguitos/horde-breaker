@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/structures/structure_base.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.38, 0.2, 0.08, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_metal"]
+albedo_color = Color(0.24, 0.27, 0.29, 1)
+metallic = 0.65
+roughness = 0.48
+
+[sub_resource type="BoxMesh" id="Mesh_plank"]
+material = SubResource("Material_wood")
+size = Vector3(3.6, 0.35, 0.32)
+
+[sub_resource type="BoxMesh" id="Mesh_post"]
+material = SubResource("Material_metal")
+size = Vector3(0.28, 1.8, 0.42)
+
+[sub_resource type="BoxShape3D" id="Shape_collision"]
+size = Vector3(3.8, 1.8, 0.8)
+
+[node name="Barricade" instance=ExtResource("1_base")]
+
+[node name="PlankLower" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.65, 0)
+rotation = Vector3(0, 0, -0.12)
+mesh = SubResource("Mesh_plank")
+
+[node name="PlankUpper" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 0)
+rotation = Vector3(0, 0, 0.1)
+mesh = SubResource("Mesh_plank")
+
+[node name="PostLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.55, 0.9, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="PostRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.55, 0.9, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("Shape_collision")

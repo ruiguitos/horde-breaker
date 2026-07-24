@@ -1,0 +1,99 @@
+[gd_scene load_steps=10 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.72, 0.72, 0.68, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_accent"]
+albedo_color = Color(0.85, 0.12, 0.1, 1)
+emission_enabled = true
+emission = Color(0.85, 0.12, 0.1, 1)
+emission_energy_multiplier = 0.55
+roughness = 0.62
+
+[sub_resource type="BoxMesh" id="Mesh_wall_long"]
+material = SubResource("Material_wall")
+size = Vector3(11, 4.2, 0.5)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_side"]
+material = SubResource("Material_wall")
+size = Vector3(0.5, 4.2, 11)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_front"]
+material = SubResource("Material_wall")
+size = Vector3(3.5, 4.2, 0.5)
+
+[sub_resource type="BoxMesh" id="Mesh_sign"]
+material = SubResource("Material_accent")
+size = Vector3(4.4, 0.7, 0.18)
+
+[sub_resource type="BoxShape3D" id="Shape_long"]
+size = Vector3(11, 4.2, 0.5)
+
+[sub_resource type="BoxShape3D" id="Shape_side"]
+size = Vector3(0.5, 4.2, 11)
+
+[sub_resource type="BoxShape3D" id="Shape_front"]
+size = Vector3(3.5, 4.2, 0.5)
+
+[node name="HospitalFacade" type="Node3D"]
+
+[node name="WallNorth" type="StaticBody3D" parent="." groups=["navigation_blocker"]]
+position = Vector3(0, 2.1, -5.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallNorth"]
+mesh = SubResource("Mesh_wall_long")
+
+[node name="Collision" type="CollisionShape3D" parent="WallNorth"]
+shape = SubResource("Shape_long")
+
+[node name="WallEast" type="StaticBody3D" parent="." groups=["navigation_blocker"]]
+position = Vector3(5.5, 2.1, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("Mesh_wall_side")
+
+[node name="Collision" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("Shape_side")
+
+[node name="WallWest" type="StaticBody3D" parent="." groups=["navigation_blocker"]]
+position = Vector3(-5.5, 2.1, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("Mesh_wall_side")
+
+[node name="Collision" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("Shape_side")
+
+[node name="WallFrontLeft" type="StaticBody3D" parent="." groups=["navigation_blocker"]]
+position = Vector3(-3.75, 2.1, 5.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallFrontLeft"]
+mesh = SubResource("Mesh_wall_front")
+
+[node name="Collision" type="CollisionShape3D" parent="WallFrontLeft"]
+shape = SubResource("Shape_front")
+
+[node name="WallFrontRight" type="StaticBody3D" parent="." groups=["navigation_blocker"]]
+position = Vector3(3.75, 2.1, 5.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallFrontRight"]
+mesh = SubResource("Mesh_wall_front")
+
+[node name="Collision" type="CollisionShape3D" parent="WallFrontRight"]
+shape = SubResource("Shape_front")
+
+[node name="Sign" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.55, 5.25)
+mesh = SubResource("Mesh_sign")
+
+[node name="SignLabel" type="Label3D" parent="."]
+position = Vector3(0, 3.55, 5.12)
+text = "HOSPITAL"
+font_size = 28
+outline_size = 7
+billboard = 1
+no_depth_test = true
+
+[node name="poi_entrance" type="Marker3D" parent="."]
+position = Vector3(0, 0, 6.2)

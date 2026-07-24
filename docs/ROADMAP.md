@@ -49,10 +49,12 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
   ARMORY, com as malhas embutidas SMG/Axe e ícones gerados.
 - [x] Alcance de auto-fire por arma (AR 6 m, Pistol 5,5 m, Shotgun 4,5 m, SMG 7 m).
 
-## Milestone 24 — Cidade a sério (atual)
+## Milestone 24 — Cidade e caminhos (protótipo a substituir)
 
-Objetivo: substituir o graybox dos setores gerados por uma cidade CC0 real
-(Quaternius Downtown MegaKit), mantendo a geração procedural e a navegação.
+O passe atual com o Downtown MegaKit permanece apenas como protótipo funcional.
+A cidade, as estradas e os caminhos serão refeitos a partir de um grafo contínuo
+entre setores; não investir mais em polish do gerador atual. O plano técnico está
+em `docs/CITY_REBUILD_PLAN.md`.
 
 - [x] Pack CC0 importado (`assets/models/city_test_model`, glTF); fonte/licença
   documentadas em `SOURCE.md`.
@@ -61,17 +63,42 @@ Objetivo: substituir o graybox dos setores gerados por uma cidade CC0 real
   de passeio adicionados. Navegação e worker-thread intactos.
 - [x] Mais props de cidade: bollards e tampas de esgoto (decoração sem colisão)
   + mais planters, para encher os quarteirões.
-- [ ] Tiles de estrada reais do Downtown (opcional): as estradas atuais já são
-  tiles Quaternius texturados com marcações; swap é polish de baixa prioridade.
-- [ ] Mais props ainda (AC nas fachadas, drenos, veículos) e afinar densidade.
-- [ ] POIs exploráveis com fachadas reais (interior + loot mantidos).
-- [ ] Atmosfera do mundo (luz/nevoeiro/hora do dia) alinhada com os novos assets.
+- [x] Fase 1+2 do grafo contínuo: contrato de aresta determinístico por
+  setor, grafo de nós/arestas com validação, e overlay de debug com
+  verificação das 24 fronteiras internas e de determinismo (aditivo, não
+  substitui ainda os quadrantes de estrada atuais). Ver
+  `docs/CITY_REBUILD_PLAN.md`.
+- [ ] Substituir os quadrantes de estrada atuais por geometria real gerada
+  a partir desse grafo (fases 3+ do `docs/CITY_REBUILD_PLAN.md`), com
+  ligações garantidas nas fronteiras dos setores.
+- [x] Mais edifícios por setor (3–6) com lote de betão que corrige os prédios
+  sobre as passadeiras.
+- [x] Mais props: AC nas coberturas, drenos, veículos abandonados e lixo, com limites de densidade configuráveis e seed estável.
+- [x] POIs gerados com três fachadas temáticas; interior simples e loot mantidos.
+- [x] Atmosfera dinâmica com quatro presets de luz, céu e nevoeiro ligados ao nível de ameaça.
+- [ ] Derivar quarteirões, passeios, lotes, entradas de edifícios e navegação do
+  mesmo grafo, evitando edifícios sobre passadeiras e caminhos interrompidos.
+- [ ] Refazer a composição visual da cidade e dos POIs depois da nova malha de
+  circulação estar validada em jogo.
+
+## Milestone 25 — Construção livre da base (implementado; requer playtest)
+
+- [x] Data layer e catálogo para Barricade, Scrap Wall, Watch Tower, Generator e Spotlight.
+- [x] Grelha de 2 m, snapping, rotação, reserva do núcleo e preview verde/vermelho.
+- [x] Compra com Scrap armazenado, requisitos por upgrade e modo de construção rebindable.
+- [x] Persistência de posição, rotação e vida; ocupação e navegação atualizadas após colocar/destruir.
+- [x] Reparação por interação e visuais do acampamento para Resupply Rate 2 e Scavenging 1.
+- [x] Movimento do jogador mantido durante o catálogo e a colocação; a câmara
+  continua controlável durante o preview, e armas/interação normal ficam suspensas.
+- [ ] Playtest de custos, alcance de construção, colisões e leitura visual.
+- [x] UX explícita de demolição/reembolso: interação dedicada na `InteractionZone`
+  da estrutura (fora do modo construção) devolve 50% do custo em Scrap armazenado.
 
 ## Milestone 21 — Ambiente e POIs finais (absorvido pelo M24)
 
 - [x] Escolher e integrar um pack CC0 de edifícios (Quaternius Downtown MegaKit).
-- [ ] Substituir os POIs graybox dos setores gerados por edifícios reais.
-- [ ] Variedade de POIs gerados (2–3 plantas diferentes).
+- [x] Substituir os POIs graybox dos setores gerados por fachadas temáticas.
+- [x] Variedade de POIs gerados com três fachadas/planta visual.
 
 ## Milestone 22 — Balanceamento e sensação de jogo
 
@@ -84,7 +111,7 @@ Objetivo: substituir o graybox dos setores gerados por uma cidade CC0 real
 ## Milestone 23 — Polimento e conteúdo extra (backlog)
 
 - [ ] Mais objetivos de mastery e recompensas.
-- [ ] Construção livre / mais estruturas da base.
+- [x] Construção livre / mais estruturas da base (entregue no M25; falta playtest).
 - [ ] Salvamento de partida a meio (continuar uma run).
 - [ ] Persistência opcional de loot entre partidas (se o playtest o pedir).
 - [ ] Mixamo (parqueado): só se for precisa uma animação que o Quaternius não tem.

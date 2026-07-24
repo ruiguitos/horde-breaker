@@ -70,6 +70,21 @@ func spend_stored_scrap(amount: int) -> bool:
 	return true
 
 
+func refund_stored_scrap(amount: int) -> void:
+	if amount <= 0:
+		return
+	stored_scrap += amount
+	scrap_changed.emit(carried_scrap, stored_scrap)
+
+
+func get_stored_scrap() -> int:
+	return stored_scrap
+
+
+func can_afford_stored_scrap(amount: int) -> bool:
+	return amount >= 0 and stored_scrap >= amount
+
+
 func get_upgrade_name(upgrade_id: StringName) -> String:
 	var definition: Dictionary = UPGRADE_DEFINITIONS.get(upgrade_id, {})
 	return String(definition.get("name", ""))

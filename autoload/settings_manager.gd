@@ -29,6 +29,11 @@ const REBINDABLE_ACTIONS: Array[Dictionary] = [
 	{"action": &"camera_front", "label": "FRONT CAMERA"},
 	{"action": &"toggle_map", "label": "TACTICAL MAP"},
 	{"action": &"toggle_fps", "label": "FPS OVERLAY"},
+	{"action": &"build_mode_toggle", "label": "BUILD MODE"},
+	{"action": &"build_confirm", "label": "BUILD CONFIRM"},
+	{"action": &"build_cancel", "label": "BUILD CANCEL"},
+	{"action": &"build_rotate", "label": "BUILD ROTATE"},
+	{"action": &"structure_demolish", "label": "DEMOLISH STRUCTURE"},
 ]
 
 var storage_path: String = SETTINGS_PATH

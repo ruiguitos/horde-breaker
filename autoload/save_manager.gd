@@ -471,6 +471,48 @@ func select_weapon_for_slot(
 	return true
 
 
+func get_base_layout() -> Array:
+	var layout: Array = []
+	var count := int(_config.get_value("base_layout", "structures_count", 0))
+	for index in range(count):
+		var prefix := "structure_%d" % index
+		var structure_id := String(_config.get_value("base_layout", prefix + "_id", ""))
+		if structure_id.is_empty():
+			continue
+		var rotation_steps := int(
+			_config.get_value(
+				"base_layout",
+				prefix + "_rotation_steps",
+				roundi(float(_config.get_value("base_layout", prefix + "_rotation", 0.0)) / 90.0)
+			)
+		)
+		layout.append({
+			"id": structure_id,
+			"grid_x": int(_config.get_value("base_layout", prefix + "_grid_x", 0)),
+			"grid_y": int(_config.get_value("base_layout", prefix + "_grid_y", 0)),
+			"rotation_steps": posmod(rotation_steps, 4),
+			"health": int(_config.get_value("base_layout", prefix + "_health", 100)),
+		})
+	return layout
+
+
+func save_base_layout(layout: Array) -> bool:
+	if _config.has_section("base_layout"):
+		_config.erase_section("base_layout")
+	_config.set_value("base_layout", "structures_count", layout.size())
+	for index in range(layout.size()):
+		var entry: Dictionary = layout[index]
+		var prefix := "structure_%d" % index
+		_config.set_value("base_layout", prefix + "_id", String(entry.get("id", "")))
+		_config.set_value("base_layout", prefix + "_grid_x", int(entry.get("grid_x", 0)))
+		_config.set_value("base_layout", prefix + "_grid_y", int(entry.get("grid_y", 0)))
+		_config.set_value(
+			"base_layout", prefix + "_rotation_steps", int(entry.get("rotation_steps", 0))
+		)
+		_config.set_value("base_layout", prefix + "_health", int(entry.get("health", 100)))
+	return save_progress()
+
+
 func get_character_data(character_id: StringName) -> CharacterData:
 	if character_id == RECRUIT_ID:
 		return RECRUIT_DATA

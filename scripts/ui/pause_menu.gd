@@ -28,6 +28,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("pause"):
 		return
+	var camp_builder := get_tree().get_first_node_in_group(&"camp_builder")
+	if camp_builder != null and bool(camp_builder.call(&"is_build_mode_active")):
+		return
 	if _is_settings_open():
 		return
 	if visible:

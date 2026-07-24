@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Environment" path="res://resources/atmosphere_presets/calm.tres" id="1_environment"]
+
+[node name="Environment" type="WorldEnvironment"]
+environment = ExtResource("1_environment")

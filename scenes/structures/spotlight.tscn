@@ -1,0 +1,69 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/structures/structure_base.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="Material_metal"]
+albedo_color = Color(0.26, 0.29, 0.31, 1)
+metallic = 0.72
+roughness = 0.44
+
+[sub_resource type="StandardMaterial3D" id="Material_lamp"]
+albedo_color = Color(1, 0.8, 0.45, 1)
+emission_enabled = true
+emission = Color(1, 0.54, 0.12, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="CylinderMesh" id="Mesh_pole"]
+material = SubResource("Material_metal")
+top_radius = 0.16
+bottom_radius = 0.22
+height = 3.6
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_lamp"]
+material = SubResource("Material_lamp")
+top_radius = 0.45
+bottom_radius = 0.65
+height = 0.8
+radial_segments = 12
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_base"]
+material = SubResource("Material_metal")
+top_radius = 0.7
+bottom_radius = 0.9
+height = 0.35
+radial_segments = 12
+rings = 1
+
+[sub_resource type="BoxShape3D" id="Shape_collision"]
+size = Vector3(1.4, 3.8, 1.4)
+
+[node name="Spotlight" instance=ExtResource("1_base")]
+
+[node name="Base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 0)
+mesh = SubResource("Mesh_base")
+
+[node name="Pole" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.95, 0)
+mesh = SubResource("Mesh_pole")
+
+[node name="Lamp" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.75, -0.35)
+rotation = Vector3(1.1, 0, 0)
+mesh = SubResource("Mesh_lamp")
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+position = Vector3(0, 3.75, -0.55)
+rotation = Vector3(-0.85, 0, 0)
+light_color = Color(1, 0.78, 0.42, 1)
+light_energy = 3.0
+spot_range = 22.0
+spot_angle = 35.0
+shadow_enabled = true
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.9, 0)
+shape = SubResource("Shape_collision")

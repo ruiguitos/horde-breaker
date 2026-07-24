@@ -1,3 +1,4 @@
+class_name WorldStreamer
 extends Node3D
 
 signal sector_load_requested(sector_id: StringName)

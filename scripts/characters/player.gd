@@ -35,6 +35,8 @@ var _time_since_damage: float = 0.0
 var _standing_height: float
 var _standing_collision_y: float
 var _standing_camera_y: float
+var _gameplay_input_enabled: bool = true
+var _build_mode_active: bool = false
 
 
 func configure_character(
@@ -71,17 +73,35 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not _gameplay_input_enabled:
+		return
 	if event.is_action_pressed("jump"):
 		_jump_requested = true
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("interact"):
-		_try_interact()
+		if _build_mode_active:
+			return
+		_try_interact(&"interact")
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("structure_demolish"):
+		if _build_mode_active:
+			return
+		_try_interact(&"demolish")
 		get_viewport().set_input_as_handled()
 
 
 func _physics_process(delta: float) -> void:
 	_time_since_damage += delta
 	_regenerate_health(delta)
+	if not _gameplay_input_enabled:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if not is_on_floor():
+			velocity.y -= _gravity * delta
+		else:
+			velocity.y = 0.0
+		move_and_slide()
+		return
 	_update_crouch_state()
 	_update_camera_height(delta)
 	if is_on_floor():
@@ -134,6 +154,25 @@ func _physics_process(delta: float) -> void:
 		)
 
 	move_and_slide()
+
+
+func set_gameplay_input_enabled(enabled: bool) -> void:
+	_gameplay_input_enabled = enabled
+	_jump_requested = false
+	if not enabled:
+		_is_sprinting = false
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+
+func set_build_mode_active(active: bool) -> void:
+	_build_mode_active = active
+	if active:
+		_jump_requested = false
+
+
+func is_build_mode_active() -> bool:
+	return _build_mode_active
 
 
 func is_crouching() -> bool:
@@ -245,11 +284,11 @@ func _update_camera_height(delta: float) -> void:
 	)
 
 
-func _try_interact() -> void:
+func _try_interact(method: StringName) -> void:
 	var closest_area: Area3D
 	var closest_distance_squared := INF
 	for area in interaction_area.get_overlapping_areas():
-		if not area.has_method(&"interact"):
+		if not area.has_method(method):
 			continue
 		var distance_squared := global_position.distance_squared_to(
 			area.global_position
@@ -258,7 +297,7 @@ func _try_interact() -> void:
 			closest_area = area
 			closest_distance_squared = distance_squared
 	if closest_area != null:
-		closest_area.call(&"interact", self)
+		closest_area.call(method, self)
 
 
 func _get_camera_relative_direction(input_direction: Vector2) -> Vector3:

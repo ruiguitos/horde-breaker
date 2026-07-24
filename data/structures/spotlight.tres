@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="StructureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/structure_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/structures/spotlight.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"spotlight"
+display_name = "Spotlight"
+description = "Compact perimeter light. Requires Scavenging level 1."
+scrap_cost = 35
+scene = ExtResource("2_scene")
+grid_size = Vector2i(1, 1)
+max_health = 100
+requires_upgrade = &"scavenging_1"
+category = &"utility"
