@@ -10,8 +10,10 @@ const WEAPON_ICONS := {
 	&"assault_rifle": preload("res://assets/icons/weapon_assault_rifle.png"),
 	&"pistol": preload("res://assets/icons/weapon_pistol.png"),
 	&"shotgun": preload("res://assets/icons/weapon_shotgun.png"),
+	&"smg": preload("res://assets/icons/weapon_smg.png"),
 	&"worn_sword": preload("res://assets/icons/weapon_worn_sword.png"),
 	&"spear": preload("res://assets/icons/weapon_spear.png"),
+	&"fire_axe": preload("res://assets/icons/weapon_fire_axe.png"),
 }
 
 

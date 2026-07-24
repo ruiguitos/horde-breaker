@@ -121,6 +121,30 @@
   tático quando vários pickups ocupam a mesma zona. Melhoria futura; não
   bloqueia o Tier 3.
 
+- [x] Menu de definições reorganizado em separadores **DISPLAY / CONTROLS /
+  AUDIO**, com **keybindings rebindable**: captura de tecla/rato ao clicar,
+  swap automático em conflito, reset a defaults, persistência na secção
+  `[input]` das settings e aplicação real ao `InputMap` no arranque (`pause`
+  fica fixo em Esc por segurança).
+- [ ] Os textos 3D do mundo ("[F] BUILD", "[F] UPGRADE", "[F] DEPOSIT") mostram
+  a tecla fixa — ler o binding real de `interact` via
+  `SettingsManager.get_action_binding_text` nos labels dinâmicos.
+
+- [x] Munição do chão escala com o nível de ameaça (base + 4 por nível, teto
+  4×) com feedback "+N AMMO" no HUD.
+- [x] **Variantes de classe** desbloqueadas ao completar as 3 masteries da
+  classe (capstone): VETERAN (Recruit, −recarga rápida/+15% cadência),
+  BERSERKER (Renegade, 110 HP + lifesteal melee 2), COMBAT MEDIC (Medic, regen
+  fraca + 5 HP por abate). Toggle persistido na seleção de classes, aplicação
+  no arranque via `character_skills.gd`, tint subtil no modelo.
+- [ ] Rever os números das variantes após playtest (lifesteal, heal-on-kill,
+  cadência) e considerar variantes com loadouts próprios no futuro.
+- [x] SMG e Fire Axe compráveis no ARMORY com malhas embutidas (SMG/Axe) e
+  ícones gerados; auto-fire por arma afinado (SMG 7 m).
+- [ ] **Playtest e balanceamento (M22):** rever dano/cadência/regen das 3 classes
+  e das variantes, e a curva do diretor de horda (intervalo, lotes, limite) —
+  precisa de sessão de jogo real; não é implementável às cegas.
+
 ## Regra
 
 Estes itens não alteram o âmbito do milestone atual. Quando forem concluídos, atualizar também `docs/PROGRESS.md`.

@@ -62,6 +62,18 @@ const WEAPON_SPECS: Array[Dictionary] = [
 		"weapon": &"Spear",
 		"size": 2.2,
 	},
+	{
+		"id": "smg",
+		"scene": preload("res://assets/models/quaternius_zombie_apocalypse/characters/Characters_Matt.gltf"),
+		"weapon": &"SMG",
+		"size": 1.4,
+	},
+	{
+		"id": "fire_axe",
+		"scene": preload("res://assets/models/quaternius_zombie_apocalypse/characters/Characters_Lis.gltf"),
+		"weapon": &"Axe",
+		"size": 1.4,
+	},
 ]
 
 

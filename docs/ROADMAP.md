@@ -39,14 +39,37 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
 - [x] Spear do Medic baseada na malha embutida, com alcance melee e animação `Stab`.
 - [x] Primeiro passe de identidade das classes: Recruit 100 HP/recarga rápida,
   Renegade 150 HP, Medic 100 HP/regeneração 3 HP/s após 4 s.
+- [x] Variantes de classe como capstone da mastery (VETERAN/BERSERKER/COMBAT
+  MEDIC), alternáveis na seleção e aplicadas no arranque da partida.
+- [x] Munição do chão a escalar com o nível de ameaça (base + 4/nível, teto 4×).
 - [ ] Rever dano, cadência, alcance automático e regeneração após playtest das
-  três classes.
-- [ ] Avaliar SMG e Fire Axe como próximas armas compráveis, apenas com malhas
-  embutidas no rig atual.
+  três classes (incluindo os números das variantes).
+- [x] SMG (automática, cadência 11/dano 16, carregador 35; nível 3 · 400 cr) e
+  Fire Axe (melee, dano 70/cooldown 0,9 s; nível 4 · 500 cr) compráveis no
+  ARMORY, com as malhas embutidas SMG/Axe e ícones gerados.
+- [x] Alcance de auto-fire por arma (AR 6 m, Pistol 5,5 m, Shotgun 4,5 m, SMG 7 m).
 
-## Milestone 21 — Ambiente e POIs finais
+## Milestone 24 — Cidade a sério (atual)
 
-- [ ] Escolher e integrar um pack CC0 de edifícios (Quaternius/Kenney).
+Objetivo: substituir o graybox dos setores gerados por uma cidade CC0 real
+(Quaternius Downtown MegaKit), mantendo a geração procedural e a navegação.
+
+- [x] Pack CC0 importado (`assets/models/city_test_model`, glTF); fonte/licença
+  documentadas em `SOURCE.md`.
+- [x] Edifícios completos (Small/Medium/Large) substituem os cubos graybox como
+  `navigation_blocker`, colocados pela geração por seed (2–3 por setor); planters
+  de passeio adicionados. Navegação e worker-thread intactos.
+- [x] Mais props de cidade: bollards e tampas de esgoto (decoração sem colisão)
+  + mais planters, para encher os quarteirões.
+- [ ] Tiles de estrada reais do Downtown (opcional): as estradas atuais já são
+  tiles Quaternius texturados com marcações; swap é polish de baixa prioridade.
+- [ ] Mais props ainda (AC nas fachadas, drenos, veículos) e afinar densidade.
+- [ ] POIs exploráveis com fachadas reais (interior + loot mantidos).
+- [ ] Atmosfera do mundo (luz/nevoeiro/hora do dia) alinhada com os novos assets.
+
+## Milestone 21 — Ambiente e POIs finais (absorvido pelo M24)
+
+- [x] Escolher e integrar um pack CC0 de edifícios (Quaternius Downtown MegaKit).
 - [ ] Substituir os POIs graybox dos setores gerados por edifícios reais.
 - [ ] Variedade de POIs gerados (2–3 plantas diferentes).
 

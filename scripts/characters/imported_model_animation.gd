@@ -116,7 +116,7 @@ func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
 	var embedded_weapon_name := _get_embedded_weapon_name(weapon_id)
 	if _embedded_weapon_meshes.has(embedded_weapon_name):
 		_embedded_weapon_meshes[embedded_weapon_name].visible = true
-	if weapon_id in [&"worn_sword", &"spear"]:
+	if weapon_id in [&"worn_sword", &"spear", &"fire_axe"]:
 		idle_animation = &"Idle"
 		move_animation = &"Walk"
 		run_animation = &"Run_Stab"
@@ -137,10 +137,14 @@ func _get_embedded_weapon_name(weapon_id: StringName) -> StringName:
 		return &"Pistol"
 	if weapon_id == &"shotgun":
 		return &"Shotgun"
+	if weapon_id == &"smg":
+		return &"SMG"
 	if weapon_id == &"worn_sword":
 		return &"Knife"
 	if weapon_id == &"spear":
 		return &"Spear"
+	if weapon_id == &"fire_axe":
+		return &"Axe"
 	return &""
 
 

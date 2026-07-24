@@ -41,7 +41,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/PanelContainer"]
@@ -76,81 +76,108 @@ size_flags_horizontal = 4
 mouse_filter = 2
 color = Color(0.906, 0.566, 0.239, 1)
 
-[node name="ScreenTitle" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="TabsRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
-theme_type_variation = &"SectionTitle"
-text = "Display"
+theme_override_constants/separation = 8
 
-[node name="DisplayDivider" type="HSeparator" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="DisplayTab" type="Button" parent="CenterContainer/PanelContainer/Margin/Content/TabsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
+text = "DISPLAY"
+
+[node name="ControlsTab" type="Button" parent="CenterContainer/PanelContainer/Margin/Content/TabsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "CONTROLS"
+
+[node name="AudioTab" type="Button" parent="CenterContainer/PanelContainer/Margin/Content/TabsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "AUDIO"
+
+[node name="TabsDivider" type="HSeparator" parent="CenterContainer/PanelContainer/Margin/Content"]
 layout_mode = 2
 
-[node name="WindowModeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="DisplayPage" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WindowModeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/WindowModeRow"]
+[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/WindowModeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "WINDOW MODE"
 vertical_alignment = 1
 
-[node name="WindowModeOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/WindowModeRow"]
+[node name="WindowModeOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/WindowModeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 
-[node name="ResolutionRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="ResolutionRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/ResolutionRow"]
+[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/ResolutionRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "RESOLUTION"
 vertical_alignment = 1
 
-[node name="ResolutionOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/ResolutionRow"]
+[node name="ResolutionOption" type="OptionButton" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/ResolutionRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 
-[node name="VsyncRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="VsyncRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/VsyncRow"]
+[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/VsyncRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "VERTICAL SYNC (VSYNC)"
 vertical_alignment = 1
 
-[node name="VsyncCheck" type="CheckButton" parent="CenterContainer/PanelContainer/Margin/Content/VsyncRow"]
+[node name="VsyncCheck" type="CheckButton" parent="CenterContainer/PanelContainer/Margin/Content/DisplayPage/VsyncRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="InputTitle" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="ControlsPage" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
-theme_type_variation = &"SectionTitle"
-text = "Controls & Audio"
+theme_override_constants/separation = 6
 
-[node name="SectionDivider" type="HSeparator" parent="CenterContainer/PanelContainer/Margin/Content"]
-layout_mode = 2
-
-[node name="SensitivityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="SensitivityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/SensitivityRow"]
+[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage/SensitivityRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "MOUSE SENSITIVITY"
 vertical_alignment = 1
 
-[node name="SensitivitySlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/SensitivityRow"]
+[node name="SensitivitySlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage/SensitivityRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
@@ -160,7 +187,7 @@ max_value = 2.0
 step = 0.05
 value = 1.0
 
-[node name="SensitivityValue" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/SensitivityRow"]
+[node name="SensitivityValue" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage/SensitivityRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(56, 0)
 layout_mode = 2
@@ -168,18 +195,53 @@ text = "1.00 ×"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="VolumeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+[node name="BindingsTitle" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage"]
+layout_mode = 2
+theme_type_variation = &"SectionTitle"
+text = "Key Bindings"
+
+[node name="BindingsHint" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Click a binding, then press the new key or mouse button. Esc cancels."
+autowrap_mode = 2
+
+[node name="BindingsScroll" type="ScrollContainer" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage"]
+custom_minimum_size = Vector2(0, 264)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="BindingsList" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage/BindingsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ResetBindingsButton" type="Button" parent="CenterContainer/PanelContainer/Margin/Content/ControlsPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "RESET BINDINGS TO DEFAULTS"
+
+[node name="AudioPage" type="VBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="VolumeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/Margin/Content/AudioPage"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/VolumeRow"]
+[node name="Caption" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/AudioPage/VolumeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "MASTER VOLUME"
 vertical_alignment = 1
 
-[node name="VolumeSlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/VolumeRow"]
+[node name="VolumeSlider" type="HSlider" parent="CenterContainer/PanelContainer/Margin/Content/AudioPage/VolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
@@ -188,7 +250,7 @@ max_value = 100.0
 step = 1.0
 value = 100.0
 
-[node name="VolumeValue" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/VolumeRow"]
+[node name="VolumeValue" type="Label" parent="CenterContainer/PanelContainer/Margin/Content/AudioPage/VolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(56, 0)
 layout_mode = 2

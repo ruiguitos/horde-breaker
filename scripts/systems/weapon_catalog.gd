@@ -6,13 +6,17 @@ const PISTOL: WeaponData = preload("res://data/weapons/pistol.tres")
 const SHOTGUN: WeaponData = preload("res://data/weapons/shotgun.tres")
 const WORN_SWORD: WeaponData = preload("res://data/weapons/worn_sword.tres")
 const SPEAR: WeaponData = preload("res://data/weapons/spear.tres")
+const SMG: WeaponData = preload("res://data/weapons/smg.tres")
+const FIRE_AXE: WeaponData = preload("res://data/weapons/fire_axe.tres")
 
 const ALL_WEAPONS: Array[WeaponData] = [
 	ASSAULT_RIFLE,
 	PISTOL,
 	SHOTGUN,
+	SMG,
 	WORN_SWORD,
 	SPEAR,
+	FIRE_AXE,
 ]
 
 

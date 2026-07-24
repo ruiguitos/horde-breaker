@@ -102,7 +102,14 @@ desaparece pouco depois.
   Credits e equipá-las nos slots 1/2; nível, compatibilidade e compra ficam no save.
 - **Mastery por classe** (persistente, recompensa em Credits):
   EXTERMINATOR (100 abates), STORM RIDER (nível de ameaça 5 numa partida),
-  SCAVENGER (500 Scrap recolhido).
+  SCAVENGER (500 Scrap recolhido). Completar as três desbloqueia a **variante**
+  da classe.
+- **Variantes de classe** (capstone da mastery, alternáveis na seleção; não são
+  personagens novos — XP/skills/mastery/armory continuam da classe base):
+  **VETERAN** (Recruit: troca a recarga rápida por +15% cadência),
+  **BERSERKER** (Renegade: 110 HP, melee rouba 2 HP por golpe),
+  **COMBAT MEDIC** (Medic: regen 1,5 HP/s após 5 s, cada abate cura 5 HP).
+  Com a variante ativa o modelo ganha um brilho subtil na cor da variante.
 - **Armas encontráveis**: caixas de arma nos setores substituem o slot
   secundário durante a partida; a arma trocada cai no chão e pode ser reapanhada.
 

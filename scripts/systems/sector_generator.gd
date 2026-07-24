@@ -26,6 +26,32 @@ const STREET_LIGHT_SCENE := preload("res://assets/models/quaternius_zombie_apoca
 
 const SECTOR_HALF_SIZE := 32.0
 const SPAWN_MARKER_COUNT := 3
+# Real low-poly city buildings (CC0 Quaternius Downtown MegaKit) replace the old
+# graybox landmark boxes. Each is a single mesh, so draw calls stay low. The
+# footprint (x, z in metres) and height come from measuring the models.
+const CITY_BUILDINGS: Array[Dictionary] = [
+	{
+		"scene": preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Building_Small_1.gltf"),
+		"footprint": Vector2(12.5, 14.5),
+		"height": 17.0,
+		"center": Vector2(-1.0, -4.96),
+	},
+	{
+		"scene": preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Building_Medium_2_001.gltf"),
+		"footprint": Vector2(15.1, 13.1),
+		"height": 25.0,
+		"center": Vector2(0.0, -5.96),
+	},
+	{
+		"scene": preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Building_Large_2.gltf"),
+		"footprint": Vector2(20.6, 16.6),
+		"height": 28.0,
+		"center": Vector2(1.0, -8.0),
+	},
+]
+const CITY_PLANTER_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_Planter_Single.gltf")
+const CITY_BOLLARD_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_Bollard.gltf")
+const CITY_MANHOLE_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_ManholeCover.gltf")
 # Explorable point of interest: a walled graybox building with one doorway and a
 # reward cache inside. The cache reuses the per-sector cache state under a
 # reserved index so it never reappears once collected during a run.
@@ -104,9 +130,10 @@ static func add_content_stage(context: Dictionary) -> void:
 	var blocked_areas: Array[Rect2] = context["blocked_areas"]
 	# Reserve the point of interest first so nothing else lands on its footprint.
 	_add_poi_building(sector, rng, config, blocked_areas)
-	_add_landmarks(sector, rng, blocked_areas)
+	_add_city_buildings(sector, rng, blocked_areas)
 	_add_containers(sector, rng, blocked_areas)
 	_add_set_dressing(sector, rng, blocked_areas)
+	_add_city_props(sector, rng, blocked_areas)
 	_add_caches(sector, rng, config, blocked_areas)
 	_add_ammo_box(sector, rng, config, blocked_areas)
 	_add_weapon_crate(sector, rng, config, blocked_areas)
@@ -275,6 +302,107 @@ static func _add_poi_loot(building: Node3D, config: Dictionary) -> void:
 			&"collected",
 			cache_callable.bind(StringName(config["id"]), POI_CACHE_INDEX)
 		)
+
+
+static func _add_city_buildings(
+	sector: Node3D, rng: RandomNumberGenerator, blocked_areas: Array[Rect2]
+) -> void:
+	var buildings_root := Node3D.new()
+	buildings_root.name = "Buildings"
+	sector.add_child(buildings_root)
+	var building_count := 2 + rng.randi_range(0, 1)
+	for building_index in building_count:
+		var choice: Dictionary = CITY_BUILDINGS[
+			rng.randi_range(0, CITY_BUILDINGS.size() - 1)
+		]
+		var footprint: Vector2 = choice["footprint"]
+		var height := float(choice["height"])
+		var quarter := rng.randi_range(0, 3)
+		# A quarter turn swaps the footprint's axis-aligned bounds, so reserve
+		# the rotated extents while the collision box stays in local space
+		# (arena_navigation handles the rotated blocker).
+		var reserved := (
+			footprint if quarter % 2 == 0 else Vector2(footprint.y, footprint.x)
+		)
+		var placement := _find_free_position(
+			rng, Vector3(reserved.x, height, reserved.y), blocked_areas
+		)
+		if placement == Vector2.INF:
+			continue
+		var building := StaticBody3D.new()
+		building.name = "Building%d" % building_index
+		building.add_to_group(&"navigation_blocker")
+		building.position = Vector3(placement.x, 0.0, placement.y)
+		building.rotation.y = quarter * (PI / 2.0)
+		var visual := (choice["scene"] as PackedScene).instantiate() as Node3D
+		visual.name = "Visual"
+		building.add_child(visual)
+		# The Quaternius meshes are not centred on their origin; shifting the
+		# visual by -center puts the footprint centre on the body origin so the
+		# collision box and the reserved area line up with what you see.
+		var center: Vector2 = choice.get("center", Vector2.ZERO)
+		visual.position = Vector3(-center.x, 0.0, -center.y)
+		var collision := CollisionShape3D.new()
+		collision.name = "Collision"
+		collision.position = Vector3(0.0, height * 0.5, 0.0)
+		var box_shape := BoxShape3D.new()
+		box_shape.size = Vector3(footprint.x, height, footprint.y)
+		collision.shape = box_shape
+		building.add_child(collision)
+		buildings_root.add_child(building)
+		blocked_areas.append(Rect2(placement - reserved * 0.5, reserved))
+
+
+static func _add_city_props(
+	sector: Node3D, rng: RandomNumberGenerator, blocked_areas: Array[Rect2]
+) -> void:
+	var props_root := Node3D.new()
+	props_root.name = "CityProps"
+	sector.add_child(props_root)
+	# Planters are solid, so they block navigation like the buildings.
+	var planter_count := rng.randi_range(1, 3)
+	for planter_index in planter_count:
+		var placement := _find_free_position(
+			rng, Vector3(2.0, 1.0, 2.0), blocked_areas
+		)
+		if placement == Vector2.INF:
+			continue
+		var planter := StaticBody3D.new()
+		planter.name = "Planter%d" % planter_index
+		planter.add_to_group(&"navigation_blocker")
+		planter.position = Vector3(placement.x, 0.0, placement.y)
+		var visual := CITY_PLANTER_SCENE.instantiate() as Node3D
+		visual.name = "Visual"
+		planter.add_child(visual)
+		var collision := CollisionShape3D.new()
+		collision.name = "Collision"
+		collision.position = Vector3(0.0, 0.3, 0.0)
+		var box_shape := BoxShape3D.new()
+		box_shape.size = Vector3(2.0, 0.6, 2.0)
+		collision.shape = box_shape
+		planter.add_child(collision)
+		props_root.add_child(planter)
+		blocked_areas.append(Rect2(placement - Vector2(1.0, 1.0), Vector2(2.0, 2.0)))
+	# Bollards and manhole covers are pure decoration: thin/flat, no collision
+	# and no reservation, so they never affect navigation or spawns.
+	for bollard_index in rng.randi_range(0, 5):
+		var placement := _find_free_position(
+			rng, Vector3(1.0, 1.0, 1.0), blocked_areas
+		)
+		if placement == Vector2.INF:
+			continue
+		var bollard := CITY_BOLLARD_SCENE.instantiate() as Node3D
+		bollard.name = "Bollard%d" % bollard_index
+		props_root.add_child(bollard)
+		bollard.position = Vector3(placement.x, 0.0, placement.y)
+	for manhole_index in rng.randi_range(0, 2):
+		var manhole := CITY_MANHOLE_SCENE.instantiate() as Node3D
+		manhole.name = "Manhole%d" % manhole_index
+		props_root.add_child(manhole)
+		manhole.position = Vector3(
+			rng.randf_range(-24.0, 24.0), 0.02, rng.randf_range(-24.0, 24.0)
+		)
+		manhole.rotation.y = rng.randf() * TAU
 
 
 static func _add_landmarks(

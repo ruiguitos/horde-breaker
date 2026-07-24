@@ -14,6 +14,7 @@ signal selected_loadout_changed(
 signal skill_points_changed(character_id: StringName)
 signal mastery_progress_changed(character_id: StringName, objective_id: StringName)
 signal mastery_completed(character_id: StringName, objective_id: StringName)
+signal variant_changed(character_id: StringName)
 
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
@@ -312,6 +313,34 @@ func record_mastery_progress(
 	if not was_completed and progress >= int(objective["goal"]):
 		add_credits(int(objective["reward_credits"]))
 		mastery_completed.emit(character_id, objective_id)
+
+
+func is_variant_unlocked(character_id: StringName) -> bool:
+	# The class variant is the mastery capstone: it unlocks only when every
+	# objective of that class is completed.
+	if CharacterVariants.get_variant(character_id).is_empty():
+		return false
+	for objective_id in CharacterMastery.OBJECTIVES:
+		if not is_mastery_completed(character_id, objective_id):
+			return false
+	return true
+
+
+func is_variant_active(character_id: StringName) -> bool:
+	return (
+		is_variant_unlocked(character_id)
+		and bool(_config.get_value(String(character_id), "variant_active", false))
+	)
+
+
+func set_variant_active(character_id: StringName, active: bool) -> bool:
+	if active and not is_variant_unlocked(character_id):
+		return false
+	_config.set_value(String(character_id), "variant_active", active)
+	if not save_progress():
+		return false
+	variant_changed.emit(character_id)
+	return true
 
 
 func get_purchased_weapons(character_id: StringName) -> PackedStringArray:

@@ -1,6 +1,7 @@
 extends Node
 
 signal display_settings_applied(fullscreen: bool, resolution: Vector2i)
+signal bindings_changed
 
 const SETTINGS_PATH := "user://horde_breaker_settings.cfg"
 # Boots windowed at a low resolution by default so the prototype stays
@@ -9,6 +10,28 @@ const SETTINGS_PATH := "user://horde_breaker_settings.cfg"
 const DEFAULT_RESOLUTION := Vector2i(1152, 648)
 const DEFAULT_FULLSCREEN := false
 
+## Actions the player can rebind in the settings menu. `pause` stays fixed on
+## Esc so a bad binding can never lock the player out of the menus.
+const REBINDABLE_ACTIONS: Array[Dictionary] = [
+	{"action": &"move_forward", "label": "MOVE FORWARD"},
+	{"action": &"move_backward", "label": "MOVE BACKWARD"},
+	{"action": &"move_left", "label": "MOVE LEFT"},
+	{"action": &"move_right", "label": "MOVE RIGHT"},
+	{"action": &"jump", "label": "JUMP"},
+	{"action": &"sprint", "label": "SPRINT"},
+	{"action": &"crouch", "label": "CROUCH"},
+	{"action": &"interact", "label": "INTERACT"},
+	{"action": &"reload", "label": "RELOAD"},
+	{"action": &"attack", "label": "ATTACK"},
+	{"action": &"aim", "label": "AIM"},
+	{"action": &"weapon_primary", "label": "WEAPON SLOT 1"},
+	{"action": &"weapon_secondary", "label": "WEAPON SLOT 2"},
+	{"action": &"camera_front", "label": "FRONT CAMERA"},
+	{"action": &"toggle_map", "label": "TACTICAL MAP"},
+	{"action": &"toggle_fps", "label": "FPS OVERLAY"},
+]
+
+var storage_path: String = SETTINGS_PATH
 var _config := ConfigFile.new()
 var _target_fullscreen := true
 var _display_refresh_running := false
@@ -16,11 +39,12 @@ var _display_refresh_queued := false
 
 
 func _ready() -> void:
-	var load_error := _config.load(SETTINGS_PATH)
+	var load_error := _config.load(storage_path)
 	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
 		push_error("SettingsManager could not load settings: %s" % load_error)
 	_apply_vsync()
 	_apply_master_volume()
+	_apply_saved_bindings()
 	# The project boots windowed on purpose: launching straight into native
 	# fullscreen with a viewport equal to the monitor resolution leaves the
 	# window unable to return to windowed mode reliably on Windows. The saved
@@ -159,7 +183,168 @@ func _apply_master_volume() -> void:
 	AudioServer.set_bus_volume_db(master_bus, linear_to_db(maxf(volume, 0.005)))
 
 
+func load_settings(path_override: String) -> void:
+	# Test hook mirroring SaveManager.load_progress: isolates the config file.
+	storage_path = path_override
+	_config = ConfigFile.new()
+	var load_error := _config.load(storage_path)
+	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+		push_error("SettingsManager could not load settings: %s" % load_error)
+	_apply_saved_bindings()
+
+
+func get_action_binding_text(action: StringName) -> String:
+	var events := InputMap.action_get_events(action)
+	if events.is_empty():
+		return "—"
+	return _describe_event(events[0])
+
+
+func rebind_action(action: StringName, event: InputEvent) -> StringName:
+	# Assigns the captured event to the action. If another rebindable action
+	# already uses that input, the two actions swap bindings so no action is
+	# ever left without a key. Returns the swapped action (or &"" if none).
+	if not _is_supported_binding(event):
+		return &""
+	var previous_events := InputMap.action_get_events(action)
+	var previous_event: InputEvent = (
+		previous_events[0] if not previous_events.is_empty() else null
+	)
+	var conflicting_action := _find_conflicting_action(action, event)
+	_assign_action_event(action, event)
+	if conflicting_action != &"" and previous_event != null:
+		_assign_action_event(conflicting_action, previous_event)
+		_store_binding(conflicting_action, previous_event)
+	_store_binding(action, event)
+	_save()
+	bindings_changed.emit()
+	return conflicting_action
+
+
+func reset_bindings() -> void:
+	InputMap.load_from_project_settings()
+	if _config.has_section("input"):
+		_config.erase_section("input")
+	_save()
+	bindings_changed.emit()
+
+
+func _apply_saved_bindings() -> void:
+	if not _config.has_section("input"):
+		return
+	for action_key in _config.get_section_keys("input"):
+		var action := StringName(action_key)
+		if not InputMap.has_action(action):
+			continue
+		var stored: Dictionary = _config.get_value("input", action_key, {})
+		var event := _deserialize_event(stored)
+		if event != null:
+			_assign_action_event(action, event)
+	bindings_changed.emit()
+
+
+func _assign_action_event(action: StringName, event: InputEvent) -> void:
+	InputMap.action_erase_events(action)
+	InputMap.action_add_event(action, event)
+
+
+func _find_conflicting_action(
+	action: StringName, event: InputEvent
+) -> StringName:
+	for entry in REBINDABLE_ACTIONS:
+		var candidate: StringName = entry["action"]
+		if candidate == action or not InputMap.has_action(candidate):
+			continue
+		for existing in InputMap.action_get_events(candidate):
+			if _events_match(existing, event):
+				return candidate
+	return &""
+
+
+func _events_match(event_a: InputEvent, event_b: InputEvent) -> bool:
+	if event_a is InputEventKey and event_b is InputEventKey:
+		return _key_code_of(event_a) == _key_code_of(event_b)
+	if event_a is InputEventMouseButton and event_b is InputEventMouseButton:
+		return (
+			(event_a as InputEventMouseButton).button_index
+			== (event_b as InputEventMouseButton).button_index
+		)
+	return false
+
+
+func _key_code_of(event: InputEventKey) -> int:
+	# Physical keycodes keep WASD in place on any keyboard layout.
+	if event.physical_keycode != KEY_NONE:
+		return int(event.physical_keycode)
+	return int(event.keycode)
+
+
+func _is_supported_binding(event: InputEvent) -> bool:
+	return event is InputEventKey or event is InputEventMouseButton
+
+
+func _describe_event(event: InputEvent) -> String:
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		if key_event.physical_keycode != KEY_NONE:
+			# The headless display server cannot translate physical keycodes.
+			if DisplayServer.get_name() != "headless":
+				var visible_keycode := DisplayServer.keyboard_get_keycode_from_physical(
+					key_event.physical_keycode
+				)
+				if visible_keycode != KEY_NONE:
+					return OS.get_keycode_string(visible_keycode)
+			return OS.get_keycode_string(key_event.physical_keycode)
+		return OS.get_keycode_string(key_event.keycode)
+	if event is InputEventMouseButton:
+		match (event as InputEventMouseButton).button_index:
+			MOUSE_BUTTON_LEFT:
+				return "MOUSE LEFT"
+			MOUSE_BUTTON_RIGHT:
+				return "MOUSE RIGHT"
+			MOUSE_BUTTON_MIDDLE:
+				return "MOUSE MIDDLE"
+			MOUSE_BUTTON_WHEEL_UP:
+				return "WHEEL UP"
+			MOUSE_BUTTON_WHEEL_DOWN:
+				return "WHEEL DOWN"
+			_:
+				return "MOUSE %d" % (event as InputEventMouseButton).button_index
+	return event.as_text()
+
+
+func _store_binding(action: StringName, event: InputEvent) -> void:
+	_config.set_value("input", String(action), _serialize_event(event))
+
+
+func _serialize_event(event: InputEvent) -> Dictionary:
+	if event is InputEventKey:
+		return {"type": "key", "code": _key_code_of(event as InputEventKey)}
+	if event is InputEventMouseButton:
+		return {
+			"type": "mouse",
+			"code": int((event as InputEventMouseButton).button_index),
+		}
+	return {}
+
+
+func _deserialize_event(stored: Dictionary) -> InputEvent:
+	var code := int(stored.get("code", 0))
+	if code <= 0:
+		return null
+	match String(stored.get("type", "")):
+		"key":
+			var key_event := InputEventKey.new()
+			key_event.physical_keycode = code as Key
+			return key_event
+		"mouse":
+			var mouse_event := InputEventMouseButton.new()
+			mouse_event.button_index = code as MouseButton
+			return mouse_event
+	return null
+
+
 func _save() -> void:
-	var save_error := _config.save(SETTINGS_PATH)
+	var save_error := _config.save(storage_path)
 	if save_error != OK:
 		push_error("SettingsManager could not save settings: %s" % save_error)

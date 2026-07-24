@@ -420,6 +420,61 @@ zona de reabastecimento e todo o jogo em inglês.
   modelos quando não estão a receber dano.
 
 
+- [x] Menu de definições reorganizado em três separadores (DISPLAY / CONTROLS /
+  AUDIO) com botões-tab no estilo do tema, mantendo o visual do facelift.
+- [x] **Keybindings rebindable**: lista das 16 ações de jogo no separador
+  CONTROLS (o `pause` fica fixo em Esc por segurança), captura da próxima tecla
+  ou botão do rato ao clicar, **swap automático quando a tecla já está em uso**,
+  botão de reset a defaults, persistência na secção `[input]` de
+  `user://horde_breaker_settings.cfg` (keycodes físicos — WASD mantém a posição
+  em qualquer layout de teclado) e aplicação ao `InputMap` no arranque pelo
+  `SettingsManager`; como todo o jogo usa ações, os rebinds funcionam em todo o
+  lado de imediato. `load_settings(path)` adicionado como hook de teste isolado.
+
+- [x] Munição do chão escala com o nível de ameaça: cada caixa vale
+  `base + 4 × (nível − 1)`, com teto em 4× a base (12 → 48), e a recolha mostra
+  "+N AMMO" no feed do HUD. Sem wave manager (menus/testes) mantém a base.
+
+- [x] **Variantes de classe** (`character_variants.gd` + API no SaveManager +
+  aplicação em `character_skills.gd`): desbloqueadas ao completar as 3 masteries
+  da classe, alternáveis por um toggle persistido na seleção de classes (linha
+  própria no painel de loadout com estados locked/on/off). VETERAN troca a
+  recarga rápida do Recruit por +15% de cadência; BERSERKER baixa o Renegade
+  para 110 HP mas o melee rouba 2 HP por golpe; COMBAT MEDIC enfraquece a regen
+  (1,5 HP/s após 5 s) mas cada abate cura 5 HP. Overrides base aplicados antes
+  dos bónus da skill tree; hooks de runtime (lifesteal via `attack_performed`,
+  cura via `enemy_defeated`) ligados no arranque; tint aditivo subtil no modelo
+  (com transparência alfa, seguindo a lição do hit-flash).
+
+- [x] **SMG** e **Fire Axe** compráveis no ARMORY (Milestone 20): SMG hitscan
+  automática (dano 16, cadência 11, carregador 35, auto-fire 7 m; nível 3 · 400
+  Credits) com a malha embutida `SMG`; Fire Axe melee (dano 70, cooldown 0,9 s,
+  swing `Slash`; nível 4 · 500 Credits) com a malha embutida `Axe`. Registadas
+  no `WeaponCatalog`, com stance correta (SMG = gun, Axe = melee), nomes na UI e
+  ícones gerados pela ferramenta (`weapon_smg.png`/`weapon_fire_axe.png`).
+- [x] Auto-fire por arma confirmado/afinado (AR 6, Pistol 5,5, Shotgun 4,5,
+  SMG 7 m) — item do Milestone 22 que dependia de implementação.
+
+- [x] **Milestone 24 — cidade a sério (1ª fatia):** os setores gerados deixaram
+  de usar cubos graybox como landmarks. `SectorGenerator._add_city_buildings`
+  coloca agora **edifícios CC0 reais** do Quaternius Downtown MegaKit
+  (Building_Small/Medium/Large, 1 mesh cada, ~12–20 m de footprint) como
+  `navigation_blocker` com colisão por footprint e rotação por quarto de volta;
+  `_add_city_props` espalha planters (com colisão), bollards e tampas de
+  esgoto (decoração pura) pelos quarteirões. A geração continua por seed em
+  worker threads e a navegação em runtime mantém-se (2842 polígonos com um
+  edifício na cena). As estradas atuais já são tiles Quaternius texturados, por
+  isso o swap para as Downtown ficou como polish opcional. Pack CC0 aligeirado
+  de 247 MB → 91 MB (Textures/FBX redundantes removidas; a pasta glTF é
+  auto-suficiente). Fonte/licença em `assets/models/city_test_model/SOURCE.md`.
+
+- [x] **Fix:** as malhas dos edifícios Quaternius não estão centradas na origem
+  (footprint deslocado até ~8 m em z), o que deixava a caixa de colisão ao lado
+  do prédio visível — paredes invisíveis no vazio e atravessar o edifício. O
+  visual passa a ser deslocado por `-center` para o footprint coincidir com a
+  origem/colisão; teste confirmou 28 edifícios com colisão a <1,5 m do visível
+  (antes 5–8 m).
+
 ## Milestone atual
 
 **Milestone 20 — Arsenal e progressão controlada**
@@ -434,6 +489,28 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 ## Validação
 
 - Godot disponível: `4.7.stable.mono.official.5b4e0cb0f`.
+- Cidade: teste headless confirmou 21 edifícios em 8 setores, todos como
+  `navigation_blocker` com colisão e mesh, e navegação a construir com 2842
+  polígonos com um edifício presente; arena real 400 frames (geração em worker
+  threads) sem erros; captura OpenGL de um setor com edifícios de tijolo,
+  janelas, cornijas e estradas com marcações.
+- SMG/Fire Axe: teste headless (9 asserts) — presença no catálogo e ícones,
+  SMG automática com carregador 35, Fire Axe melee com swing Slash, e compra no
+  ARMORY bloqueada abaixo do nível 3 / permitida ao nível 3 com Credits; captura
+  OpenGL do ARMORY confirmou as duas armas com ícones e custos.
+- Variantes: teste headless ponta-a-ponta com save isolado (13 asserts) —
+  bloqueio até à mastery completa, toggle persistente, e em arena real: Veteran
+  com cadência 6,9 e recarga de classe removida; Berserker com 110 HP e +4 HP
+  por golpe duplo de melee; Combat Medic com regen 1,5/5 s e +5 HP por abate.
+  Seleção de personagens validada em headless e captura OpenGL (linha da
+  variante com estado LOCKED).
+- Munição escalável: teste headless (5 asserts) — base 12 sem diretor, 36 ao
+  nível 7, teto 48, e entrega escalada ao jogador (28 ao nível 5).
+- Keybindings: teste headless com settings isoladas confirmou rebind (Space→K),
+  texto do binding, swap em conflito (crouch→K trocou com jump, que recebeu
+  Ctrl), binding de rato (MOUSE MIDDLE), reaplicação após reload e reset a
+  defaults (9 asserts); menu de definições headless 60 frames sem erros e
+  capturas OpenGL dos três separadores validadas visualmente.
 - Milestone 20: importação headless sem erros; `armory_screen`,
   `character_selection`, `skill_tree_screen`, `spear`, `medic` e `test_arena`
   executados isoladamente durante 60 frames sem `SCRIPT ERROR`.
