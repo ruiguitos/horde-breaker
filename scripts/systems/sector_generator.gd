@@ -10,10 +10,20 @@ const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
 const AMMO_PICKUP_SCENE := preload("res://scenes/pickups/ammo_pickup.tscn")
 const WEAPON_PICKUP_SCENE := preload("res://scenes/pickups/weapon_pickup.tscn")
 const NAVIGATION_SCRIPT := preload("res://scripts/systems/arena_navigation.gd")
+## Weapons found while exploring. These are field pickups: they take over the
+## secondary slot for the current run only and never touch the permanent ARMORY
+## loadout, so a rare heavy find is a run highlight rather than a shortcut past
+## the Credits or the kill-count evolutions.
 const WEAPON_POOL: Array[Dictionary] = [
-	{"id": &"assault_rifle", "name": "Assault Rifle"},
-	{"id": &"shotgun", "name": "Shotgun"},
-	{"id": &"pistol", "name": "Pistol"},
+	{"id": &"assault_rifle", "name": "Assault Rifle", "weight": 1.0},
+	{"id": &"shotgun", "name": "Shotgun", "weight": 1.0},
+	{"id": &"pistol", "name": "Pistol", "weight": 0.6},
+	{"id": &"smg", "name": "SMG", "weight": 1.0},
+	{"id": &"machine_gun", "name": "Machine Gun", "weight": 0.55},
+	{"id": &"fire_axe", "name": "Fire Axe", "weight": 0.7},
+	{"id": &"spear", "name": "Spear", "weight": 0.7},
+	{"id": &"worn_sword", "name": "Worn Sword", "weight": 0.6},
+	{"id": &"minigun", "name": "Minigun", "weight": 0.12},
 ]
 const CONTAINER_SCENES: Array[PackedScene] = [
 	preload("res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf"),
@@ -830,6 +840,19 @@ static func _add_ammo_box(
 		)
 
 
+static func _pick_weapon(rng: RandomNumberGenerator) -> Dictionary:
+	# Seeded draw, so a given sector always holds the same weapon.
+	var total_weight := 0.0
+	for entry in WEAPON_POOL:
+		total_weight += float(entry["weight"])
+	var pick := rng.randf() * total_weight
+	for entry in WEAPON_POOL:
+		pick -= float(entry["weight"])
+		if pick <= 0.0:
+			return entry
+	return WEAPON_POOL[0]
+
+
 static func _add_weapon_crate(
 	sector: Node3D,
 	rng: RandomNumberGenerator,
@@ -838,7 +861,7 @@ static func _add_weapon_crate(
 ) -> void:
 	# Roughly one in three sectors offers a weapon to find while exploring.
 	# The choice is seeded so the same sector always holds the same weapon.
-	var weapon_choice: Dictionary = WEAPON_POOL[rng.randi_range(0, WEAPON_POOL.size() - 1)]
+	var weapon_choice := _pick_weapon(rng)
 	var offers_weapon := rng.randf() < 0.34
 	var placement := _find_free_position(
 		rng, Vector3(2.0, 1.0, 2.0), blocked_areas

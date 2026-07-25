@@ -7,14 +7,24 @@ const PLAYER_GROUP := &"player"
 
 @export_range(1, 500, 1) var scrap_amount: int = 25
 @export_range(0.0, 300.0, 0.5) var despawn_seconds: float = 0.0
+@export_range(0.0, 20.0, 0.5) var magnet_radius: float = 4.0
 
 var _collected := false
+var _magnet := PickupMagnet.new()
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	_magnet.base_radius = magnet_radius
 	if despawn_seconds > 0.0:
 		_schedule_despawn()
+
+
+func _physics_process(delta: float) -> void:
+	if _collected:
+		return
+	if _magnet.update(self, delta):
+		_collect(null)
 
 
 func _schedule_despawn() -> void:

@@ -15,6 +15,11 @@ signal enemy_defeated(xp_reward: int)
 signal cycle_completed(cycle_number: int)
 
 const PLAYER_GROUP := &"player"
+const ENEMY_GROUP := &"enemy"
+## Only enemies the director spawned. Encounter enemies guard a POI and must
+## stay where they were placed, so they are excluded from recycling and from
+## the alive count.
+const HORDE_ENEMY_GROUP := &"horde_enemy"
 const SPAWN_POINT_GROUP := &"enemy_spawn_point"
 const MAX_ACTIVE_SPAWN_POINTS := 6
 const SPAWN_POSITION_JITTER := 1.5
@@ -28,6 +33,12 @@ const SPAWNS_PER_FRAME := 3
 # The extraction window turns the pressure up: faster spawns, bigger batches.
 const SURGE_INTERVAL_SCALE := 0.55
 const SURGE_BATCH_BONUS := 6
+# The player outruns the horde (4-7 m/s against 2.5), so enemies pile up behind
+# them. Stranded enemies are no threat but still occupy the alive cap, which is
+# what made the HUD read "140 HOSTILES" with nothing in sight while new spawns
+# stopped appearing. Anything left this far behind is moved back into the fight.
+const RECYCLE_DISTANCE := 78.0
+const RECYCLE_INTERVAL := 1.0
 
 @export var normal_zombie_scene: PackedScene
 @export var runner_zombie_scene: PackedScene
@@ -52,6 +63,7 @@ var _level_time_remaining: float = 0.0
 var _last_reported_seconds: int = -1
 var _spawn_queue: Array = []
 var _surge_active: bool = false
+var _recycle_time: float = 0.0
 
 
 func _ready() -> void:
@@ -63,6 +75,10 @@ func _physics_process(delta: float) -> void:
 		return
 	_advance_level_timer(delta)
 	_drain_spawn_queue()
+	_recycle_time -= delta
+	if _recycle_time <= 0.0:
+		_recycle_time = RECYCLE_INTERVAL
+		_recycle_distant_enemies()
 	_spawn_cooldown -= delta
 	if _spawn_cooldown > 0.0:
 		return
@@ -195,6 +211,44 @@ func _drain_spawn_queue() -> void:
 		enemy_count_changed.emit(alive_enemy_count)
 
 
+func _recycle_distant_enemies() -> void:
+	var player := get_tree().get_first_node_in_group(PLAYER_GROUP) as Node3D
+	if player == null:
+		return
+	var spawn_points := _gather_active_spawn_points()
+	var player_position := player.global_position
+	var alive := 0
+	for child in enemies.get_children():
+		var enemy := child as Node3D
+		# Corpses waiting out their death animation have already left the enemy
+		# group; they must not be counted or recycled.
+		if enemy == null or not enemy.is_in_group(HORDE_ENEMY_GROUP):
+			continue
+		if not enemy.is_in_group(ENEMY_GROUP):
+			continue
+		alive += 1
+		if enemy.global_position.distance_to(player_position) < RECYCLE_DISTANCE:
+			continue
+		if spawn_points.is_empty():
+			enemy.queue_free()
+			alive -= 1
+			continue
+		# Moved rather than respawned: no instancing cost, and the horde keeps
+		# pressing instead of trailing uselessly behind.
+		var marker := spawn_points[randi() % spawn_points.size()]
+		enemy.global_position = marker.global_position + Vector3(
+			randf_range(-SPAWN_POSITION_JITTER, SPAWN_POSITION_JITTER),
+			0.0,
+			randf_range(-SPAWN_POSITION_JITTER, SPAWN_POSITION_JITTER)
+		)
+	# Reconciled against the tree: an enemy can leave without emitting `died`
+	# (freed, recycled away, or lost with its parent), and every one of those
+	# used to leak a slot in the cap forever.
+	if alive != alive_enemy_count:
+		alive_enemy_count = alive
+		enemy_count_changed.emit(alive_enemy_count)
+
+
 func _pick_enemy_scene() -> PackedScene:
 	# Weighted by threat level: runners appear early, brutes from level 2 and
 	# spitters from level 3, all growing more common as the horde escalates.
@@ -285,6 +339,7 @@ func _spawn_enemy(enemy_scene: PackedScene, spawn_point: Marker3D) -> bool:
 		return false
 
 	enemies.add_child(enemy)
+	enemy.add_to_group(HORDE_ENEMY_GROUP)
 	enemy.global_position = spawn_point.global_position + Vector3(
 		randf_range(-SPAWN_POSITION_JITTER, SPAWN_POSITION_JITTER),
 		0.0,
