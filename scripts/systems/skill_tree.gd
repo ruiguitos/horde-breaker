@@ -11,12 +11,13 @@ extends RefCounted
 ##        |           |
 ##      tier 3      tier 3
 ##        |           |
-##      tier 4      tier 4
+##       ...         ...      (tiers 4, 5 and 6 continue both paths)
 ##          \        /
-##            tier 5          (capstone: either tier 4 opens it)
+##            tier 7          (capstone: either tier 6 opens it)
 ##
-## Node ids from the original five-per-branch layout are kept as the left path
-## so existing saves keep every point they have already spent.
+## 12 nodes per branch, 36 in total. Node ids from the original five-per-branch
+## layout are kept on the left path so existing saves keep every point they
+## have already spent.
 ##
 ## Each node contributes to an aggregate bonus dictionary applied at run start.
 
@@ -26,10 +27,12 @@ const BRANCH_EXPEDITION := &"expedition"
 
 const REQUIRED_LEVEL_BY_TIER := {
 	1: 2,
-	2: 5,
-	3: 9,
-	4: 14,
-	5: 20,
+	2: 4,
+	3: 7,
+	4: 10,
+	5: 14,
+	6: 18,
+	7: 24,
 }
 
 const BRANCHES: Array[Dictionary] = [
@@ -97,10 +100,34 @@ const NODES: Array[Dictionary] = [
 		"effect": {"fire_rate_mult": 1.10},
 	},
 	{
-		"id": &"off_5", "branch": BRANCH_OFFENSE, "tier": 5, "column": 0,
-		"requires": [&"off_4", &"off_4b"],
+		"id": &"off_5", "branch": BRANCH_OFFENSE, "tier": 5, "column": -1,
+		"requires": [&"off_4"],
 		"title": "Executioner", "description": "+12% weapon damage.",
 		"effect": {"damage_mult": 1.12},
+	},
+	{
+		"id": &"off_5b", "branch": BRANCH_OFFENSE, "tier": 5, "column": 1,
+		"requires": [&"off_4b"],
+		"title": "Heavy Rounds", "description": "+10% weapon damage.",
+		"effect": {"damage_mult": 1.10},
+	},
+	{
+		"id": &"off_6", "branch": BRANCH_OFFENSE, "tier": 6, "column": -1,
+		"requires": [&"off_5"],
+		"title": "Trigger Discipline", "description": "+12% fire rate.",
+		"effect": {"fire_rate_mult": 1.12},
+	},
+	{
+		"id": &"off_6b", "branch": BRANCH_OFFENSE, "tier": 6, "column": 1,
+		"requires": [&"off_5b"],
+		"title": "Drum Mags", "description": "+20% magazine size.",
+		"effect": {"magazine_mult": 1.20},
+	},
+	{
+		"id": &"off_7", "branch": BRANCH_OFFENSE, "tier": 7, "column": 0,
+		"requires": [&"off_6", &"off_6b"],
+		"title": "Annihilator", "description": "+15% weapon damage.",
+		"effect": {"damage_mult": 1.15},
 	},
 	# --- Survival ---
 	{
@@ -146,10 +173,34 @@ const NODES: Array[Dictionary] = [
 		"effect": {"max_health_add": 40.0},
 	},
 	{
-		"id": &"sur_5", "branch": BRANCH_SURVIVAL, "tier": 5, "column": 0,
-		"requires": [&"sur_4", &"sur_4b"],
+		"id": &"sur_5", "branch": BRANCH_SURVIVAL, "tier": 5, "column": -1,
+		"requires": [&"sur_4"],
 		"title": "Juggernaut", "description": "+50 maximum health.",
 		"effect": {"max_health_add": 50.0},
+	},
+	{
+		"id": &"sur_5b", "branch": BRANCH_SURVIVAL, "tier": 5, "column": 1,
+		"requires": [&"sur_4b"],
+		"title": "Combat Stims", "description": "+2.5 health regen per second.",
+		"effect": {"regen_add": 2.5},
+	},
+	{
+		"id": &"sur_6", "branch": BRANCH_SURVIVAL, "tier": 6, "column": -1,
+		"requires": [&"sur_5"],
+		"title": "Hardened", "description": "10% damage reduction.",
+		"effect": {"damage_reduction": 0.10},
+	},
+	{
+		"id": &"sur_6b", "branch": BRANCH_SURVIVAL, "tier": 6, "column": 1,
+		"requires": [&"sur_5b"],
+		"title": "Bulwark", "description": "+60 maximum health.",
+		"effect": {"max_health_add": 60.0},
+	},
+	{
+		"id": &"sur_7", "branch": BRANCH_SURVIVAL, "tier": 7, "column": 0,
+		"requires": [&"sur_6", &"sur_6b"],
+		"title": "Immovable", "description": "+70 maximum health.",
+		"effect": {"max_health_add": 70.0},
 	},
 	# --- Expedition ---
 	{
@@ -195,10 +246,34 @@ const NODES: Array[Dictionary] = [
 		"effect": {"xp_mult": 1.25},
 	},
 	{
-		"id": &"exp_5", "branch": BRANCH_EXPEDITION, "tier": 5, "column": 0,
-		"requires": [&"exp_4", &"exp_4b"],
+		"id": &"exp_5", "branch": BRANCH_EXPEDITION, "tier": 5, "column": -1,
+		"requires": [&"exp_4"],
 		"title": "Marathoner", "description": "+10% movement speed.",
 		"effect": {"move_speed_mult": 1.10},
+	},
+	{
+		"id": &"exp_5b", "branch": BRANCH_EXPEDITION, "tier": 5, "column": 1,
+		"requires": [&"exp_4b"],
+		"title": "Deep Pockets", "description": "+30% ammo reserve capacity.",
+		"effect": {"ammo_reserve_mult": 1.30},
+	},
+	{
+		"id": &"exp_6", "branch": BRANCH_EXPEDITION, "tier": 6, "column": -1,
+		"requires": [&"exp_5"],
+		"title": "Treasure Hunter", "description": "+35% Scrap collected.",
+		"effect": {"scrap_mult": 1.35},
+	},
+	{
+		"id": &"exp_6b", "branch": BRANCH_EXPEDITION, "tier": 6, "column": 1,
+		"requires": [&"exp_5b"],
+		"title": "Lightfoot", "description": "+8% movement speed.",
+		"effect": {"move_speed_mult": 1.08},
+	},
+	{
+		"id": &"exp_7", "branch": BRANCH_EXPEDITION, "tier": 7, "column": 0,
+		"requires": [&"exp_6", &"exp_6b"],
+		"title": "Pathfinder", "description": "+12% movement speed.",
+		"effect": {"move_speed_mult": 1.12},
 	},
 ]
 
@@ -221,7 +296,7 @@ const ADDITIVE_STATS: Array[StringName] = [
 	&"max_health_add", &"regen_add", &"damage_reduction",
 ]
 
-const TIER_COUNT := 5
+const TIER_COUNT := 7
 
 
 static func get_node_definition(node_id: StringName) -> Dictionary:

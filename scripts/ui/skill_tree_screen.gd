@@ -1,9 +1,14 @@
 extends Control
 
 ## Skill screen laid out as three separate trees, one per branch, drawn the way
-## progression trees usually read: a trunk that forks into two paths, diamond
-## nodes wired together by lines that light up as they unlock, and a single
-## detail panel describing whatever node is under the cursor.
+## progression trees usually read: a trunk that forks into two paths and diamond
+## nodes wired together by lines that light up as they unlock.
+##
+## Clicking a node is what spends a point, via a confirmation dialog. An earlier
+## version put an UNLOCK button in a detail panel below the trees, which turned
+## out to be unusable: hovering a node selected it, so dragging the cursor down
+## to the button crossed other nodes and silently changed the selection on the
+## way. Hover now only previews; the click decides.
 
 const UNLOCKED_COLOR := Color(0.44, 0.82, 0.59, 1.0)
 const LOCKED_COLOR := Color(0.55, 0.6, 0.65, 1.0)
@@ -16,11 +21,11 @@ const BRANCH_COLORS := {
 }
 
 ## Tree geometry, in pixels inside each branch panel.
-const NODE_SIZE := Vector2(56.0, 56.0)
-const TIER_SPACING := 64.0
-const COLUMN_SPACING := 88.0
-const TREE_TOP_MARGIN := 32.0
-const TREE_SIZE := Vector2(268.0, 314.0)
+const NODE_SIZE := Vector2(46.0, 46.0)
+const TIER_SPACING := 52.0
+const COLUMN_SPACING := 84.0
+const TREE_TOP_MARGIN := 26.0
+const TREE_SIZE := Vector2(264.0, 364.0)
 
 @onready var title_label: Label = %TitleLabel
 @onready var points_label: Label = %PointsLabel
@@ -30,8 +35,9 @@ const TREE_SIZE := Vector2(268.0, 314.0)
 var _detail_title: Label
 var _detail_body: Label
 var _detail_state: Label
-var _unlock_button: Button
+var _confirm_dialog: ConfirmationDialog
 var _focused_node_id: StringName = &""
+var _pending_node_id: StringName = &""
 var _node_buttons: Dictionary[StringName, Button] = {}
 
 
@@ -41,6 +47,7 @@ func _ready() -> void:
 	SaveManager.skill_points_changed.connect(_on_skill_points_changed)
 	SaveManager.character_progress_changed.connect(_on_character_progress_changed)
 	_build_detail_panel()
+	_build_confirm_dialog()
 	_rebuild()
 	back_button.grab_focus()
 
@@ -94,14 +101,19 @@ func _build_detail_panel() -> void:
 	_detail_state = Label.new()
 	_detail_state.theme_type_variation = &"MutedLabel"
 	text_column.add_child(_detail_state)
-	_unlock_button = Button.new()
-	_unlock_button.theme_type_variation = &"PrimaryButton"
-	_unlock_button.custom_minimum_size = Vector2(210, 42)
-	_unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_unlock_button.pressed.connect(_on_unlock_pressed)
-	row.add_child(_unlock_button)
 	branches_container.get_parent().add_child(panel)
 	_show_detail(&"")
+
+
+func _build_confirm_dialog() -> void:
+	_confirm_dialog = ConfirmationDialog.new()
+	_confirm_dialog.title = "UNLOCK SKILL"
+	_confirm_dialog.ok_button_text = "YES"
+	_confirm_dialog.cancel_button_text = "NO"
+	_confirm_dialog.dialog_autowrap = true
+	_confirm_dialog.min_size = Vector2i(420, 0)
+	_confirm_dialog.confirmed.connect(_on_unlock_confirmed)
+	add_child(_confirm_dialog)
 
 
 func _rebuild() -> void:
@@ -228,15 +240,50 @@ func _build_node_button(
 	button.custom_minimum_size = NODE_SIZE
 	button.flat = true
 	button.focus_mode = Control.FOCUS_NONE
-	button.tooltip_text = "%s\n%s" % [
-		String(node_definition["title"]), String(node_definition["description"])
+	var state_text := (
+		"UNLOCKED" if unlocked
+		else "AVAILABLE — click to unlock" if can_unlock
+		else "LOCKED — %s" % _get_requirement_text(character_id, node_id)
+	)
+	button.tooltip_text = "%s\n%s\n%s" % [
+		String(node_definition["title"]),
+		String(node_definition["description"]),
+		state_text,
 	]
 	button.add_child(
 		_make_node_diamond(node_definition, unlocked, can_unlock, branch_color)
 	)
+	# Hover only previews; the click is what commits, so moving the cursor can
+	# never change what a click is about to spend a point on.
 	button.mouse_entered.connect(_show_detail.bind(node_id))
-	button.pressed.connect(_show_detail.bind(node_id))
+	button.pressed.connect(_on_node_pressed.bind(node_id))
 	return button
+
+
+func _on_node_pressed(node_id: StringName) -> void:
+	_show_detail(node_id)
+	var character_id := SaveManager.get_selected_character()
+	if SaveManager.is_skill_node_unlocked(character_id, node_id):
+		return
+	if not SaveManager.can_unlock_skill_node(character_id, node_id):
+		return
+	var node_definition := SkillTree.get_node_definition(node_id)
+	_pending_node_id = node_id
+	_confirm_dialog.dialog_text = "%s\n\n%s\n\nSpend 1 skill point?" % [
+		String(node_definition["title"]).to_upper(),
+		String(node_definition["description"]),
+	]
+	_confirm_dialog.popup_centered()
+
+
+func _on_unlock_confirmed() -> void:
+	if _pending_node_id == &"":
+		return
+	SaveManager.unlock_skill_node(
+		SaveManager.get_selected_character(), _pending_node_id
+	)
+	_pending_node_id = &""
+	# _rebuild runs via the skill_points_changed signal.
 
 
 func _make_node_diamond(
@@ -263,11 +310,10 @@ func _show_detail(node_id: StringName) -> void:
 		_detail_title.text = "SELECT A SKILL"
 		_detail_title.add_theme_color_override(&"font_color", LOCKED_COLOR)
 		_detail_body.text = (
-			"Hover a node to read what it does. Each branch forks in two after "
+			"Click a node to spend a point on it. Each branch forks in two after "
 			+ "the first skill; the capstone opens from either path."
 		)
 		_detail_state.text = ""
-		_unlock_button.visible = false
 		return
 	var branch_color: Color = BRANCH_COLORS.get(
 		node_definition["branch"], ACCENT_COLOR
@@ -284,15 +330,15 @@ func _show_detail(node_id: StringName) -> void:
 	if unlocked:
 		_detail_state.text = "UNLOCKED"
 		_detail_state.add_theme_color_override(&"font_color", UNLOCKED_COLOR)
-		_unlock_button.visible = false
 		return
-	_detail_state.text = _get_requirement_text(character_id, node_id)
-	_detail_state.add_theme_color_override(
-		&"font_color", branch_color if can_unlock else LOCKED_COLOR
+	if can_unlock:
+		_detail_state.text = "AVAILABLE  ·  click the node to spend 1 point"
+		_detail_state.add_theme_color_override(&"font_color", branch_color)
+		return
+	_detail_state.text = "LOCKED  ·  %s" % _get_requirement_text(
+		character_id, node_id
 	)
-	_unlock_button.visible = true
-	_unlock_button.disabled = not can_unlock
-	_unlock_button.text = "UNLOCK  ·  1 PT" if can_unlock else "LOCKED"
+	_detail_state.add_theme_color_override(&"font_color", LOCKED_COLOR)
 
 
 func _get_requirement_text(
@@ -315,16 +361,7 @@ func _get_requirement_text(
 		return "NO SKILL POINTS  ·  NEXT AT LEVEL %d" % (
 			SaveManager.get_next_skill_point_level(character_id)
 		)
-	return "READY TO UNLOCK  ·  LEVEL %d REQUIRED" % required_level
-
-
-func _on_unlock_pressed() -> void:
-	if _focused_node_id == &"":
-		return
-	SaveManager.unlock_skill_node(
-		SaveManager.get_selected_character(), _focused_node_id
-	)
-	# _rebuild runs via the skill_points_changed signal.
+	return "LEVEL %d REQUIRED" % required_level
 
 
 ## Draws the wiring between nodes behind the buttons.
