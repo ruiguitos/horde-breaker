@@ -77,6 +77,8 @@ var _skipped_physics_frames: int = 0
 var _cached_direction := Vector3.ZERO
 var _hit_flash_material: StandardMaterial3D
 var _hit_flash_tween: Tween
+var _flash_meshes: Array[MeshInstance3D] = []
+var _hit_flash_active := false
 var _scrap_drop_attempted := false
 var _ammo_drop_attempted := false
 
@@ -471,13 +473,19 @@ func _stop_horizontal_movement() -> void:
 
 
 func _setup_hit_flash() -> void:
+	# The overlay is attached only while the flash plays. Leaving it on renders a
+	# second pass over every enemy on every frame — with a full horde that was
+	# half of all the geometry drawn, for a material that is invisible almost all
+	# of the time.
 	_hit_flash_material = StandardMaterial3D.new()
 	_hit_flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_hit_flash_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_hit_flash_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	_hit_flash_material.albedo_color = HIT_FLASH_COLOR
-	for mesh_instance in visual_root.find_children("*", "MeshInstance3D", true, false):
-		(mesh_instance as MeshInstance3D).material_overlay = _hit_flash_material
+	for mesh_value in visual_root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_value as MeshInstance3D
+		if mesh_instance.visible:
+			_flash_meshes.append(mesh_instance)
 
 
 func _play_hit_flash() -> void:
@@ -485,6 +493,10 @@ func _play_hit_flash() -> void:
 		return
 	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
 		_hit_flash_tween.kill()
+	if not _hit_flash_active:
+		_hit_flash_active = true
+		for mesh_instance in _flash_meshes:
+			mesh_instance.material_overlay = _hit_flash_material
 	var flash_color := HIT_FLASH_COLOR
 	flash_color.a = 0.55
 	_hit_flash_material.albedo_color = flash_color
@@ -492,3 +504,11 @@ func _play_hit_flash() -> void:
 	_hit_flash_tween.tween_property(
 		_hit_flash_material, "albedo_color:a", 0.0, 0.16
 	)
+	_hit_flash_tween.finished.connect(_clear_hit_flash)
+
+
+func _clear_hit_flash() -> void:
+	_hit_flash_active = false
+	for mesh_instance in _flash_meshes:
+		if is_instance_valid(mesh_instance):
+			mesh_instance.material_overlay = null

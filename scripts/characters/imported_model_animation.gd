@@ -31,10 +31,23 @@ const EMBEDDED_WEAPON_NAMES: Array[StringName] = [
 @export var hide_embedded_weapons: bool = true
 
 const HIT_REACT_COOLDOWN_MSEC := 900
-# Skinned animation is the heaviest per-enemy cost in GL Compatibility, so
-# models far from the player stop animating entirely until they come back.
+# Skinned animation is by far the heaviest per-enemy cost in GL Compatibility.
+# Measured with 140 enemies around the player: 95 ms/frame as-is, 61 ms with the
+# animation players stopped, 21 ms with skinning off, 11 ms with both. Distance
+# alone could not contain it — a horde closing in is entirely inside any usable
+# radius — so the cap is on the *count*: only the closest ANIMATION_BUDGET
+# models animate, and the rest hold their pose until a slot frees up.
 const ANIMATION_LOD_DISTANCE := 42.0
 const ANIMATION_LOD_INTERVAL := 0.45
+const ANIMATION_BUDGET := 24
+const BUDGET_REFRESH_MSEC := 350
+const ENEMY_GROUP := &"enemy"
+
+# Shared across every model: the squared distance of the ANIMATION_BUDGET-th
+# closest enemy, recomputed a few times a second by whichever instance gets
+# there first.
+static var _budget_next_msec: int = 0
+static var _budget_distance_squared: float = INF
 
 var _animation_player: AnimationPlayer
 var _movement_body: CharacterBody3D
@@ -89,14 +102,37 @@ func _update_animation_lod() -> void:
 		_lod_player = get_tree().get_first_node_in_group(&"player") as Node3D
 		if not is_instance_valid(_lod_player):
 			return
-	var distance := _movement_body.global_position.distance_to(
+	_refresh_animation_budget(get_tree(), _lod_player)
+	var distance_squared := _movement_body.global_position.distance_squared_to(
 		_lod_player.global_position
 	)
-	var should_suspend := distance > ANIMATION_LOD_DISTANCE
+	var should_suspend := (
+		distance_squared > ANIMATION_LOD_DISTANCE * ANIMATION_LOD_DISTANCE
+		or distance_squared > _budget_distance_squared
+	)
 	if should_suspend == _animation_suspended:
 		return
 	_animation_suspended = should_suspend
 	_animation_player.active = not should_suspend
+
+
+static func _refresh_animation_budget(tree: SceneTree, player: Node3D) -> void:
+	var now := Time.get_ticks_msec()
+	if now < _budget_next_msec:
+		return
+	_budget_next_msec = now + BUDGET_REFRESH_MSEC
+	var distances: PackedFloat32Array = []
+	for enemy_value in tree.get_nodes_in_group(ENEMY_GROUP):
+		var enemy := enemy_value as Node3D
+		if enemy != null and is_instance_valid(enemy):
+			distances.append(
+				enemy.global_position.distance_squared_to(player.global_position)
+			)
+	if distances.size() <= ANIMATION_BUDGET:
+		_budget_distance_squared = INF
+		return
+	distances.sort()
+	_budget_distance_squared = distances[ANIMATION_BUDGET - 1]
 
 
 func _find_animation_player() -> AnimationPlayer:
