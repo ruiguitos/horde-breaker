@@ -9,6 +9,33 @@ plano por milestone em `ROADMAP.md`.
 
 ## 0. ESTADO DA ÚLTIMA SESSÃO (2026-07-25) — LER PRIMEIRO
 
+### 🔴 DECIDIDO: O MAPA VAI SER REFEITO DE RAIZ
+
+O utilizador decidiu **refazer o mapa por inteiro**:
+
+- **remover o pack de edifícios** (Quaternius Downtown City MegaKit,
+  `assets/models/city_test_model`);
+- **alterar as grelhas que geram as estradas**.
+
+**Não investir mais em layout urbano, colisões de edifícios ou densidade de
+props até o novo mapa estar definido** — todo o trabalho do M24 vai ser
+substituído. Perguntar primeiro qual é a direção pretendida.
+
+### ⏳ DECISÃO À ESPERA DE RESPOSTA — FPS da horda
+
+Depois das correções desta sessão o custo com 140 inimigos caiu de 95 ms para
+60 ms/frame. O que resta é o **skinning** (~40 ms); desligá-lo põe o modelo em
+T-pose, logo não serve. As duas opções na mesa, **por decidir pelo utilizador**:
+
+1. **Baixar o teto de inimigos** (`HARD_ENEMY_CAP` = 140 em `wave_manager.gd`).
+   ~50 inimigos → 60 FPS · ~90 → 30 FPS. Imediato, mexe no feel.
+2. **Cozer uma pose estática** para os que estão fora do orçamento de animação.
+   Mantém os 140, bastante mais trabalho, rigidez visível atrás.
+
+Medições no commit `7881944`; harness em `tests/bench_horde.gd`.
+
+---
+
 **Há trabalho por commitar.** Fazer `git add -A && git commit` antes de mexer.
 
 ### Feito nesta sessão
