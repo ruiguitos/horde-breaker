@@ -12,6 +12,7 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 const EAST_SECTOR_ID := &"east"
 const EAST_SECTOR_SCENE_PATH := "res://scenes/world/sectors/east_sector.tscn"
 const AMBUSH_TRIGGER_DISTANCE := 30.0
+const SECTOR_NODES_PER_FRAME := 5
 
 ## Compact open world grid: 4 x 4 sectors of 64 x 64 m (256 x 256 m total).
 ## The camp sector (0, 0) stays inside the persistent arena scene, the east
@@ -47,6 +48,10 @@ var _generation_tasks: Dictionary[StringName, int] = {}
 var _generation_meta: Dictionary[StringName, Dictionary] = {}
 var _generation_results: Dictionary[StringName, Node3D] = {}
 var _generation_mutex := Mutex.new()
+# Adding a finished sector in one go costs hundreds of ms on the main thread
+# (every mesh, body and nav region registers at once). The subtree is therefore
+# detached and re-attached a few nodes per frame.
+var _pending_attachments: Dictionary[StringName, Array] = {}
 
 
 func _ready() -> void:
@@ -73,6 +78,7 @@ func _physics_process(_delta: float) -> void:
 			unload_sector(sector_id)
 	_poll_pending_requests()
 	_poll_generation_tasks()
+	_process_pending_attachments()
 	_ensure_cycle_connection()
 	_update_sector_ambushes()
 
@@ -83,6 +89,8 @@ func _exit_tree() -> void:
 	for task_id in _generation_tasks.values():
 		WorkerThreadPool.wait_for_task_completion(task_id)
 	_generation_tasks.clear()
+	for pending_id in _pending_attachments.keys():
+		_discard_pending_attachments(pending_id)
 	for sector in _generation_results.values():
 		if is_instance_valid(sector):
 			sector.free()
@@ -121,6 +129,7 @@ func unload_sector(sector_id: StringName) -> bool:
 	# A background request in flight cannot be cancelled; dropping the entry
 	# makes the result be discarded once it finishes.
 	_request_started_ticks.erase(sector_id)
+	_discard_pending_attachments(sector_id)
 	if not _instances.has(sector_id):
 		return false
 	var sector: Node3D = _instances[sector_id]
@@ -253,6 +262,7 @@ func _finalize_generated_sector(sector_id: StringName, sector: Node3D) -> void:
 		sector.free()
 		return
 	sector.position = meta.get("position", Vector3.ZERO)
+	_pending_attachments[sector_id] = _detach_sector_contents(sector)
 	add_child(sector)
 	_instances[sector_id] = sector
 	var elapsed_ms := (Time.get_ticks_usec() - int(meta.get("start", 0))) / 1000.0
@@ -262,6 +272,45 @@ func _finalize_generated_sector(sector_id: StringName, sector: Node3D) -> void:
 		% [sector_id, elapsed_ms, int(meta.get("seed", 0))]
 	)
 	sector_loaded.emit(sector_id)
+
+
+func _detach_sector_contents(sector: Node3D) -> Array:
+	# Flatten the subtree into an ordered queue (parents before their children)
+	# so it can be re-attached in small slices without changing the result.
+	var queue: Array = []
+	for child in sector.get_children():
+		sector.remove_child(child)
+		queue.append([sector, child])
+		if child.get_child_count() > 3:
+			for grandchild in child.get_children():
+				child.remove_child(grandchild)
+				queue.append([child, grandchild])
+	return queue
+
+
+func _process_pending_attachments() -> void:
+	for sector_id in _pending_attachments.keys():
+		var queue: Array = _pending_attachments[sector_id]
+		var added := 0
+		while added < SECTOR_NODES_PER_FRAME and not queue.is_empty():
+			var entry: Array = queue.pop_front()
+			var parent: Node = entry[0]
+			var node: Node = entry[1]
+			if is_instance_valid(parent) and is_instance_valid(node):
+				parent.add_child(node)
+			added += 1
+		if queue.is_empty():
+			_pending_attachments.erase(sector_id)
+
+
+func _discard_pending_attachments(sector_id: StringName) -> void:
+	if not _pending_attachments.has(sector_id):
+		return
+	for entry in _pending_attachments[sector_id]:
+		var node: Node = entry[1]
+		if is_instance_valid(node) and node.get_parent() == null:
+			node.free()
+	_pending_attachments.erase(sector_id)
 
 
 func _get_or_create_sector_state(

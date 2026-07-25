@@ -142,6 +142,13 @@ func _build_weapon_card(
 	]
 	role_label.add_theme_color_override(&"font_color", state_color)
 	details.add_child(role_label)
+	var evolution_text := _get_evolution_text(character_id, weapon_data.weapon_id)
+	if not evolution_text.is_empty():
+		var evolution_label := Label.new()
+		evolution_label.theme_type_variation = &"MutedLabel"
+		evolution_label.text = evolution_text
+		evolution_label.add_theme_color_override(&"font_color", ACCENT_COLOR)
+		details.add_child(evolution_label)
 
 	var actions := HBoxContainer.new()
 	actions.custom_minimum_size = Vector2(330, 0)
@@ -321,3 +328,26 @@ func _queue_rebuild() -> void:
 func _rebuild_deferred() -> void:
 	_rebuild_pending = false
 	_rebuild()
+
+
+func _get_evolution_text(
+	character_id: StringName, weapon_id: StringName
+) -> String:
+	# Base weapons show how far their evolution is; evolved ones say where they
+	# came from.
+	var base_id := WeaponEvolution.get_base_weapon_id(weapon_id)
+	if base_id != &"":
+		var source := WeaponCatalog.get_weapon_data(base_id)
+		return "EVOLVED FROM %s" % (
+			source.display_name.to_upper() if source != null else String(base_id)
+		)
+	var evolution := WeaponEvolution.get_evolution(weapon_id)
+	if evolution.is_empty():
+		return ""
+	var required := int(evolution["kills_required"])
+	var kills := mini(SaveManager.get_weapon_kills(character_id, weapon_id), required)
+	if SaveManager.is_weapon_purchased(character_id, evolution["evolved_id"]):
+		return "EVOLUTION UNLOCKED: %s" % String(evolution["name"])
+	return "EVOLVES INTO %s  ·  %d / %d KILLS" % [
+		String(evolution["name"]), kills, required
+	]

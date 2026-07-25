@@ -1,6 +1,5 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=18 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="1_city_roads"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation"]
 [ext_resource type="Script" path="res://scripts/systems/sector_beacon.gd" id="3_beacon"]
 [ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="4_container"]
@@ -65,26 +64,10 @@ radius = 2.2
 script = ExtResource("2_navigation")
 navigation_half_extent = 32.0
 
-[node name="RoadNorthWest" parent="." instance=ExtResource("1_city_roads")]
-position = Vector3(-16, 0, -16)
-
-[node name="RoadNorthEast" parent="." instance=ExtResource("1_city_roads")]
-position = Vector3(16, 0, -16)
-rotation = Vector3(0, -1.5708, 0)
-
-[node name="RoadSouthWest" parent="." instance=ExtResource("1_city_roads")]
-position = Vector3(-16, 0, 16)
-rotation = Vector3(0, 1.5708, 0)
-
-[node name="RoadSouthEast" parent="." instance=ExtResource("1_city_roads")]
-position = Vector3(16, 0, 16)
-rotation = Vector3(0, 3.14159, 0)
-
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Floor"]
-visible = false
 mesh = SubResource("Mesh_floor")
 
 [node name="Collision" type="CollisionShape3D" parent="Floor"]

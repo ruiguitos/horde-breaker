@@ -9,6 +9,7 @@ const ALIVE_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
 const ENEMY_SCRAP_DROP_GROUP := &"enemy_scrap_drop"
 const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
+const XP_ORB_SCENE := preload("res://scenes/pickups/xp_orb.tscn")
 const HIT_FLASH_COLOR := Color(1.0, 0.82, 0.6, 0.0)
 const RANGED_DISTANCE_MARGIN := 1.5
 # Navigation paths are the expensive part of the chase. Recomputing every
@@ -22,12 +23,25 @@ const DEATH_LINGER_SECONDS := 2.5
 const FAR_SIMULATION_DISTANCE := 40.0
 const FAR_REPATH_INTERVAL := 1.2
 const FAR_STEER_INTERVAL := 0.3
+# Simulation LOD so hundreds of enemies stay affordable:
+#   near  — full navmesh pathing (obstacles matter when they are on top of you)
+#   mid   — direct steering, zero NavigationServer queries
+#   far   — direct steering and the whole physics step runs 1 frame in 3
+const SIM_NAVMESH_DISTANCE := 28.0
+const SIM_FAR_DISTANCE := 60.0
+const FAR_PHYSICS_FRAME_SKIP := 2
 const SCRAP_DROP_LIFETIME_SECONDS := 25.0
 const MAX_ACTIVE_SCRAP_DROPS := 40
 const SCRAP_DROP_HEIGHT := 0.25
 const SCRAP_DROP_MIN_OFFSET := 0.15
 const SCRAP_DROP_MAX_OFFSET := 0.65
 const SCRAP_DROP_CREATED_META := &"enemy_drop_created_usec"
+# Hordes of 100+ burn through magazines, so enemies also drop ammunition. The
+# pickup itself scales its value with the threat level.
+const ENEMY_AMMO_DROP_GROUP := &"enemy_ammo_drop"
+const AMMO_PICKUP_SCENE := preload("res://scenes/pickups/ammo_pickup.tscn")
+const MAX_ACTIVE_AMMO_DROPS := 30
+const AMMO_DROP_LIFETIME_SECONDS := 25.0
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 50.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 2.5
@@ -39,6 +53,8 @@ const SCRAP_DROP_CREATED_META := &"enemy_drop_created_usec"
 @export_range(0.0, 1.0, 0.01) var drop_chance: float = 0.15
 @export_range(0, 100, 1) var drop_amount_min: int = 1
 @export_range(0, 100, 1) var drop_amount_max: int = 2
+@export_range(0.0, 1.0, 0.01) var ammo_drop_chance: float = 0.14
+@export_range(1, 100, 1) var ammo_drop_amount: int = 8
 @export_range(0.0, 30.0, 0.5) var knockback_force: float = 0.0
 @export var is_ranged: bool = false
 @export_range(3.0, 24.0, 0.5) var preferred_distance: float = 9.0
@@ -57,10 +73,12 @@ var _target: PhysicsBody3D
 var _cached_target: PhysicsBody3D
 var _repath_time: float = 0.0
 var _steer_time: float = 0.0
+var _skipped_physics_frames: int = 0
 var _cached_direction := Vector3.ZERO
 var _hit_flash_material: StandardMaterial3D
 var _hit_flash_tween: Tween
 var _scrap_drop_attempted := false
+var _ammo_drop_attempted := false
 
 
 func _ready() -> void:
@@ -80,13 +98,24 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_apply_gravity(delta)
-	_repath_time -= delta
 	_target = _acquire_target()
 	if not is_instance_valid(_target):
+		_apply_gravity(delta)
 		_stop_horizontal_movement()
 		move_and_slide()
 		return
+	# Very distant enemies only simulate one frame in three, with the delta
+	# scaled so they still travel the right distance.
+	if _horizontal_distance_to_target() > SIM_FAR_DISTANCE:
+		_skipped_physics_frames += 1
+		if _skipped_physics_frames <= FAR_PHYSICS_FRAME_SKIP:
+			return
+		delta *= float(_skipped_physics_frames)
+		_skipped_physics_frames = 0
+	else:
+		_skipped_physics_frames = 0
+	_apply_gravity(delta)
+	_repath_time -= delta
 
 	if is_ranged:
 		_process_ranged(delta)
@@ -177,6 +206,8 @@ func take_damage(amount: float) -> float:
 
 func _begin_death() -> void:
 	_try_drop_scrap()
+	_try_drop_ammo()
+	_drop_xp_orb()
 	# Leave a short-lived corpse for the death animation: no AI, no physics
 	# collision, no target group, and hitboxes off so shots pass through to
 	# live enemies behind it.
@@ -191,6 +222,22 @@ func _begin_death() -> void:
 		area_node.set_deferred(&"monitorable", false)
 		area_node.collision_layer = 0
 	get_tree().create_timer(DEATH_LINGER_SECONDS).timeout.connect(queue_free)
+
+
+func _drop_xp_orb() -> void:
+	# Every enemy feeds the survivors-like run level; tougher enemies are worth
+	# more, derived from the XP reward they already carry.
+	var orb := XP_ORB_SCENE.instantiate() as Node3D
+	if orb == null:
+		return
+	orb.set(&"xp_amount", maxi(int(round(xp_reward / 5.0)), 1))
+	var effect_parent: Node = get_tree().current_scene
+	if effect_parent == null:
+		effect_parent = get_tree().root
+	effect_parent.add_child(orb)
+	orb.global_position = global_position + Vector3(
+		randf_range(-0.4, 0.4), 0.5, randf_range(-0.4, 0.4)
+	)
 
 
 func _try_drop_scrap() -> void:
@@ -208,6 +255,53 @@ func _roll_scrap_drop() -> int:
 	var minimum := mini(drop_amount_min, drop_amount_max)
 	var maximum := maxi(drop_amount_min, drop_amount_max)
 	return randi_range(minimum, maximum)
+
+
+func _try_drop_ammo() -> void:
+	if _ammo_drop_attempted:
+		return
+	_ammo_drop_attempted = true
+	if ammo_drop_chance <= 0.0 or randf() >= ammo_drop_chance:
+		return
+	var pickup := AMMO_PICKUP_SCENE.instantiate() as Area3D
+	if pickup == null:
+		return
+	_remove_oldest_ammo_drop_if_needed()
+	pickup.set(&"ammunition_amount", ammo_drop_amount)
+	pickup.set_meta(SCRAP_DROP_CREATED_META, Time.get_ticks_usec())
+	pickup.add_to_group(ENEMY_AMMO_DROP_GROUP)
+	var spawn_parent: Node = get_tree().current_scene
+	if spawn_parent == null:
+		spawn_parent = get_tree().root
+	spawn_parent.add_child(pickup)
+	var angle := randf_range(0.0, TAU)
+	pickup.global_position = global_position + Vector3(
+		cos(angle) * SCRAP_DROP_MAX_OFFSET,
+		SCRAP_DROP_HEIGHT,
+		sin(angle) * SCRAP_DROP_MAX_OFFSET
+	)
+	get_tree().create_timer(AMMO_DROP_LIFETIME_SECONDS).timeout.connect(
+		func() -> void:
+			if is_instance_valid(pickup):
+				pickup.queue_free()
+	)
+
+
+func _remove_oldest_ammo_drop_if_needed() -> void:
+	var drops := get_tree().get_nodes_in_group(ENEMY_AMMO_DROP_GROUP)
+	if drops.size() < MAX_ACTIVE_AMMO_DROPS:
+		return
+	var oldest: Node = null
+	var oldest_time := 0
+	for drop in drops:
+		if not is_instance_valid(drop):
+			continue
+		var created := int(drop.get_meta(SCRAP_DROP_CREATED_META, 0))
+		if oldest == null or created < oldest_time:
+			oldest = drop
+			oldest_time = created
+	if oldest != null:
+		oldest.queue_free()
 
 
 func _spawn_scrap_drop(amount: int) -> void:
@@ -264,20 +358,31 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _pursue_target(delta: float) -> void:
-	var is_far := _horizontal_distance_to_target() > FAR_SIMULATION_DISTANCE
-	if _repath_time <= 0.0:
-		_repath_time = FAR_REPATH_INTERVAL if is_far else REPATH_INTERVAL
-		if navigation_agent.target_position.distance_to(
-			_target.global_position
-		) >= TARGET_REPATH_DISTANCE:
-			navigation_agent.target_position = _target.global_position
-	# Near enemies steer every frame; far ones reuse the cached direction
-	# between refreshes so the per-frame NavigationServer queries drop away.
-	_steer_time -= delta
-	if not is_far or _steer_time <= 0.0:
-		_steer_time = FAR_STEER_INTERVAL
-		if not _refresh_steering():
-			return
+	var distance := _horizontal_distance_to_target()
+	if distance > SIM_NAVMESH_DISTANCE:
+		# Beyond the navmesh band the horde just walks at the player. No
+		# NavigationServer work at all, which is what makes big counts viable.
+		_steer_time -= delta
+		if _steer_time <= 0.0:
+			_steer_time = FAR_STEER_INTERVAL
+			var to_target := _target.global_position - global_position
+			to_target.y = 0.0
+			_cached_direction = to_target.normalized()
+	else:
+		var is_far := distance > FAR_SIMULATION_DISTANCE
+		if _repath_time <= 0.0:
+			_repath_time = FAR_REPATH_INTERVAL if is_far else REPATH_INTERVAL
+			if navigation_agent.target_position.distance_to(
+				_target.global_position
+			) >= TARGET_REPATH_DISTANCE:
+				navigation_agent.target_position = _target.global_position
+		# Near enemies steer every frame; far ones reuse the cached direction
+		# between refreshes so the per-frame NavigationServer queries drop away.
+		_steer_time -= delta
+		if not is_far or _steer_time <= 0.0:
+			_steer_time = FAR_STEER_INTERVAL
+			if not _refresh_steering():
+				return
 	velocity.x = _cached_direction.x * move_speed
 	velocity.z = _cached_direction.z * move_speed
 

@@ -31,6 +31,10 @@ const EMBEDDED_WEAPON_NAMES: Array[StringName] = [
 @export var hide_embedded_weapons: bool = true
 
 const HIT_REACT_COOLDOWN_MSEC := 900
+# Skinned animation is the heaviest per-enemy cost in GL Compatibility, so
+# models far from the player stop animating entirely until they come back.
+const ANIMATION_LOD_DISTANCE := 42.0
+const ANIMATION_LOD_INTERVAL := 0.45
 
 var _animation_player: AnimationPlayer
 var _movement_body: CharacterBody3D
@@ -39,6 +43,9 @@ var _active_weapon: Node3D
 var _action_animation: StringName = &""
 var _is_dead: bool = false
 var _next_hit_react_msec: int = 0
+var _lod_check_time: float = 0.0
+var _animation_suspended: bool = false
+var _lod_player: Node3D
 
 
 func _ready() -> void:
@@ -62,10 +69,34 @@ func _ready() -> void:
 	call_deferred(&"_connect_weapon_controller")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_lod_check_time -= delta
+	if _lod_check_time <= 0.0:
+		_lod_check_time = ANIMATION_LOD_INTERVAL
+		_update_animation_lod()
+	if _animation_suspended:
+		return
 	if _movement_body == null or _action_animation != &"":
 		return
 	_play_animation(_get_locomotion_animation())
+
+
+func _update_animation_lod() -> void:
+	# The player's own model always keeps animating (distance to itself is 0).
+	if _movement_body == null or _is_dead:
+		return
+	if not is_instance_valid(_lod_player):
+		_lod_player = get_tree().get_first_node_in_group(&"player") as Node3D
+		if not is_instance_valid(_lod_player):
+			return
+	var distance := _movement_body.global_position.distance_to(
+		_lod_player.global_position
+	)
+	var should_suspend := distance > ANIMATION_LOD_DISTANCE
+	if should_suspend == _animation_suspended:
+		return
+	_animation_suspended = should_suspend
+	_animation_player.active = not should_suspend
 
 
 func _find_animation_player() -> AnimationPlayer:
@@ -116,7 +147,7 @@ func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
 	var embedded_weapon_name := _get_embedded_weapon_name(weapon_id)
 	if _embedded_weapon_meshes.has(embedded_weapon_name):
 		_embedded_weapon_meshes[embedded_weapon_name].visible = true
-	if weapon_id in [&"worn_sword", &"spear", &"fire_axe"]:
+	if weapon_id in [&"worn_sword", &"spear", &"fire_axe", &"cleaver"]:
 		idle_animation = &"Idle"
 		move_animation = &"Walk"
 		run_animation = &"Run_Stab"
@@ -131,15 +162,15 @@ func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
 
 
 func _get_embedded_weapon_name(weapon_id: StringName) -> StringName:
-	if weapon_id == &"assault_rifle":
+	if weapon_id in [&"assault_rifle", &"storm_rifle"]:
 		return &"Rifle"
 	if weapon_id == &"pistol":
 		return &"Pistol"
-	if weapon_id == &"shotgun":
+	if weapon_id in [&"shotgun", &"siege_breaker"]:
 		return &"Shotgun"
-	if weapon_id == &"smg":
+	if weapon_id in [&"smg", &"hornet"]:
 		return &"SMG"
-	if weapon_id == &"worn_sword":
+	if weapon_id in [&"worn_sword", &"cleaver"]:
 		return &"Knife"
 	if weapon_id == &"spear":
 		return &"Spear"

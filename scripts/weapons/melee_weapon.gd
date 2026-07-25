@@ -6,6 +6,8 @@ const REST_ROTATION_Y := -0.6
 const SWING_ROTATION_Y := 0.9
 const WORLD_COLLISION_MASK := 1
 const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
+const ENEMY_GROUP := &"enemy"
+const AUTO_SCAN_INTERVAL := 0.12
 
 @export var display_name: String = "Worn Sword"
 @export var weapon_id: StringName = &"worn_sword"
@@ -14,6 +16,10 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @export_range(0.05, 1.0, 0.05) var swing_duration: float = 0.2
 @export_range(1.0, 20.0, 0.1) var aim_range: float = 10.0
 @export var attack_animation: StringName = &"Slash"
+## Survivors-like: melee swings on its own at whatever is in reach, and the
+## weapon turns toward the target so the swing volume actually covers it.
+@export var proximity_auto_attack_enabled: bool = true
+@export_range(1.0, 12.0, 0.25) var proximity_auto_attack_range: float = 3.0
 
 @onready var attack_area: Area3D = %AttackArea
 @onready var attack_collision: CollisionShape3D = %AttackCollision
@@ -21,6 +27,7 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 
 var _cooldown_remaining: float = 0.0
 var _swing_tween: Tween
+var _auto_scan_time: float = 0.0
 
 
 func _ready() -> void:
@@ -35,6 +42,41 @@ func _physics_process(delta: float) -> void:
 		and Input.is_action_just_pressed("attack")
 	):
 		try_attack()
+		return
+	if not proximity_auto_attack_enabled or _cooldown_remaining > 0.0:
+		return
+	_auto_scan_time -= delta
+	if _auto_scan_time > 0.0:
+		return
+	_auto_scan_time = AUTO_SCAN_INTERVAL
+	var target := _get_nearest_enemy_in_reach()
+	if target == null:
+		return
+	# Face the target so the swing volume in front of the weapon covers it.
+	var aim_position := target.global_position
+	aim_position.y = global_position.y
+	if global_position.distance_squared_to(aim_position) > 0.0001:
+		look_at(aim_position, Vector3.UP)
+	try_attack()
+
+
+func _get_nearest_enemy_in_reach() -> Node3D:
+	var nearest: Node3D = null
+	var nearest_distance := proximity_auto_attack_range * proximity_auto_attack_range
+	for enemy_value in get_tree().get_nodes_in_group(ENEMY_GROUP):
+		var enemy := enemy_value as Node3D
+		if (
+			enemy == null
+			or not is_instance_valid(enemy)
+			or enemy.is_queued_for_deletion()
+			or not enemy.has_method(&"take_damage")
+		):
+			continue
+		var distance := global_position.distance_squared_to(enemy.global_position)
+		if distance < nearest_distance:
+			nearest = enemy
+			nearest_distance = distance
+	return nearest
 
 
 func try_attack() -> bool:

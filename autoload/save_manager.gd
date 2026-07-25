@@ -15,6 +15,7 @@ signal skill_points_changed(character_id: StringName)
 signal mastery_progress_changed(character_id: StringName, objective_id: StringName)
 signal mastery_completed(character_id: StringName, objective_id: StringName)
 signal variant_changed(character_id: StringName)
+signal weapon_evolved(character_id: StringName, evolved_weapon_id: StringName)
 
 const DEFAULT_SAVE_PATH := "user://horde_breaker_save.cfg"
 const RECRUIT_ID := &"recruit"
@@ -341,6 +342,34 @@ func set_variant_active(character_id: StringName, active: bool) -> bool:
 		return false
 	variant_changed.emit(character_id)
 	return true
+
+
+func get_weapon_kills(character_id: StringName, weapon_id: StringName) -> int:
+	return int(
+		_config.get_value(String(character_id), "kills_%s" % weapon_id, 0)
+	)
+
+
+func record_weapon_kill(
+	character_id: StringName, weapon_id: StringName, amount: int = 1
+) -> void:
+	# Kills feed the survivors-like weapon evolution. Evolved weapons do not
+	# evolve again, so they simply stop accumulating.
+	if amount <= 0 or not WeaponEvolution.has_evolution(weapon_id):
+		return
+	var kills := get_weapon_kills(character_id, weapon_id) + amount
+	_config.set_value(String(character_id), "kills_%s" % weapon_id, kills)
+	var evolution := WeaponEvolution.get_evolution(weapon_id)
+	var evolved_id: StringName = evolution["evolved_id"]
+	var already_owned := is_weapon_purchased(character_id, evolved_id)
+	if not already_owned and kills >= int(evolution["kills_required"]):
+		var purchased := get_purchased_weapons(character_id)
+		purchased.append(String(evolved_id))
+		_config.set_value(String(character_id), "purchased_weapons", purchased)
+		save_progress()
+		weapon_evolved.emit(character_id, evolved_id)
+		return
+	save_progress()
 
 
 func get_purchased_weapons(character_id: StringName) -> PackedStringArray:

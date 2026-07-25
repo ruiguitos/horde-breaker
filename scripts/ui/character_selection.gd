@@ -253,6 +253,14 @@ func _get_weapon_name(weapon_id: StringName) -> String:
 		return "Spear"
 	if weapon_id == &"fire_axe":
 		return "Fire Axe"
+	if weapon_id == &"storm_rifle":
+		return "Storm Rifle"
+	if weapon_id == &"siege_breaker":
+		return "Siege Breaker"
+	if weapon_id == &"hornet":
+		return "Hornet"
+	if weapon_id == &"cleaver":
+		return "Cleaver"
 	return "—"
 
 

@@ -66,8 +66,13 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# While waiting for a new binding, this menu owns every key/mouse press.
+	# Esc always backs out of the settings screen (main menu or pause overlay).
+	# Handled here rather than in _unhandled_input so a focused control can
+	# never swallow it first.
 	if _awaiting_action == &"":
+		if event.is_action_pressed("pause") and not event.is_echo():
+			get_viewport().set_input_as_handled()
+			_close()
 		return
 	if Time.get_ticks_msec() - _rebind_armed_msec < REBIND_ARM_DELAY_MSEC:
 		return
@@ -86,11 +91,6 @@ func _input(event: InputEvent) -> void:
 		_finish_rebind(event)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("pause"):
-		return
-	_close()
-	get_viewport().set_input_as_handled()
 
 
 func _show_page(page_index: int) -> void:

@@ -24,6 +24,7 @@ func _ready() -> void:
 	wave_manager.connect(&"wave_completed", _on_wave_completed)
 	wave_manager.connect(&"cycle_completed", _on_cycle_completed)
 	SaveManager.mastery_completed.connect(_on_mastery_completed)
+	SaveManager.weapon_evolved.connect(_on_weapon_evolved)
 
 
 func _on_enemy_defeated(xp_reward: int) -> void:
@@ -33,7 +34,21 @@ func _on_enemy_defeated(xp_reward: int) -> void:
 	session_xp += boosted
 	SaveManager.add_character_xp(_character_id, boosted)
 	SaveManager.record_mastery_progress(_character_id, &"kills_100", 1)
+	_record_weapon_kill()
 	session_progress_changed.emit(session_xp, session_credits)
+
+
+func _record_weapon_kill() -> void:
+	# Credit the kill to whatever weapon is in hand right now.
+	var controller := get_tree().get_first_node_in_group(&"weapon_controller")
+	if controller == null or not controller.has_method(&"get_active_weapon"):
+		return
+	var weapon: Node = controller.call(&"get_active_weapon")
+	if weapon == null:
+		return
+	SaveManager.record_weapon_kill(
+		_character_id, StringName(weapon.get(&"weapon_id"))
+	)
 
 
 func _on_wave_completed(wave_number: int) -> void:
@@ -66,3 +81,22 @@ func _on_cycle_completed(_cycle_number: int) -> void:
 	session_credits += cycle_credit_reward
 	SaveManager.add_credits(cycle_credit_reward)
 	session_progress_changed.emit(session_xp, session_credits)
+
+
+func _on_weapon_evolved(
+	character_id: StringName, evolved_weapon_id: StringName
+) -> void:
+	if character_id != _character_id:
+		return
+	var weapon_data := WeaponCatalog.get_weapon_data(evolved_weapon_id)
+	var weapon_name := (
+		weapon_data.display_name.to_upper() if weapon_data != null
+		else String(evolved_weapon_id)
+	)
+	var camp_economy := get_tree().get_first_node_in_group(&"camp_economy")
+	if camp_economy != null and camp_economy.has_method(&"request_feedback"):
+		camp_economy.call(
+			&"request_feedback",
+			"WEAPON EVOLVED: %s  •  READY IN THE ARMORY" % weapon_name,
+			4.5
+		)

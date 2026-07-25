@@ -2,311 +2,15 @@
 
 ## Estado atual
 
-Fase: mundo aberto compacto 4×4 com diretor de horda contínuo, cidade procedural
-enriquecida, acampamento com construção livre e todo o jogo em inglês.
+Fase: survivors-like no combate (cartas de upgrade, orbes de XP) sobre um
+mundo aberto 4x4 com cidade procedural, base construível e progressão
+permanente. Última atualização: 2026-07-24.
 
-Última atualização: 2026-07-24.
+> Histórico anterior ao Milestone 19 (rondas, protótipos iniciais, primeira
+> arte) foi podado para manter este ficheiro legível — vive no histórico git.
 
-## Concluído
+## Concluído (do Milestone 19 em diante)
 
-- [x] Conceito inicial definido.
-- [x] Godot e GDScript escolhidos.
-- [x] Core loop definido.
-- [x] Recruit e Renegade definidos conceptualmente.
-- [x] Progressão com Credits, Scrap e XP por personagem definida.
-- [x] Desbloqueio de armas por nível mínimo e compra definido.
-- [x] Roadmap inicial criado.
-- [x] Projeto Godot inspecionado.
-- [x] Estrutura mínima criada.
-- [x] Cena principal configurada.
-- [x] Primeiro teste headless executado.
-- [x] Projeto configurado para Godot 4.7 com o renderer GL Compatibility.
-- [x] Cena vazia `scenes/world/bootstrap.tscn` definida como cena principal.
-- [x] Cache `.godot/` adicionado ao `.gitignore`.
-- [x] Arena de teste criada apenas com primitivas e recursos internos do Godot.
-- [x] Chão e quatro paredes configurados como corpos estáticos com colisão na layer 1 (`World`).
-- [x] Iluminação direcional e ambiente simples configurados.
-- [x] `PlayerSpawn` adicionado no centro da arena.
-- [x] `PreviewCamera` temporária adicionada para visualizar a arena.
-- [x] `scenes/world/test_arena.tscn` definida como cena principal.
-- [x] Jogador provisório criado como `CharacterBody3D` com cápsula visual e colisão.
-- [x] Jogador configurado na layer 2 (`Player`) com máscara para a layer 1 (`World`).
-- [x] Ações `move_forward`, `move_backward`, `move_left` e `move_right` configuradas para WASD.
-- [x] Movimento relativo ao mundo implementado com velocidade exportada e diagonais normalizadas.
-- [x] Gravidade e rotação básica na direção do movimento implementadas.
-- [x] Jogador instanciado no `PlayerSpawn` da arena.
-- [x] `CameraPivot`, `SpringArm3D` e `Camera3D` integrados na cena do jogador.
-- [x] Rotação horizontal da câmara controlada pelo rato.
-- [x] Rotação vertical limitada entre -50 e 30 graus.
-- [x] `SpringArm3D` configurado para colidir apenas com a layer 1 (`World`).
-- [x] Câmara deslocada 0,9 m sobre o ombro direito para o jogador não ficar sobreposto à mira.
-- [x] Ação `pause` configurada para `Esc`, alternando captura e libertação do rato.
-- [x] Movimento do jogador convertido de relativo ao mundo para relativo à câmara.
-- [x] Rotação separada no `VisualRoot` para não interferir com a órbita da câmara.
-- [x] `PreviewCamera` temporária removida da arena.
-- [x] TODOs de pausa real e integração futura do Mixamo registados em `docs/TODO.md`.
-- [x] Hitscan escolhido e documentado para o disparo básico do Recruit.
-- [x] Ação `attack` configurada para o botão esquerdo do rato.
-- [x] Assault Rifle provisória criada apenas com primitivas internas do Godot.
-- [x] Dano, cadência e alcance configurados como propriedades exportadas.
-- [x] Raycast configurado para as layers `World` e `Enemies`.
-- [x] Integração de dano preparada através de `take_damage(amount)`.
-- [x] Clarão do cano e tracer temporário adicionados como feedback visual.
-- [x] Ponto de mira com centro claro e contorno escuro adicionado ao centro do HUD.
-- [x] Jogador e arma alinhados com a direção da câmara enquanto o rato está capturado.
-- [x] Disparo corrigido com raycast da câmara para o ponto visado e segundo raycast do cano para o impacto.
-- [x] Tracer corrigido para sair do cano e seguir até ao impacto real, incluindo bloqueio por paredes próximas.
-- [x] Jogador adicionado ao grupo `player` para descoberta do alvo sem caminhos frágeis.
-- [x] `NavigationRegion3D` e malha de navegação retangular adicionados à arena de protótipo.
-- [x] Normal Zombie provisório criado como `CharacterBody3D` com cápsula visual e colisão.
-- [x] Zombie configurado na layer 3 (`Enemies`) com máscara para `World` e `Player`.
-- [x] Vida, receção de dano e morte do zombie implementadas.
-- [x] Perseguição do jogador implementada com `NavigationAgent3D`.
-- [x] Ataque por proximidade implementado com `Area3D` e cooldown de um segundo.
-- [x] Normal Zombie instanciado no ponto de spawn da arena de teste.
-- [x] Jogador configurado com 100 pontos de vida e receção de dano através de `take_damage(amount)`.
-- [x] Sinais `health_changed` e `died` adicionados ao jogador.
-- [x] Movimento do jogador interrompido quando a vida chega a zero.
-- [x] Painel de game over criado com fundo escurecido e botão de reinício.
-- [x] Game over configurado para libertar o rato e pausar a árvore.
-- [x] Reinício configurado para remover a pausa e recarregar a cena atual.
-- [x] Cinco pontos de spawn de inimigos distribuídos pela arena.
-- [x] `WaveManager` local criado para instanciar e acompanhar a primeira ronda.
-- [x] Primeira ronda configurada com cinco Normal Zombies.
-- [x] Contagem de inimigos vivos atualizada através do sinal `died`.
-- [x] Painel de vitória apresentado quando a contagem chega a zero.
-- [x] Reinício da vitória configurado para criar novamente uma ronda completa.
-- [x] HUD criado com vida, munição, ronda e inimigos restantes.
-- [x] Barra de vida ligada ao sinal `health_changed` do jogador.
-- [x] Assault Rifle configurada com carregador de 30 munições.
-- [x] Ação `reload` configurada para a tecla `R`.
-- [x] Recarga de 1,5 segundos implementada com feedback no HUD.
-- [x] Contadores de ronda e inimigos ligados aos sinais do `WaveManager`.
-- [x] `WaveData` criado como `Resource` tipado para configurar composições de rondas.
-- [x] Três rondas configuradas: `5 Normal`, `10 Normal` e `15 Normal + 2 Runners`.
-- [x] Spawn espaçado em 0,2 segundos para reduzir sobreposição nos marcadores.
-- [x] Intervalo de três segundos implementado entre rondas.
-- [x] HUD configurado para indicar a próxima ronda durante o intervalo.
-- [x] Runner provisório criado por herança com 30 de vida, velocidade 4,5 e material laranja.
-- [x] Vitória adiada até à conclusão das três rondas.
-- [x] `CharacterData` e `WeaponData` criados como recursos tipados.
-- [x] Dados estáticos do Recruit, Assault Rifle e Shotgun adicionados.
-- [x] `SaveManager` configurado como Autoload com `ConfigFile` em `user://horde_breaker_save.cfg`.
-- [x] Save inicial configurado com Recruit nível 1, 0 XP, 0 Credits e Assault Rifle comprada.
-- [x] Fórmula de XP e progressão até nível 10 implementadas.
-- [x] Normal Zombie e Runner configurados para atribuir 5 e 8 XP.
-- [x] Bónus de XP por ronda configurado como `20 × ronda`.
-- [x] Vitória configurada para atribuir 100 Credits permanentes.
-- [x] Requisitos, compra e seleção permanente de armas implementados nos dados.
-- [x] Configuração inicial da Shotgun criada para Recruit nível 5; esta configuração foi posteriormente substituída pelo loadout do Renegade no Milestone 14.
-- [x] `GameManager` configurado como Autoload para transições entre menus e arena.
-- [x] Menu principal criado com Credits, personagem, arma, nível, XP e início de partida.
-- [x] Ecrã de personagem e armas criado para Recruit e Renegade.
-- [x] Desbloqueio do Renegade configurado por 500 Credits e persistido no save.
-- [x] Renegade provisório criado por herança, com material distinto e sem antecipar o combate corpo a corpo.
-- [x] Worn Sword adicionada como arma inicial estática do Renegade.
-- [x] `PlayerSpawn` alterado para instanciar a personagem selecionada.
-- [x] XP da sessão atribuído à personagem atualmente selecionada.
-- [x] Armas ainda não jogáveis impedidas de serem equipadas através de `WeaponData.is_playable`.
-- [x] Painéis de vitória e derrota atualizados com regresso ao menu principal.
-- [x] Worn Sword provisória criada apenas com caixas e materiais internos do Godot.
-- [x] Ataque frontal do Renegade ligado à ação `attack` com 35 de dano e cooldown de 0,6 segundos.
-- [x] Volume melee configurado para atingir vários inimigos na layer 3 sem acertar em alvos atrás do jogador.
-- [x] Animação curta de balanço da espada adicionada por código como feedback provisório.
-- [x] HUD melee configurado para apresentar a mira e a Worn Sword equipada.
-- [x] Objetivo futuro de um mapa jogável com obstáculos, navegação e spawns registado em `docs/TODO.md`.
-- [x] Perfil de progresso para testes no editor configurado num save separado, com 2000 Credits e Recruit nível 5.
-- [x] Mira de disparo reduzida de 10 × 10 para 6 × 6 píxeis, com centro de 2 × 2 píxeis.
-- [x] Menu de pausa próprio implementado com `Esc`, pausa real da árvore, libertação do rato e foco no botão de continuação.
-- [x] Pausa configurada para continuar, regressar ao menu principal ou sair sem se sobrepor aos painéis de vitória e derrota.
-- [x] Arena graybox expandida para 32 × 32 metros, mantendo apenas primitivas internas do Godot.
-- [x] Três coberturas estáticas adicionadas e identificadas através do grupo `navigation_blocker`.
-- [x] Navegação em runtime convertida para uma grelha que exclui as células ocupadas pelos obstáculos com margem de segurança.
-- [x] Jogador reposicionado e seis pontos de spawn distribuídos à volta da arena expandida.
-- [x] Worn Sword impedida de causar dano através das coberturas da layer `World`.
-- [x] `CharacterData` expandido com arma principal, arma secundária, regeneração, multiplicador de recarga e descrição da classe.
-- [x] `WeaponController` local criado para instanciar loadouts e trocar de arma através das teclas `1` e `2`.
-- [x] Recruit configurado com Assault Rifle, Pistol e recarga 30% mais rápida.
-- [x] Renegade configurado com Shotgun, Worn Sword e 140 pontos de vida.
-- [x] Medic provisório criado com Pistol, 100 pontos de vida e regeneração de 4 pontos por segundo após 3 segundos sem dano.
-- [x] Regeneração base de 1 ponto por segundo após 6 segundos configurada para Recruit e Renegade.
-- [x] Pistol semiautomática criada com carregador de 12 munições.
-- [x] Shotgun jogável criada com oito pellets, dispersão, carregador de oito munições e disparo semiautomático.
-- [x] HUD atualizado com arma ativa, loadout e indicação das teclas dos dois slots.
-- [x] Menus atualizados para apresentar as três classes, passivos e loadouts.
-- [x] Migração de save configurada para acrescentar Pistol, Shotgun, Medic e os novos slots sem apagar valores existentes.
-- [x] Jogos semelhantes e ideias de evolução registados em `docs/INSPIRATIONS.md`.
-- [x] Seleção reduzida do Quaternius Zombie Apocalypse Kit importada em glTF com origem e licença CC0 documentadas.
-- [x] Recruit, Renegade e Medic configurados com modelos visuais distintos, preservando as cápsulas de colisão e os scripts existentes.
-- [x] Normal Zombie e Runner configurados com modelos visuais distintos sem alterar navegação, vida, dano ou recompensas.
-- [x] Assault Rifle, Pistol e Shotgun configuradas com modelos importados, mantendo raycasts, munição, cadência e recarga existentes.
-- [x] Animações provisórias de idle e movimento ligadas à velocidade do `CharacterBody3D`.
-- [x] Primitivas visuais anteriores preservadas nas cenas, mas ocultas, para permitirem comparação e reversão simples.
-- [x] Visual da Worn Sword corrigido no Renegade através da lâmina integrada no modelo animado, eliminando a espada primitiva suspensa.
-- [x] Ataque da Worn Sword ligado à animação `Slash` do modelo importado.
-- [x] Velocidade base alterada para andar a 4 m/s e corrida adicionada com `Shift` a 7 m/s.
-- [x] Salto adicionado com `Space`, limitado ao contacto com o chão e bloqueado durante o agachamento.
-- [x] Agachamento adicionado com `Ctrl`, incluindo cápsula reduzida, câmara mais baixa, velocidade própria e verificação de espaço para levantar.
-- [x] Interação adicionada com `F` através de uma área local e pickup de munições de teste colocado junto ao spawn.
-- [x] Vista frontal temporária adicionada ao manter `C`, com reposição da órbita anterior ao libertar a tecla.
-- [x] Mira sobre o ombro adicionada ao botão direito do rato, com transição de FOV, distância e deslocamento lateral.
-- [x] Estados provisórios de andar, correr, salto, agachamento e ataque ligados às animações dos modelos importados.
-- [x] Munição de reserva própria adicionada à Assault Rifle, Pistol e Shotgun.
-- [x] Recarga alterada para transferir apenas munições disponíveis da reserva para o carregador.
-- [x] HUD atualizado para apresentar `carregador / reserva`.
-- [x] Pickup de munições alterado para abastecer a reserva, incluindo a Shotgun quando o Renegade tem a Worn Sword ativa.
-- [x] Oito modelos ambientais CC0 selecionados do mesmo Quaternius Zombie Apocalypse Kit e importados em glTF.
-- [x] Primeiro mapa urbano modular criado com 16 peças de estrada, contentores, camião blindado, iluminação, barreiras e torre de água.
-- [x] Piso e caixas graybox ocultados visualmente, preservando as colisões funcionais por baixo dos novos modelos.
-- [x] Quatro paredes graybox ocultadas e limites temporários assinalados por barreiras visuais.
-- [x] Componente reutilizável `DamageHitbox` criado com zona e multiplicador configuráveis.
-- [x] Normal Zombie e Runner configurados com corpo a `1 ×` e cabeça a `2 ×` dano.
-- [x] Cápsula física do zombie separada das hitboxes de dano para o raycast distinguir corretamente corpo e cabeça.
-- [x] Assault Rifle, Pistol e Shotgun configuradas para detetar hitboxes `Area3D`, mantendo colisão com o mundo.
-- [x] Worn Sword configurada para aplicar headshot ao alvo apontado sem duplicar dano quando o volume sobrepõe corpo e cabeça.
-- [x] Mira mantida visível com a Worn Sword para permitir ataques melee apontados à cabeça.
-- [x] Tema visual partilhado criado para menus, HUD e ecrãs sobrepostos, sem dependências ou assets externos.
-- [x] Menu principal redesenhado com identidade visual própria, hierarquia mais clara e resumo destacado da classe/loadout.
-- [x] Seleção de personagens reorganizada em cartões de classe com estado visual selecionado, bloqueado e desbloqueado.
-- [x] Loadout da classe selecionada apresentado num painel próprio com os dois slots separados.
-- [x] HUD reorganizado em módulos independentes para vida, ronda, ameaças, arma e munição.
-- [x] Mira substituída por um retículo compacto e os valores de vida passam a mudar de cor em níveis de alerta.
-- [x] Atalhos essenciais adicionados ao HUD sem tapar a área central de combate.
-- [x] Pausa, derrota e vitória redesenhadas com mensagens, ações e cores de estado consistentes.
-- [x] Indicador `DamageNumber3D` criado para apresentar valores pequenos no ponto atingido, subindo e desaparecendo automaticamente.
-- [x] Dano realmente retirado à vida devolvido pelas hitboxes ao sistema de feedback, incluindo overkill limitado à vida restante.
-- [x] Impactos no corpo apresentados a claro e headshots apresentados a dourado, sem alterar os multiplicadores existentes.
-- [x] Pellets da Shotgun agregados por inimigo para mostrar apenas um total por disparo.
-- [x] Worn Sword configurada para apresentar um número por inimigo atingido pelo mesmo golpe.
-- [x] Vida base do Normal Zombie aumentada de 50 para 100 e vida do Runner aumentada de 30 para 60.
-- [x] Assault Rifle, Pistol, Shotgun e Worn Sword balanceadas provisoriamente para 30, 35, 12 por pellet e 50 de dano base.
-- [x] Dano das quatro armas configurado explicitamente nas respetivas cenas, sem depender dos valores genéricos dos scripts.
-- [x] Matriz corpo/cabeça documentada com multiplicador `2 ×` preservado e valores finais visíveis no ponto atingido.
-- [x] Vitória automática após três rondas substituída por ataques contínuos que reutilizam os três `WaveData` existentes.
-- [x] Escalada provisória configurada para acrescentar dois Normal Zombies a cada composição por ciclo completo.
-- [x] `CampCore` físico adicionado à arena com 500 pontos de vida, sinal de destruição, luz e identificação no mundo.
-- [x] Jogador e núcleo registados como `enemy_target`, permitindo aos zombies escolher o alvo vivo mais próximo.
-- [x] Ataques dos zombies adaptados ao volume do núcleo sem alterar o alcance existente contra o jogador.
-- [x] Dano inimigo do núcleo separado de `take_damage`, impedindo fogo amigo sem deixar os tiros atravessarem a estrutura.
-- [x] HUD atualizado com painel próprio para a vida do núcleo e designação de `ATAQUE`.
-- [x] Derrota configurada para ocorrer tanto pela morte do jogador como pela destruição do núcleo, com mensagens distintas.
-- [x] Recompensa permanente de 100 Credits transferida da vitória final para a conclusão de cada ciclo de três ataques.
-- [x] Painel de vitória removido da arena e preservado como cena não utilizada para evitar apagar trabalho anterior.
-- [x] Arena expandida de 32 × 32 para 64 × 64 metros através de quatro bairros modulares rodados.
-- [x] Colisões e navegação expandidas até aos novos limites; seis spawns inimigos deslocados para zonas exteriores.
-- [x] Exclusão da navegação corrigida para respeitar as dimensões projetadas dos obstáculos rodados.
-- [x] Colisões das antigas coberturas graybox desativadas e nós preservados; contentores e camião do mapa recebem colisões próprias.
-- [x] Oito caches estáticos de 25 Scrap distribuídos pelas zonas exteriores para incentivar exploração.
-- [x] `CampEconomy` implementado com Scrap transportado e Scrap armazenado apenas durante a partida.
-- [x] Interação `F` permite recolher caches e depositar todo o Scrap transportado no núcleo.
-- [x] Núcleo reparável durante a exploração a 5 pontos de vida por Scrap, até 50 pontos por interação.
-- [x] Preparação inicial de 30 segundos e exploração de 45 segundos entre ataques, ambas com contagem decrescente.
-- [x] HUD atualizado com recursos da expedição e feedback curto para recolha, depósito e reparação.
-- [x] Primeiro ponto fixo de defesa adicionado junto do núcleo, sem introduzir construção livre.
-- [x] Barricada configurada com custo de 30 Scrap armazenado e 200 pontos de vida.
-- [x] Construção e reparação limitadas às fases de exploração; reparação mantém a taxa de 5 pontos por Scrap e máximo de 50 por interação.
-- [x] Barricada construída adicionada a `enemy_target`, permitindo aos zombies escolhê-la e causar-lhe dano real.
-- [x] Destruição remove a barricada como alvo, desativa a colisão e disponibiliza novamente o ponto para reconstrução.
-- [x] Navegação regenerada em runtime quando a barricada é construída ou destruída.
-- [x] Modelo provisório legível criado com primitivas, marcador de construção e estado/vida apresentados no mundo.
-- [x] Grelha modular de 16 estradas extraída para `city_road_grid.tscn`, sem adereços repetidos.
-- [x] Quatro instâncias repetidas de `city_test_map.tscn` removidas da arena; a cena original foi preservada como referência.
-- [x] `exploration_pois.tscn` criado com hospital, armazém, posto militar e estação de combustível.
-- [x] Quatro POIs diferenciados por escala, cor, silhueta, etiqueta e elementos ambientais já disponíveis.
-- [x] Edifícios e adereços principais configurados como `navigation_blocker` com colisão na layer `World`.
-- [x] Cada POI recebeu um `AccessPoint` navegável e manteve pelo menos uma cache de Scrap a menos de 10 metros.
-- [x] Estradas, oito caches, seis spawns, núcleo e fortificação preservados sem adicionar novos assets ou controlos.
-- [x] Armazém convertido de bloco fechado para um edifício com paredes segmentadas, teto e entrada central aberta.
-- [x] Interior graybox do armazém equipado com iluminação e uma prateleira simples, sem descarregar novos assets.
-- [x] `InteriorPoint` adicionado ao grupo `poi_interior_point` para validar a navegação para dentro do edifício.
-- [x] Uma cache de 25 Scrap e um pickup de 12 munições reutilizados como loot funcional no interior.
-- [x] Hospital, posto militar e estação de combustível preservados fechados para limitar este slice ao primeiro interior.
-- [x] `WarehouseEncounter` adicionado ao interior, ativando dois Normal Zombies quando o jogador entra durante a exploração.
-- [x] Emboscada limitada a uma ativação por ciclo e impedida de duplicar enquanto os inimigos anteriores estiverem vivos.
-- [x] Zombies da exploração ligados à recompensa normal de XP sem alterar a contagem ou conclusão das vagas.
-- [x] Scrap e munições do armazém repostos após cada ciclo apenas quando já foram recolhidos.
-- [x] Mensagens do HUD reutilizadas para comunicar a emboscada e a reposição do loot.
-- [x] Hospital convertido de bloco fechado para um edifício com entrada central de cinco metros e interior navegável.
-- [x] Interior do hospital distinguido com iluminação fria, duas camas graybox e sinalização exterior preservada.
-- [x] `HealthPickup` reutilizável criado com interação por `F`, cura máxima de 40 pontos e rejeição segura com vida cheia.
-- [x] Medkit ocultado após uma cura válida e reposto na mesma instância após `cycle_completed`, sem duplicação.
-- [x] Posto militar convertido de bloco fechado para um bunker com entrada aberta e interior navegável.
-- [x] Duas caixas de 12 munições adicionadas como recompensa e repostas por ciclo apenas quando recolhidas.
-- [x] `MilitaryOutpostEncounter` criado com dois Normal Zombies e um Runner durante a exploração.
-- [x] Encontro militar limitado a uma ativação por ciclo, 18 XP total e separado da contagem das vagas.
-- [x] Estação de combustível convertida de bloco fechado para uma loja com entrada aberta, balcão e interior navegável.
-- [x] Duas caches de 25 Scrap adicionadas à estação e repostas por ciclo apenas quando recolhidas.
-- [x] `FuelStationEncounter` criado com três Runners, uma ativação por ciclo, 24 XP total e contagem das vagas inalterada.
-- [x] Proposta de mundo aberto compacto por setores documentada em `docs/OPEN_WORLD_PLAN.md`, sem implementar ainda streaming.
-- [x] Ataques agendados com aviso longo escolhidos para exploração distante; implementação do aviso permanece pendente.
-- [x] Normal Zombie e Runner registados no grupo `enemy` para aquisição estável de alvo.
-- [x] Assault Rifle, Pistol e Shotgun configuradas para disparar automaticamente contra o inimigo visível mais próximo até 3 metros.
-- [x] Disparo manual preservado durante o protótipo e Worn Sword mantida fora do sistema automático.
-- [x] `east_sector.tscn` criado como segundo setor graybox de 64 × 64 metros, ligado à fronteira leste.
-- [x] `WorldStreamer` criado com carregamento em `x = 18`, descarregamento em `x = 8` e uma única instância do setor.
-- [x] Jogador, acampamento e sistemas globais mantidos fora de `LoadedSectors` durante a transição.
-- [x] Segunda região de navegação alinhada com o setor persistente através da fronteira em `x = 32`.
-- [x] Farol de reconhecimento adicionado como primeiro objetivo do setor, com estado preservado em memória após recarregar.
-- [x] Direção futura da IA registada: os inimigos devem perseguir apenas o jogador
-  e não atacar diretamente o acampamento, o núcleo ou as fortificações.
-- [x] `SettingsManager` criado como Autoload com definições persistidas em `user://horde_breaker_settings.cfg`, separadas do save de progresso.
-- [x] Menu de definições criado com modo de janela, resolução, VSync, MSAA, qualidade das sombras, sensibilidade do rato e volume geral, aplicados e guardados de imediato.
-- [x] Definições acessíveis a partir do menu principal e como sobreposição no menu de pausa, sem sair da partida.
-- [x] Sensibilidade do rato aplicada como multiplicador à câmara em terceira pessoa.
-- [x] Transição de fade entre cenas centralizada no `GameManager`.
-- [x] Animações de entrada adicionadas ao menu principal, seleção de personagens, pausa e derrota através do helper partilhado `UiAnimations`.
-- [x] Barras de vida do jogador e do núcleo mudam de cor consoante o rácio (verde, laranja, vermelho).
-- [x] Vinheta de dano adicionada ao HUD com pulso ao sofrer dano e intensidade base quando a vida está baixa.
-- [x] Hit-marker no retículo ao acertar em inimigos, tanto com armas de fogo como com a Worn Sword.
-- [x] Barra de progresso de recarga adicionada sob o retículo, sincronizada com a duração real da recarga.
-- [x] Banner central animado no início de cada ataque e de cada fase de exploração.
-- [x] Feedback do HUD convertido num feed empilhável de até quatro mensagens com desvanecimento individual.
-- [x] Tema partilhado alargado a `OptionButton` e `CheckButton` para consistência do menu de definições.
-- [x] Tema partilhado reescrito com identidade de horde-shooter inspirada em `docs/INSPIRATIONS.md`: painéis enviesados (`skew`), cantos retos, acentos âmbar sobre aço escuro e nova variação `HudValueLabel` para números grandes.
-- [x] Menu principal refeito com coluna de comando à esquerda (título grande e botões enviesados) e cartão do operacional ativo à direita com emblema de classe.
-- [x] Seleção de personagens refeita como ecrã de classes com emblemas em losango nas cores de cada classe, cartões compactos centrados e loadout na base.
-- [x] Menu de pausa refeito como painel lateral esquerdo com slide-in, mantendo continuar, definições, menu principal e sair.
-- [x] Painel de derrota refeito com barras superiores/inferiores vermelhas e título em destaque.
-- [x] HUD refeito em módulos flutuantes: placas enviesadas para núcleo e recursos, módulo de vaga central com número grande e contagem de ameaças, vida com número grande e barra fina, e munição em números grandes com sublinhado âmbar.
-- [x] Emblemas de classe construídos apenas com `ColorRect` rodados, sem assets externos.
-- [x] Resolução por defeito alterada para 1920 × 1080 em ecrã completo, com stretch `canvas_items` para o UI escalar de forma consistente em qualquer resolução.
-- [x] Aplicação das definições de ecrã corrigida: o tamanho da janela é aplicado de forma diferida após a troca de modo, evitando que a mudança se perca.
-- [x] Secção de gráficos (MSAA e sombras) removida do menu de definições e do `SettingsManager` por não fazer sentido nesta fase.
-- [x] `WorldStreamer` generalizado para um registo de setores (chunks) com carregamento em background através de `ResourceLoader.load_threaded_request`, mantendo a instanciação na thread principal.
-- [x] Gatilhos de carregamento convertidos de limiares em `x` para distância ao centro do setor, preparando uma futura grelha de chunks em qualquer direção.
-- [x] Tempo de carregamento de cada setor medido e impresso em milissegundos, conforme pedia o plano de mundo aberto.
-- [x] Céu procedural de entardecer adicionado à arena com `ProceduralSkyMaterial`, luz ambiente derivada do céu e nevoeiro subtil de profundidade, sem assets externos.
-- [x] Estado híbrido janela/ecrã completo no arranque corrigido: o projeto arranca em janela 1920 × 1080 e o `SettingsManager` muda para ecrã completo no primeiro frame, contornando a limitação do Godot no Windows que impede sair de fullscreen quando o jogo arranca nativamente em fullscreen com o viewport igual à resolução do monitor.
-- [x] Modo de janela corrigido para ser carregado e persistido; o jogo já não
-  força ecrã completo quando a preferência guardada é Janela.
-- [x] Aplicação de modo e tamanho da janela reescrita como corrotina por passos sobre o nó `Window`, com fila para pedidos repetidos.
-- [x] Menu de definições sincronizado com o estado ativo: em fullscreen mostra a
-  resolução real do monitor e, em Janela, aplica, centra e apresenta a resolução
-  selecionada após a transição.
-- [x] IA alterada para perseguir apenas o jogador: núcleo, acampamento e barricada removidos da seleção de alvos dos zombies.
-- [x] Derrota reduzida à morte do jogador; a destruição do núcleo deixou de terminar a partida.
-- [x] Flash aditivo no modelo do inimigo ao receber dano, aplicado por overlay de material sem assets externos.
-- [x] Sons de impacto sintetizados em runtime (`AudioStreamWAV`): tom grave para corpo e tom agudo para headshot, tocados no ponto de impacto pelos números de dano.
-- [x] Primeira escolha de melhoria entre rondas: painel com três vantagens aleatórias em cada exploração (dano +20%, +25 vida máxima, velocidade +10%, recarga −20%, cura total), aplicadas apenas à sessão.
-- [x] `RunUpgrades` criado como sistema local da arena com feedback no HUD ao ativar cada vantagem.
-- [x] Mapa tático 2D adicionado à cena base do jogador e alternado com `Tab`, com
-  grelha 4 × 4, setores carregados, jogador orientado, acampamento, POIs e inimigos.
-- [x] Mundo aberto compacto 4 × 4 (256 × 256 m) implementado: acampamento persistente em (0, 0), setor leste desenhado à mão em (1, 0) e catorze setores gerados proceduralmente por seed.
-- [x] `SectorGenerator` criado: estradas modulares com rotação de quarto de volta por setor, marcos primitivos como `navigation_blocker`, contentores CC0 decorativos, caches de Scrap e muros invisíveis apenas na borda exterior do mundo.
-- [x] Estado de sessão por setor: seed determinística por partida e caches recolhidas que não reaparecem ao recarregar o setor.
-- [x] Navegação por setor alinhada nas fronteiras, com regiões fundidas pelo mapa de navegação e caminhos contínuos entre acampamento e setores gerados.
-- [x] Fronteiras norte, sul e oeste do acampamento abertas e muros do setor leste removidos para ligar a grelha completa.
-- [x] `ScrapPickup` passou a emitir `collected`, permitindo registar loot por setor.
-- [x] Mapa tático em `Tab` corrigido: a ação `toggle_map` estava ligada a Backspace (keycode 4194308) em vez de Tab (4194306).
-- [x] Mapa tático movido de `_unhandled_input` para `_input`, porque o Tab é também o atalho nativo `ui_focus_next` e qualquer botão com foco (como o painel de melhorias) consumia a tecla antes de chegar ao mapa.
-- [x] Layer do mapa tático baixada de 20 para 8, ficando acima do HUD e abaixo dos painéis de derrota e pausa.
-- [x] Geração de setores distribuída por frames: casca imediata, um quadrante de estradas por frame, conteúdo e navegação em frames próprios, com cancelamento seguro se o jogador se afastar a meio.
-- [x] Setores gerados ganharam vida: três marcadores de spawn próprios, uma caixa de munições com estado por setor e uma emboscada única por partida (2–3 inimigos por seed) disparada ao entrar durante a exploração, com aviso no HUD.
-- [x] Hordas passaram a nascer nos oito pontos de spawn mais próximos do jogador, juntando os marcadores do acampamento aos dos setores carregados.
-- [x] `AmmoPickup` passou a emitir `collected` para suportar estado de loot por setor.
-- [x] Spawns das vagas tornados aleatórios por feedback do playtest: o conjunto dos seis pontos mais próximos é baralhado a cada vaga e cada inimigo nasce com desvio aleatório de ±1,5 m, evitando padrões e empilhamento.
-- [x] Vantagens entre rondas dependentes do nível permanente da classe: nível 1 desbloqueia as três básicas e os níveis 3, 5, 7 e 9 desbloqueiam recarga, dano, Carregadores Alargados (+25% carregador) e Adrenalina (+15% cadência e golpes mais rápidos).
-- [x] Painel de vantagens passou a indicar o progresso de desbloqueio (por exemplo, "Vantagens desbloqueadas 6 / 7").
 - [x] Rondas removidas e substituídas por um diretor de horda contínuo: os inimigos nascem em lotes à volta do jogador durante a viagem, com o nível de ameaça a subir a cada 75 s (mais zombies, mais Runners e intervalos de spawn mais curtos), limite simultâneo escalável e HUD com "THREAT LEVEL", "HOSTILES" e contagem para a próxima subida.
 - [x] Spawns garantidos a pelo menos 12 m do jogador para dar tempo de reação, mantendo os seis pontos mais próximos e o desvio aleatório.
 - [x] Alcance do disparo automático das armas de fogo aumentado de 3 para 6 metros.
@@ -493,6 +197,77 @@ enriquecida, acampamento com construção livre e todo o jogo em inglês.
   sobre marcações ou passadeiras. Os quarteirões são lajes planas (sem degrau,
   movimento inalterado); as constantes mortas do antigo `city_road_grid` foram
   removidas.
+
+- [x] **Fase 1 da inspiração "Yet Another Zombie Survivors"** (survivors-like no
+  combate, mantendo o mundo aberto):
+  - **Cartas de upgrade por nível de run** (`run_upgrades.gd` +
+    `run_progression.gd` + `upgrade_choice_panel`): a run tem nível próprio
+    (10 XP para o nível 2, +6 por nível), e cada subida pausa o jogo e oferece
+    **3 cartas distintas** de um catálogo de 10 (dano, cadência, vida, velocidade,
+    recarga, carregador, reserva, raio de recolha, XP, regeneração). Duram só a
+    run; a progressão permanente (skill tree/mastery/armory) fica intacta.
+    Subidas simultâneas ficam em fila.
+  - **Orbes de XP** (`xp_orb`): todos os inimigos largam uma orbe ao morrer (valor
+    derivado do `xp_reward`), que **voa para o jogador** dentro do raio de íman
+    (escalado pela carta MAGNETIC FIELD), com teto de 120 orbes e expiração a 30 s.
+  - **Feel survivors:** câmara recuada (spring 5 → 7,5) e auto-fire alargado
+    (AR 12 m, SMG 13 m, Pistol 10 m, Shotgun 8 m) — o jogador posiciona-se, a
+    arma trata do resto.
+  - **Barra de XP no HUD:** barra fina na borda superior do ecrã + etiqueta
+    `LV n` no canto, ligadas a `run_xp_changed`/`run_level_gained`, com flash ao
+    subir de nível. Esconde-se em cenas sem `run_progression`.
+- [x] **Esc consistente para recuar:** fecha o catálogo de construção
+  (`build_catalog`) em vez de abrir a pausa, e sai do ecrã de definições
+  (tratado em `_input` para nenhum controlo com foco o engolir primeiro).
+
+- [x] **M26 Fase 2 — estrutura de run:** `run_objective.gd` dá um fim à partida:
+  sobreviver 10 minutos até à **extração**, com relógio no HUD (fica âmbar no
+  último minuto), avisos no feed aos 5 min/2 min/60 s/30 s/10 s e, ao chegar ao
+  fim, painel de fim de run com "EXTRACTION COMPLETE" e **+300 Credits**. Morrer
+  continua a terminar a run como derrota.
+- [x] **Correções:** auto-reload assim que o carregador esvazia (sem esperar por
+  input de disparo) e a etiqueta `LV n` saiu de debaixo do overlay de FPS (passou
+  para cima da barra de vida).
+- [x] **Tiles removidos também do setor este** (`east_sector.tscn`), que ainda
+  usava as quatro grelhas `city_road_grid`; ficou com o chão liso como o
+  acampamento.
+- [x] **Documentação consolidada:** 12 → 7 ficheiros. Apagados `A_IMPLEMENTAR`,
+  `CITY_REBUILD_PLAN`, `M24_M25_TEST_CHECKLIST` e `OPEN_WORLD_PLAN` (planos já
+  executados); `HANDOFF` fundido no `OVERVIEW` (ponto de entrada único); histórico
+  do `PROGRESS` podado ao Milestone 19 em diante (962 → 666 linhas).
+
+- [x] **M26 — evolução de armas** (`weapon_evolution.gd`): matar com uma arma
+  acumula abates por personagem no save e, ao chegar ao limiar, **desbloqueia
+  permanentemente a versão evoluída** no ARMORY (sem custo em Credits). Quatro
+  evoluções: Assault Rifle → **Storm Rifle** (300), Shotgun → **Siege Breaker**
+  (250), SMG → **Hornet** (350), Worn Sword → **Cleaver** (200). Os abates são
+  atribuídos à arma ativa no momento (`character_progression`), as evoluídas não
+  voltam a acumular, o ARMORY mostra a barra de progresso ("EVOLVES INTO X ·
+  n/N KILLS" e "EVOLVED FROM Y") e há aviso no HUD ao evoluir. As armas evoluídas
+  reutilizam as malhas embutidas das originais.
+
+- [x] **M26 Fase 3 — hordas massivas:** teto de inimigos vivos subiu de **30 para
+  140** (base 20 + 12/nível, lotes de 5+2/nível, intervalo 4,5 s → mín. 1,2 s),
+  suportado por **LOD de simulação em três níveis** no `normal_zombie.gd`:
+  perto (<28 m) usa navmesh completo, médio usa **steering direto sem qualquer
+  query ao NavigationServer**, e além de 60 m o passo de física corre 1 frame em
+  3 com delta escalado. O `imported_model_animation.gd` ganhou **LOD de
+  animação**: modelos a mais de 42 m do jogador desligam o `AnimationPlayer`
+  (o modelo do próprio jogador nunca suspende). Os inimigos já não colidiam
+  entre si, por isso a física não foi um estrangulamento.
+  **Medições (1152×648, renderer OpenGL):** base 136 fps · 10 inimigos 109 fps ·
+  **120 inimigos a combater à volta do jogador = 58 fps (17,2 ms)**. Em headless
+  (só CPU) 120 inimigos custam +1,3 ms/frame, o que confirma que o peso está no
+  skinning e não na IA.
+
+- [x] **Economia de munição ajustada à horda:** com o teto a 140 inimigos a
+  munição acabava depressa demais. Duas medidas: **reservas das armas cerca do
+  dobro** (AR 90/180 → 180/360, Pistol 96/240, Shotgun 64/128, SMG 200/400, e as
+  evoluídas em proporção) e **os inimigos passam a largar munição** ao morrer —
+  Normal 14% / 8, Runner 16% / 8, Spitter 30% / 14, Brute 50% / 20, Boss 100% /
+  60. As caixas largadas usam o `ammo_pickup` normal, por isso **escalam com o
+  nível de ameaça** e são apanhadas ao passar por cima; há teto de 30 drops
+  ativos e expiram em 25 s para não encherem a cena.
 
 ## Milestone atual
 

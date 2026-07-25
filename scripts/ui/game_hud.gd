@@ -4,6 +4,9 @@ const PLAYER_GROUP := &"player"
 const CAMP_ECONOMY_GROUP := &"camp_economy"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
 const WAVE_MANAGER_GROUP := &"wave_manager"
+const RUN_PROGRESSION_GROUP := &"run_progression"
+const RUN_OBJECTIVE_GROUP := &"run_objective"
+const EXTRACTION_WARNING_SECONDS := 60.0
 const HEALTH_GOOD_COLOR := Color(0.74, 0.91, 0.79, 1.0)
 const HEALTH_WARNING_COLOR := Color(0.957, 0.694, 0.31, 1.0)
 const HEALTH_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
@@ -33,6 +36,9 @@ const LOW_AMMO_COLOR := Color(1.0, 0.68, 0.3, 1.0)
 @onready var banner_caption: Label = %BannerCaption
 @onready var banner_title: Label = %BannerTitle
 @onready var damage_vignette: ColorRect = %DamageVignette
+@onready var run_xp_bar: ProgressBar = %RunXpBar
+@onready var run_level_label: Label = %RunLevelLabel
+@onready var extraction_label: Label = %ExtractionLabel
 
 var _weapon: Node
 var _weapon_controller: Node
@@ -74,6 +80,8 @@ func _ready() -> void:
 	camp_economy.connect(&"scrap_changed", _update_scrap)
 	camp_economy.connect(&"feedback_requested", _show_feedback)
 	_weapon_controller.connect(&"active_weapon_changed", _show_weapon)
+	_connect_run_progression()
+	_connect_run_objective()
 
 	_update_health(
 		float(player.get("current_health")), float(player.get("maximum_health"))
@@ -411,3 +419,57 @@ func _show_feedback(message: String, duration: float) -> void:
 	message_tween.tween_interval(maxf(duration, 0.1))
 	message_tween.tween_property(message_panel, "modulate:a", 0.0, 0.4)
 	message_tween.tween_callback(message_panel.queue_free)
+
+
+func _connect_run_progression() -> void:
+	# Survivors-like run level: the bar fills with XP orbs and each level opens
+	# the upgrade cards. Hidden when the scene has no run progression node.
+	var progression := get_tree().get_first_node_in_group(RUN_PROGRESSION_GROUP)
+	if progression == null:
+		run_xp_bar.visible = false
+		run_level_label.visible = false
+		return
+	progression.connect(&"run_xp_changed", _update_run_xp)
+	progression.connect(&"run_level_gained", _on_run_level_gained)
+	_update_run_xp(
+		int(progression.get(&"run_xp")),
+		int(progression.call(&"get_required_xp")),
+		int(progression.get(&"run_level"))
+	)
+
+
+func _update_run_xp(current_xp: int, required_xp: int, level: int) -> void:
+	run_xp_bar.value = float(current_xp) / maxf(float(required_xp), 1.0)
+	run_level_label.text = "LV %d" % level
+
+
+func _on_run_level_gained(level: int, _choices: Array) -> void:
+	run_level_label.text = "LV %d" % level
+	run_xp_bar.modulate = Color(1.8, 1.8, 1.8, 1.0)
+	var level_tween := run_xp_bar.create_tween()
+	level_tween.tween_property(run_xp_bar, "modulate", Color.WHITE, 0.4)
+
+
+func _connect_run_objective() -> void:
+	# Extraction clock: the run has an end, survivors-like style.
+	var objective := get_tree().get_first_node_in_group(RUN_OBJECTIVE_GROUP)
+	if objective == null:
+		extraction_label.visible = false
+		return
+	objective.connect(&"time_changed", _update_extraction_clock)
+	_update_extraction_clock(
+		float(objective.get(&"seconds_remaining")),
+		float(objective.get(&"survival_seconds"))
+	)
+
+
+func _update_extraction_clock(
+	seconds_remaining: float, _total_seconds: float
+) -> void:
+	var whole := int(ceil(seconds_remaining))
+	extraction_label.text = "%d:%02d" % [whole / 60, whole % 60]
+	extraction_label.add_theme_color_override(
+		&"font_color",
+		LOW_AMMO_COLOR if seconds_remaining <= EXTRACTION_WARNING_SECONDS
+		else Color(0.965, 0.955, 0.94, 1.0)
+	)

@@ -20,8 +20,14 @@ const MAX_ACTIVE_SPAWN_POINTS := 6
 const SPAWN_POSITION_JITTER := 1.5
 const MINIMUM_SPAWN_DISTANCE := 12.0
 const LEVELS_PER_CYCLE := 3
-const HARD_ENEMY_CAP := 30
+const HARD_ENEMY_CAP := 140
 const CAMP_ECONOMY_GROUP := &"camp_economy"
+# Instancing a whole batch in one frame costs ~10 ms with the bigger hordes, so
+# spawns are queued and drip-fed a few per physics frame.
+const SPAWNS_PER_FRAME := 3
+# The extraction window turns the pressure up: faster spawns, bigger batches.
+const SURGE_INTERVAL_SCALE := 0.55
+const SURGE_BATCH_BONUS := 6
 
 @export var normal_zombie_scene: PackedScene
 @export var runner_zombie_scene: PackedScene
@@ -30,9 +36,9 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 @export var boss_scene: PackedScene
 @export_range(1.0, 120.0, 0.5) var first_surge_delay: float = 20.0
 @export_range(10.0, 300.0, 1.0) var level_up_interval: float = 75.0
-@export_range(0.5, 30.0, 0.5) var base_spawn_interval: float = 7.0
-@export_range(1, 30, 1) var base_max_alive: int = 6
-@export_range(0, 10, 1) var max_alive_per_level: int = 4
+@export_range(0.5, 30.0, 0.5) var base_spawn_interval: float = 4.5
+@export_range(1, 200, 1) var base_max_alive: int = 20
+@export_range(0, 40, 1) var max_alive_per_level: int = 12
 @export_range(2, 20, 1) var boss_every_levels: int = 5
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
@@ -44,6 +50,8 @@ var _spawning_enabled: bool = false
 var _spawn_cooldown: float = 0.0
 var _level_time_remaining: float = 0.0
 var _last_reported_seconds: int = -1
+var _spawn_queue: Array = []
+var _surge_active: bool = false
 
 
 func _ready() -> void:
@@ -54,6 +62,7 @@ func _physics_process(delta: float) -> void:
 	if not _spawning_enabled:
 		return
 	_advance_level_timer(delta)
+	_drain_spawn_queue()
 	_spawn_cooldown -= delta
 	if _spawn_cooldown > 0.0:
 		return
@@ -72,7 +81,12 @@ func get_maximum_alive_enemies() -> int:
 
 
 func get_current_spawn_interval() -> float:
-	return maxf(base_spawn_interval - float(current_wave), 2.5)
+	var interval := maxf(base_spawn_interval - float(current_wave) * 0.35, 1.2)
+	return interval * SURGE_INTERVAL_SCALE if _surge_active else interval
+
+
+func set_surge_active(active: bool) -> void:
+	_surge_active = active
 
 
 func spawn_exploration_enemies(
@@ -149,13 +163,36 @@ func _spawn_travel_batch() -> void:
 		return
 	spawn_points.shuffle()
 	var batch_size := mini(
-		2 + current_wave / 2, maximum_alive - alive_enemy_count
+		5 + current_wave * 2 + (SURGE_BATCH_BONUS if _surge_active else 0),
+		maximum_alive - alive_enemy_count
 	)
 	for spawn_index in batch_size:
 		var spawn_point := spawn_points[spawn_index % spawn_points.size()]
-		if _spawn_enemy(_pick_enemy_scene(), spawn_point):
+		if spawn_point != null:
+			_spawn_queue.append([_pick_enemy_scene(), spawn_point])
+
+
+func _drain_spawn_queue() -> void:
+	# Spread instancing over frames so a big batch never lands in one frame.
+	if _spawn_queue.is_empty():
+		return
+	var spawned := 0
+	var changed := false
+	while spawned < SPAWNS_PER_FRAME and not _spawn_queue.is_empty():
+		var entry: Array = _spawn_queue.pop_front()
+		spawned += 1
+		var scene: PackedScene = entry[0]
+		var marker: Marker3D = entry[1]
+		if scene == null or not is_instance_valid(marker):
+			continue
+		if alive_enemy_count >= get_maximum_alive_enemies():
+			_spawn_queue.clear()
+			break
+		if _spawn_enemy(scene, marker):
 			alive_enemy_count += 1
-	enemy_count_changed.emit(alive_enemy_count)
+			changed = true
+	if changed:
+		enemy_count_changed.emit(alive_enemy_count)
 
 
 func _pick_enemy_scene() -> PackedScene:

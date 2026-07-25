@@ -37,6 +37,7 @@ mouse_filter = 2
 color = Color(0.08, 0.0, 0.012, 0.22)
 
 [node name="TopRail" type="ColorRect" parent="Background"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -46,6 +47,7 @@ mouse_filter = 2
 color = Color(0.78, 0.34, 0.3, 0.95)
 
 [node name="BottomRail" type="ColorRect" parent="Background"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -84,6 +86,7 @@ theme_override_constants/separation = 14
 alignment = 1
 
 [node name="Eyebrow" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.45, 0.4, 1)
 theme_override_font_sizes/font_size = 12
@@ -91,6 +94,7 @@ text = "OPERATION TERMINATED"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 theme_override_colors/font_color = Color(0.965, 0.88, 0.84, 1)
@@ -99,6 +103,7 @@ text = "DEFEAT"
 horizontal_alignment = 1
 
 [node name="AccentLine" type="ColorRect" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(84, 4)
 layout_mode = 2
 size_flags_horizontal = 4

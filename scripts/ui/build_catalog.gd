@@ -21,6 +21,14 @@ func _ready() -> void:
 	close_button.pressed.connect(close)
 
 
+func _input(event: InputEvent) -> void:
+	# Esc backs out of the build catalogue instead of opening the pause menu.
+	if not visible or not event.is_action_pressed("pause") or event.is_echo():
+		return
+	close()
+	get_viewport().set_input_as_handled()
+
+
 func open(economy: Node) -> void:
 	_economy = economy
 	_rebuild_items()

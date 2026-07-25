@@ -53,8 +53,8 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
 
 O passe atual com o Downtown MegaKit permanece apenas como protótipo funcional.
 A cidade, as estradas e os caminhos serão refeitos a partir de um grafo contínuo
-entre setores; não investir mais em polish do gerador atual. O plano técnico está
-em `docs/CITY_REBUILD_PLAN.md`.
+entre setores; não investir mais em polish do gerador atual. O plano técnico vivia em `docs/CITY_REBUILD_PLAN.md`
+(removido na consolidação da documentação; ver histórico git).
 
 - [x] Pack CC0 importado (`assets/models/city_test_model`, glTF); fonte/licença
   documentadas em `SOURCE.md`.
@@ -66,10 +66,9 @@ em `docs/CITY_REBUILD_PLAN.md`.
 - [x] Fase 1+2 do grafo contínuo: contrato de aresta determinístico por
   setor, grafo de nós/arestas com validação, e overlay de debug com
   verificação das 24 fronteiras internas e de determinismo (aditivo, não
-  substitui ainda os quadrantes de estrada atuais). Ver
-  `docs/CITY_REBUILD_PLAN.md`.
+  substitui ainda os quadrantes de estrada atuais). Ver histórico git.
 - [ ] Substituir os quadrantes de estrada atuais por geometria real gerada
-  a partir desse grafo (fases 3+ do `docs/CITY_REBUILD_PLAN.md`), com
+  a partir desse grafo (fases 3+ do plano da cidade, no histórico git), com
   ligações garantidas nas fronteiras dos setores.
 - [x] Mais edifícios por setor (3–6) com lote de betão que corrige os prédios
   sobre as passadeiras.
@@ -93,6 +92,21 @@ em `docs/CITY_REBUILD_PLAN.md`.
 - [ ] Playtest de custos, alcance de construção, colisões e leitura visual.
 - [x] UX explícita de demolição/reembolso: interação dedicada na `InteractionZone`
   da estrutura (fora do modo construção) devolve 50% do custo em Scrap armazenado.
+
+## Milestone 26 — Survivors-like (inspiração YAZS)
+
+Objetivo: adotar o *feel* do Yet Another Zombie Survivors no combate, mantendo o
+mundo aberto, POIs e base como diferenciador.
+
+- [x] **Fase 1:** cartas de upgrade por nível de run, orbes de XP largadas pelos
+  inimigos (com íman) e feel survivors (câmara recuada + auto-fire alargado).
+- [x] **Fase 2 — estrutura de run:** sobreviver 10 min até à extração, com
+  relógio no HUD, avisos e recompensa de 300 Credits.
+- [x] **Fase 3 — hordas massivas:** teto 30 → 140 com LOD de simulação (navmesh
+  perto, steering direto ao médio, frames saltados ao longe) e LOD de animação
+  (>42 m desliga o AnimationPlayer). 120 inimigos = 58 fps a 1152×648.
+- [x] Evolução de armas por abates (4 evoluções desbloqueadas no ARMORY).
+- [ ] Esquadrão de 3 personagens (controlas 1, IA segue) — o mais caro.
 
 ## Milestone 21 — Ambiente e POIs finais (absorvido pelo M24)
 

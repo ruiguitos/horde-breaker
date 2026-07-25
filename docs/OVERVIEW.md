@@ -1,8 +1,9 @@
 # Horde Breaker — Overview Completo do Projeto
 
-Ficheiro-mestre único: o que é o jogo, como está organizado, o que está feito e
-o que falta. Última atualização: 2026-07-24. Para detalhe histórico ver
-`PROGRESS.md`; para plano por milestone ver `ROADMAP.md`.
+Ficheiro-mestre único e **ponto de entrada para qualquer sessão nova** (substitui
+o antigo HANDOFF): o que é o jogo, como está organizado, o que está feito e o que
+falta. Última atualização: 2026-07-24. Detalhe histórico em `PROGRESS.md`;
+plano por milestone em `ROADMAP.md`.
 
 ---
 
@@ -15,6 +16,10 @@ O jogador explora um **mundo aberto compacto** (grelha 4×4 de setores, 256×256
 enquanto uma **horda contínua** nasce à volta e escala com o tempo. O acampamento
 central é o porto seguro (reabastecimento, depósito de Scrap, melhorias). Texto
 do jogo em **inglês**; documentação em **português**.
+
+**Direção atual:** *survivors-like no combate* (inspiração Yet Another Zombie
+Survivors) sobre um mundo aberto — cartas de upgrade por nível de run, orbes de
+XP e auto-fire; a exploração, POIs e base continuam a ser o diferenciador.
 
 **Core loop:** explorar → combater a horda → recolher Scrap/munições/armas →
 reabastecer e melhorar a base → subir de nível e desbloquear skills/mastery →
@@ -133,12 +138,19 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 - **Variantes de classe** desbloqueadas ao completar a mastery.
 - Munição do chão **escala com o nível de ameaça**.
 
+### Survivors-like (M26 Fase 1)
+- **Cartas de upgrade** por nível de run (3 de 10, só duram a run) com painel próprio.
+- **Orbes de XP** largadas por todos os inimigos, com íman até ao jogador.
+- **Barra de XP + `LV n`** no HUD; auto-fire alargado e câmara recuada; auto-reload
+  assim que o carregador esvazia.
+
 ### Mundo aberto
 - Grelha 4×4 por seed em worker threads, streaming, navegação contínua.
 - Seed **fixo por perfil**, setores visitados e farol **persistidos no save**.
-- **Cidade a sério (M24):** setores gerados com **edifícios CC0 reais** (Quaternius
-  Downtown), 3–6 por setor, cada um com **lote de betão** (corrige prédios sobre
-  passadeiras); props (planters/bollards/manholes). POIs exploráveis + emboscadas
+- **Cidade a sério (M24):** layout urbano com **cruz de ruas de 16 m** e quatro
+  **quarteirões de 24×24 m**; os **edifícios CC0 reais** (Quaternius Downtown) só
+  são colocados dentro dos quarteirões, com lote próprio; props de cidade. O chão
+  em tiles repetidos foi removido do acampamento e do setor este. POIs exploráveis + emboscadas
   por ciclo. Colisão dos edifícios **alinhada** com o visual (bug corrigido).
 
 ### Acampamento

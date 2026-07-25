@@ -27,19 +27,19 @@ material = SubResource("Material_flash")
 radius = 0.09
 height = 0.18
 
-[node name="SMG" type="Node3D" groups=["player_weapon"]]
+[node name="Hornet" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_weapon_script")
-damage = 16.0
-fire_rate = 11.0
+damage = 22.0
+fire_rate = 15.0
 maximum_range = 60.0
-magazine_size = 35
-starting_reserve_ammunition = 200
-maximum_reserve_ammunition = 400
+magazine_size = 50
+starting_reserve_ammunition = 300
+maximum_reserve_ammunition = 560
 reload_duration = 1.4
 automatic_fire = true
-proximity_auto_fire_range = 13.0
-weapon_id = &"smg"
-display_name = "SMG"
+proximity_auto_fire_range = 15.0
+weapon_id = &"hornet"
+display_name = "Hornet"
 
 [node name="Body" type="MeshInstance3D" parent="."]
 visible = false

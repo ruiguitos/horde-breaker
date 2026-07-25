@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3]
+[gd_scene load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
@@ -14,7 +14,6 @@
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
-[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="16_city_roads"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="17_scrap_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
 [ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
@@ -28,6 +27,9 @@
 [ext_resource type="Script" path="res://scripts/systems/camp_builder.gd" id="33_camp_builder"]
 [ext_resource type="PackedScene" path="res://scenes/ui/build_catalog.tscn" id="34_build_catalog"]
 [ext_resource type="Script" path="res://scripts/world/city_graph_debug_overlay.gd" id="35_city_graph_debug_overlay"]
+[ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="36_run_progression"]
+[ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="38_run_objective"]
+[ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="37_upgrade_panel"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_arena"]
 sky_top_color = Color(0.09, 0.12, 0.19, 1)
@@ -112,21 +114,6 @@ directional_light_path = NodePath("../DirectionalLight3D")
 script = ExtResource("2_navigation_script")
 navigation_half_extent = 32.0
 
-[node name="RoadNorthWest" parent="." instance=ExtResource("16_city_roads")]
-position = Vector3(-16, 0, -16)
-
-[node name="RoadNorthEast" parent="." instance=ExtResource("16_city_roads")]
-position = Vector3(16, 0, -16)
-rotation = Vector3(0, -1.5708, 0)
-
-[node name="RoadSouthWest" parent="." instance=ExtResource("16_city_roads")]
-position = Vector3(-16, 0, 16)
-rotation = Vector3(0, 1.5708, 0)
-
-[node name="RoadSouthEast" parent="." instance=ExtResource("16_city_roads")]
-position = Vector3(16, 0, 16)
-rotation = Vector3(0, 3.14159, 0)
-
 [node name="ExplorationPOIs" parent="." instance=ExtResource("20_exploration_pois")]
 
 [node name="LoadedSectors" type="Node3D" parent="." groups=["world_streamer"]]
@@ -134,12 +121,12 @@ script = ExtResource("21_world_streamer")
 
 [node name="CityGraphDebugOverlay" type="Node3D" parent="."]
 script = ExtResource("35_city_graph_debug_overlay")
+enabled = false
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Floor"]
-visible = false
 mesh = SubResource("Mesh_floor")
 
 [node name="Collision" type="CollisionShape3D" parent="Floor"]
@@ -335,6 +322,12 @@ maximum_build_distance = 18.0
 [node name="CharacterSkills" type="Node" parent="Gameplay"]
 script = ExtResource("29_character_skills")
 
+[node name="RunObjective" type="Node" parent="Gameplay" groups=["run_objective"]]
+script = ExtResource("38_run_objective")
+
+[node name="RunProgression" type="Node" parent="Gameplay" groups=["run_progression"]]
+script = ExtResource("36_run_progression")
+
 [node name="CharacterProgression" type="Node" parent="Gameplay"]
 script = ExtResource("13_character_progression")
 
@@ -347,6 +340,11 @@ layer = 8
 layer = 5
 
 [node name="GameHUD" parent="HUDLayer" instance=ExtResource("7_game_hud")]
+
+[node name="UpgradeLayer" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="UpgradeChoicePanel" parent="UpgradeLayer" instance=ExtResource("37_upgrade_panel")]
 
 [node name="GameOverLayer" type="CanvasLayer" parent="."]
 layer = 10

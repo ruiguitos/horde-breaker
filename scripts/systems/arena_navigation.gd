@@ -8,7 +8,10 @@ const NAVIGATION_BLOCKER_GROUP := &"navigation_blocker"
 
 
 func _ready() -> void:
-	build_navigation_mesh()
+	# A pre-baked mesh (built on the generator's worker thread) is used as is;
+	# rebuilding here would cost ~300 ms on the main thread.
+	if navigation_mesh == null:
+		build_navigation_mesh()
 
 
 func build_navigation_mesh() -> void:

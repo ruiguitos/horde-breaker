@@ -66,6 +66,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
 	_proximity_scan_time = maxf(_proximity_scan_time - delta, 0.0)
+	# Auto-reload the moment the magazine runs dry, without waiting for a fire
+	# input: in the survivors-like loop the player only handles positioning.
+	if current_ammunition <= 0:
+		_start_reload()
 	if Input.is_action_pressed("reload"):
 		_start_reload()
 	var attack_requested := (

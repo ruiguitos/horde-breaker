@@ -3,17 +3,17 @@
 [ext_resource type="Script" path="res://scripts/weapons/hitscan_weapon.gd" id="1_weapon_script"]
 
 [sub_resource type="StandardMaterial3D" id="Material_weapon"]
-albedo_color = Color(0.16, 0.18, 0.22, 1)
-metallic = 0.3
-roughness = 0.5
+albedo_color = Color(0.24, 0.27, 0.32, 1)
+metallic = 0.35
+roughness = 0.55
 
 [sub_resource type="BoxMesh" id="Mesh_body"]
 material = SubResource("Material_weapon")
-size = Vector3(0.14, 0.2, 0.5)
+size = Vector3(0.2, 0.22, 0.65)
 
 [sub_resource type="BoxMesh" id="Mesh_barrel"]
 material = SubResource("Material_weapon")
-size = Vector3(0.06, 0.06, 0.3)
+size = Vector3(0.07, 0.07, 0.55)
 
 [sub_resource type="StandardMaterial3D" id="Material_flash"]
 shading_mode = 0
@@ -24,36 +24,31 @@ emission_energy_multiplier = 3.0
 
 [sub_resource type="SphereMesh" id="Mesh_flash"]
 material = SubResource("Material_flash")
-radius = 0.09
-height = 0.18
+radius = 0.13
+height = 0.26
 
-[node name="SMG" type="Node3D" groups=["player_weapon"]]
+[node name="StormRifle" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_weapon_script")
-damage = 16.0
-fire_rate = 11.0
-maximum_range = 60.0
-magazine_size = 35
-starting_reserve_ammunition = 200
-maximum_reserve_ammunition = 400
-reload_duration = 1.4
-automatic_fire = true
-proximity_auto_fire_range = 13.0
-weapon_id = &"smg"
-display_name = "SMG"
+magazine_size = 45
+fire_rate = 8.5
+damage = 42.0
+starting_reserve_ammunition = 240
+maximum_reserve_ammunition = 480
+proximity_auto_fire_range = 14.0
 
 [node name="Body" type="MeshInstance3D" parent="."]
 visible = false
-position = Vector3(0, 0, -0.26)
+position = Vector3(0, 0, -0.3)
 mesh = SubResource("Mesh_body")
 
 [node name="Barrel" type="MeshInstance3D" parent="."]
 visible = false
-position = Vector3(0, 0.02, -0.62)
+position = Vector3(0, 0, -0.85)
 mesh = SubResource("Mesh_barrel")
 
 [node name="Muzzle" type="Marker3D" parent="."]
 unique_name_in_owner = true
-position = Vector3(0, 0.02, -0.78)
+position = Vector3(0, 0, -1.15)
 
 [node name="MuzzleFlash" type="MeshInstance3D" parent="Muzzle"]
 unique_name_in_owner = true
@@ -67,5 +62,5 @@ one_shot = true
 
 [node name="ReloadTimer" type="Timer" parent="."]
 unique_name_in_owner = true
-wait_time = 1.4
+wait_time = 1.5
 one_shot = true

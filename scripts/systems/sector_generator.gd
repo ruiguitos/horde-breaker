@@ -930,11 +930,96 @@ static func _add_sector_label(sector: Node3D, label_text: String) -> void:
 	sector.add_child(label)
 
 
+static func _bake_navigation_mesh(sector: Node3D) -> NavigationMesh:
+	# Same grid logic as arena_navigation, but computed with transforms relative
+	# to the still-detached sector so it can run off the main thread.
+	var cell_size := 1.0
+	var clearance := 0.65
+	var cell_count := int(round(SECTOR_HALF_SIZE * 2.0 / cell_size))
+	var blockers: Array = []
+	for node in sector.find_children("*", "StaticBody3D", true, false):
+		var body := node as StaticBody3D
+		if body == null or not body.is_in_group(&"navigation_blocker"):
+			continue
+		var collision := body.get_node_or_null("Collision") as CollisionShape3D
+		if collision == null or collision.disabled:
+			continue
+		var box_shape := collision.shape as BoxShape3D
+		if box_shape == null:
+			continue
+		var relative := _get_transform_relative_to(collision, sector)
+		var half_size := box_shape.size * 0.5
+		var basis_x := relative.basis.x
+		var basis_y := relative.basis.y
+		var basis_z := relative.basis.z
+		blockers.append({
+			"center": relative.origin,
+			"half_x": (
+				absf(basis_x.x) * half_size.x + absf(basis_y.x) * half_size.y
+				+ absf(basis_z.x) * half_size.z
+			),
+			"half_z": (
+				absf(basis_x.z) * half_size.x + absf(basis_y.z) * half_size.y
+				+ absf(basis_z.z) * half_size.z
+			),
+		})
+
+	var navigation_mesh := NavigationMesh.new()
+	var vertices := PackedVector3Array()
+	for z_index in range(cell_count + 1):
+		for x_index in range(cell_count + 1):
+			vertices.append(Vector3(
+				-SECTOR_HALF_SIZE + x_index * cell_size,
+				0.0,
+				-SECTOR_HALF_SIZE + z_index * cell_size
+			))
+	navigation_mesh.vertices = vertices
+	var row_size := cell_count + 1
+	var half_cell := cell_size * 0.5
+	for z_index in range(cell_count):
+		var center_z := -SECTOR_HALF_SIZE + (z_index + 0.5) * cell_size
+		for x_index in range(cell_count):
+			var center_x := -SECTOR_HALF_SIZE + (x_index + 0.5) * cell_size
+			var blocked := false
+			for blocker in blockers:
+				var center: Vector3 = blocker["center"]
+				if (
+					absf(center_x - center.x)
+					<= float(blocker["half_x"]) + clearance + half_cell
+					and absf(center_z - center.z)
+					<= float(blocker["half_z"]) + clearance + half_cell
+				):
+					blocked = true
+					break
+			if blocked:
+				continue
+			var bottom_left := z_index * row_size + x_index
+			navigation_mesh.add_polygon(PackedInt32Array([
+				bottom_left, bottom_left + 1,
+				(z_index + 1) * row_size + x_index + 1,
+				(z_index + 1) * row_size + x_index,
+			]))
+	return navigation_mesh
+
+
+static func _get_transform_relative_to(node: Node3D, ancestor: Node3D) -> Transform3D:
+	var result := Transform3D.IDENTITY
+	var current: Node = node
+	while current != null and current != ancestor:
+		var spatial := current as Node3D
+		if spatial != null:
+			result = spatial.transform * result
+		current = current.get_parent()
+	return result
+
+
 static func _add_navigation(sector: Node3D) -> void:
 	var navigation_region := NavigationRegion3D.new()
 	navigation_region.name = "NavigationRegion3D"
 	navigation_region.set_script(NAVIGATION_SCRIPT)
 	navigation_region.set(&"navigation_half_extent", SECTOR_HALF_SIZE)
+	# Baked here (worker thread) so entering the tree costs almost nothing.
+	navigation_region.navigation_mesh = _bake_navigation_mesh(sector)
 	sector.add_child(navigation_region)
 
 
