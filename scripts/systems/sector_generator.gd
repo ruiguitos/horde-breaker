@@ -60,20 +60,12 @@ const CITY_BUILDINGS: Array[Dictionary] = [
 ]
 const CITY_LOT_COLOR := Color(0.5, 0.49, 0.47, 1.0)
 const CITY_LOT_MARGIN := 3.0
-# City layout: the sector is an 8 x 8 grid of 8 m cells. Cells whose centre sits
-# on |4| along an axis form the cross-shaped streets (16 m wide); everything else
-# is a city block paved with sidewalk. Buildings only ever go inside blocks, so
-# they never sit on top of road markings or crosswalks.
-const STREET_CELL_SIZE := 8.0
-const STREET_CELLS_PER_AXIS := 8
-const STREET_AXIS_CENTER := 4.0
-const STREET_STRAIGHT_SCENE := preload("res://assets/models/quaternius_zombie_apocalypse/environment/Street_Straight_Crack1.gltf")
-const STREET_4WAY_SCENE := preload("res://assets/models/quaternius_zombie_apocalypse/environment/Street_4Way.gltf")
-# Blocks fill the corners: cells from 8 m to 32 m on both axes.
-const BLOCK_HALF := 12.0
-const BLOCK_CENTER_OFFSET := 20.0
-const BLOCK_COLOR := Color(0.62, 0.6, 0.56, 1.0)
-const BLOCK_BUILDING_MARGIN := 1.5
+# The procedural street grid (a 16 m cross through each sector, with paved
+# blocks in the corners) was removed: the road network is being re-authored by
+# hand in a GridMap, per docs/MAP_DESIGN.md. Buildings kept their models and
+# their collision, and are now placed loose in the sector until the hand-built
+# layout replaces this generator entirely.
+const BUILDING_MARGIN := 1.5
 const CITY_PLANTER_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_Planter_Single.gltf")
 const CITY_BOLLARD_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_Bollard.gltf")
 const CITY_MANHOLE_SCENE := preload("res://assets/models/city_test_model/Exports/glTF (Godot)/Prop_ManholeCover.gltf")
@@ -127,76 +119,6 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 	}
 
 
-static func add_roads_stage(context: Dictionary, quadrant_index: int) -> void:
-	# Streets form a cross through the sector centre; the four corners are city
-	# blocks paved with sidewalk. One quadrant is built per stage so the cost
-	# stays spread over frames.
-	var sector: Node3D = context["sector"]
-	var roads_root := sector.get_node_or_null("Roads") as Node3D
-	if roads_root == null:
-		roads_root = Node3D.new()
-		roads_root.name = "Roads"
-		sector.add_child(roads_root)
-	if quadrant_index < 0 or quadrant_index >= 4:
-		return
-	for cell_x in range(STREET_CELLS_PER_AXIS):
-		for cell_z in range(STREET_CELLS_PER_AXIS):
-			var center_x := (
-				-STREET_CELLS_PER_AXIS * 0.5 + cell_x + 0.5
-			) * STREET_CELL_SIZE
-			var center_z := (
-				-STREET_CELLS_PER_AXIS * 0.5 + cell_z + 0.5
-			) * STREET_CELL_SIZE
-			var cell_quadrant := (
-				(1 if center_x > 0.0 else 0) + (2 if center_z > 0.0 else 0)
-			)
-			if cell_quadrant != quadrant_index:
-				continue
-			var runs_north_south := is_equal_approx(
-				absf(center_x), STREET_AXIS_CENTER
-			)
-			var runs_east_west := is_equal_approx(
-				absf(center_z), STREET_AXIS_CENTER
-			)
-			if not runs_north_south and not runs_east_west:
-				continue
-			var is_crossing := runs_north_south and runs_east_west
-			var tile_scene := (
-				STREET_4WAY_SCENE if is_crossing else STREET_STRAIGHT_SCENE
-			)
-			var tile := tile_scene.instantiate() as Node3D
-			tile.name = "Street_%d_%d" % [cell_x, cell_z]
-			roads_root.add_child(tile)
-			tile.position = Vector3(center_x, -0.1, center_z)
-			if not is_crossing and runs_east_west:
-				tile.rotation.y = PI / 2.0
-	_add_city_block(sector, quadrant_index)
-
-
-static func _get_block_center(block_index: int) -> Vector2:
-	return Vector2(
-		BLOCK_CENTER_OFFSET * (1.0 if block_index % 2 == 1 else -1.0),
-		BLOCK_CENTER_OFFSET * (1.0 if block_index >= 2 else -1.0)
-	)
-
-
-static func _add_city_block(sector: Node3D, block_index: int) -> void:
-	# Flat sidewalk platform (no step, so movement is unaffected) that gives the
-	# block its own paved ground instead of road markings.
-	var block := MeshInstance3D.new()
-	block.name = "Block%d" % block_index
-	var block_mesh := BoxMesh.new()
-	block_mesh.size = Vector3(BLOCK_HALF * 2.0, 0.06, BLOCK_HALF * 2.0)
-	var block_material := StandardMaterial3D.new()
-	block_material.albedo_color = BLOCK_COLOR
-	block_material.roughness = 0.95
-	block_mesh.material = block_material
-	block.mesh = block_mesh
-	sector.add_child(block)
-	var block_center := _get_block_center(block_index)
-	block.position = Vector3(block_center.x, 0.03, block_center.y)
-
-
 static func add_content_stage(context: Dictionary) -> void:
 	var sector: Node3D = context["sector"]
 	var rng: RandomNumberGenerator = context["rng"]
@@ -220,8 +142,6 @@ static func finish_sector(context: Dictionary) -> void:
 
 static func build_sector(config: Dictionary) -> Node3D:
 	var context := begin_sector(config)
-	for quadrant_index in 4:
-		add_roads_stage(context, quadrant_index)
 	add_content_stage(context)
 	finish_sector(context)
 	return context["sector"]
@@ -373,72 +293,43 @@ static func _add_city_buildings(
 	var buildings_root := Node3D.new()
 	buildings_root.name = "Buildings"
 	sector.add_child(buildings_root)
-	# Buildings belong to city blocks only, never to the streets, so they can no
-	# longer end up standing on road markings or crosswalks.
-	var building_index := -1
-	for block_index in 4:
-		var block_center := _get_block_center(block_index)
-		var buildings_in_block := 1 + rng.randi_range(0, 1)
-		for slot in buildings_in_block:
-			building_index += 1
-			var choice: Dictionary = CITY_BUILDINGS[
-				rng.randi_range(0, CITY_BUILDINGS.size() - 1)
-			]
-			var footprint: Vector2 = choice["footprint"]
-			var height := float(choice["height"])
-			var quarter := rng.randi_range(0, 3)
-			# A quarter turn swaps the footprint's axis-aligned bounds, so
-			# reserve the rotated extents while the collision box stays local
-			# (arena_navigation handles the rotated blocker).
-			var reserved := (
-				footprint if quarter % 2 == 0 else Vector2(footprint.y, footprint.x)
-			)
-			var placement := _find_free_position_in_block(
-				rng, reserved, blocked_areas, block_center
-			)
-			if placement == Vector2.INF:
-				continue
-			var building_info := _spawn_city_building(
-				buildings_root,
-				choice,
-				placement,
-				quarter,
-				reserved,
-				height,
-				building_index,
-				blocked_areas
-			)
-			if not building_info.is_empty():
-				building_infos.append(building_info)
+	# Placement is loose now that the street grid is gone: buildings claim any
+	# free spot in the sector, avoiding whatever is already reserved. This is a
+	# holding pattern until the hand-authored GridMap layout takes over.
+	var building_count := 4 + rng.randi_range(0, 2)
+	for building_index in building_count:
+		var choice: Dictionary = CITY_BUILDINGS[
+			rng.randi_range(0, CITY_BUILDINGS.size() - 1)
+		]
+		var footprint: Vector2 = choice["footprint"]
+		var height := float(choice["height"])
+		var quarter := rng.randi_range(0, 3)
+		# A quarter turn swaps the footprint's axis-aligned bounds, so reserve
+		# the rotated extents while the collision box stays local
+		# (arena_navigation handles the rotated blocker).
+		var reserved := (
+			footprint if quarter % 2 == 0 else Vector2(footprint.y, footprint.x)
+		)
+		var placement := _find_free_position(
+			rng,
+			Vector3(reserved.x + BUILDING_MARGIN, height, reserved.y + BUILDING_MARGIN),
+			blocked_areas
+		)
+		if placement == Vector2.INF:
+			continue
+		var building_info := _spawn_city_building(
+			buildings_root,
+			choice,
+			placement,
+			quarter,
+			reserved,
+			height,
+			building_index,
+			blocked_areas
+		)
+		if not building_info.is_empty():
+			building_infos.append(building_info)
 	return building_infos
-
-
-static func _find_free_position_in_block(
-	rng: RandomNumberGenerator,
-	size: Vector2,
-	blocked_areas: Array[Rect2],
-	block_center: Vector2
-) -> Vector2:
-	var limit := BLOCK_HALF - BLOCK_BUILDING_MARGIN
-	var half := size * 0.5
-	if half.x > limit or half.y > limit:
-		return Vector2.INF
-	for attempt in 16:
-		var candidate := block_center + Vector2(
-			rng.randf_range(-(limit - half.x), limit - half.x),
-			rng.randf_range(-(limit - half.y), limit - half.y)
-		)
-		var candidate_area := Rect2(
-			candidate - half - Vector2(1.5, 1.5), size + Vector2(3.0, 3.0)
-		)
-		var overlaps := false
-		for blocked_area in blocked_areas:
-			if candidate_area.intersects(blocked_area):
-				overlaps = true
-				break
-		if not overlaps:
-			return candidate
-	return Vector2.INF
 
 
 static func _spawn_city_building(
@@ -1055,7 +946,7 @@ static func _find_free_position(
 		var candidate := Vector2(
 			rng.randf_range(-24.0, 24.0), rng.randf_range(-24.0, 24.0)
 		)
-		# Keep the central crossroads corridor free for circulation.
+		# Keep the sector centre clear so there is always a way through.
 		if absf(candidate.x) < 6.0 and absf(candidate.y) < 6.0:
 			continue
 		var candidate_area := Rect2(

@@ -26,7 +26,6 @@
 [ext_resource type="Script" path="res://scripts/systems/build_grid.gd" id="32_build_grid"]
 [ext_resource type="Script" path="res://scripts/systems/camp_builder.gd" id="33_camp_builder"]
 [ext_resource type="PackedScene" path="res://scenes/ui/build_catalog.tscn" id="34_build_catalog"]
-[ext_resource type="Script" path="res://scripts/world/city_graph_debug_overlay.gd" id="35_city_graph_debug_overlay"]
 [ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="36_run_progression"]
 [ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="38_run_objective"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="37_upgrade_panel"]
@@ -118,10 +117,6 @@ navigation_half_extent = 32.0
 
 [node name="LoadedSectors" type="Node3D" parent="." groups=["world_streamer"]]
 script = ExtResource("21_world_streamer")
-
-[node name="CityGraphDebugOverlay" type="Node3D" parent="."]
-script = ExtResource("35_city_graph_debug_overlay")
-enabled = false
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
