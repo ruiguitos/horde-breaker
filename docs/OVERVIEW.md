@@ -7,6 +7,46 @@ plano por milestone em `ROADMAP.md`.
 
 ---
 
+## 0. ESTADO DA ÚLTIMA SESSÃO (2026-07-25) — LER PRIMEIRO
+
+**Há trabalho por commitar.** Fazer `git add -A && git commit` antes de mexer.
+
+### Feito nesta sessão
+- **Perf — stutters resolvidos:** o pico ao carregar setores era a *construção da
+  navegação* (329 ms no `_ready` da `NavigationRegion3D`, na thread principal).
+  Agora é **pré-cozinhada na worker thread** (`SectorGenerator._bake_navigation_mesh`,
+  com transformações relativas) e o `arena_navigation` respeita a malha pronta.
+  Somou-se anexação incremental do setor (5 nós/frame) e spawns distribuídos
+  (3/frame). **Pico 405 ms → 20,6 ms; 0 frames acima de 33 ms em 300.**
+- **Melee auto-ataque:** as armas brancas não atacavam sozinhas. Agora atacam por
+  proximidade e **viram-se para o alvo** (Worn Sword 3,0 m · Cleaver 3,0 m ·
+  Fire Axe 3,4 m · Spear 4,2 m). Validado em jogo.
+- **Extração em 5 fases** (`run_objective.gd`): janela aos 60 s com aviso e
+  **surge da horda**, zona de extração no acampamento (raio 14 m), extrair vs
+  **"LEFT BEHIND"** (recompensa reduzida a 35%), **ecrã de resumo** (tempo, abates,
+  nível de run, Scrap, Credits) e **"PUSH ON"** (+5 min, recompensa ×2 acumulativa).
+
+### ⚠️ Pendente imediato
+O teste das 5 fases deu **11/13**. As 2 falhas são na extração *depois* do
+"push on". **Causa provável: o próprio teste** — chamou `extend_run()` com a
+árvore ainda pausada (o painel pausa; o botão real despausa antes em
+`_on_continue_pressed`). **Não foi confirmado.** Verificar primeiro:
+despausar no teste, ou jogar até ao fim e carregar em PUSH ON.
+
+### Decisões de design em aberto (perguntadas pelo utilizador)
+1. **Reduzir para 2 classes** (Recruit + Renegade), escondendo o Medic no menu
+   sem apagar código — recuperável se um dia houver esquadrão de 3.
+2. **Machine Gun** nova: dano 20 · cadência 14 · carregador 100 · recarga 3,5 s ·
+   auto-fire 14 m · **−15% velocidade enquanto equipada** · malha `Rifle`
+   embutida · nível 6 / 800 cr · evolui para MINIGUN aos 400 abates.
+
+### Balanceamento a investigar
+- XP da run sobe rápido demais (LV 50 em 10 min).
+- Munição em excesso: visto `50 / 1774` de reserva — **suspeita de a reserva
+  ultrapassar `maximum_reserve_ammunition`**; verificar `add_ammunition`.
+
+---
+
 ## 1. O que é
 
 Horde shooter 3D em **terceira pessoa**, single-player, Windows, feito em
