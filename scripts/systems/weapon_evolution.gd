@@ -21,6 +21,11 @@ const EVOLUTIONS: Dictionary[StringName, Dictionary] = {
 		"name": "HORNET",
 		"kills_required": 350,
 	},
+	&"machine_gun": {
+		"evolved_id": &"minigun",
+		"name": "MINIGUN",
+		"kills_required": 400,
+	},
 	&"worn_sword": {
 		"evolved_id": &"cleaver",
 		"name": "CLEAVER",

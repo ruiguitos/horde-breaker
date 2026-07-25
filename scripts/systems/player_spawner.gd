@@ -31,11 +31,13 @@ func _get_selected_character_data() -> CharacterData:
 	var selected_character := SaveManager.get_selected_character()
 	if (
 		selected_character == RENEGADE_DATA.character_id
+		and RENEGADE_DATA.is_selectable
 		and SaveManager.is_character_unlocked(selected_character)
 	):
 		return RENEGADE_DATA
 	if (
 		selected_character == MEDIC_DATA.character_id
+		and MEDIC_DATA.is_selectable
 		and SaveManager.is_character_unlocked(selected_character)
 	):
 		return MEDIC_DATA

@@ -162,7 +162,7 @@ func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
 
 
 func _get_embedded_weapon_name(weapon_id: StringName) -> StringName:
-	if weapon_id in [&"assault_rifle", &"storm_rifle"]:
+	if weapon_id in [&"assault_rifle", &"storm_rifle", &"machine_gun", &"minigun"]:
 		return &"Rifle"
 	if weapon_id == &"pistol":
 		return &"Pistol"

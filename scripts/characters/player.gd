@@ -37,6 +37,9 @@ var _standing_collision_y: float
 var _standing_camera_y: float
 var _gameplay_input_enabled: bool = true
 var _build_mode_active: bool = false
+# Heavy weapons slow the operative down while equipped. Kept apart from
+# move_speed so the run upgrades can keep scaling the base value freely.
+var _weapon_speed_multiplier: float = 1.0
 
 
 func configure_character(
@@ -127,6 +130,7 @@ func _physics_process(delta: float) -> void:
 		current_speed = crouch_speed
 	elif _is_sprinting:
 		current_speed = sprint_speed
+	current_speed *= _weapon_speed_multiplier
 
 	velocity.x = movement_direction.x * current_speed
 	velocity.z = movement_direction.z * current_speed
@@ -163,6 +167,14 @@ func set_gameplay_input_enabled(enabled: bool) -> void:
 		_is_sprinting = false
 		velocity.x = 0.0
 		velocity.z = 0.0
+
+
+func set_weapon_speed_multiplier(multiplier: float) -> void:
+	_weapon_speed_multiplier = clampf(multiplier, 0.1, 2.0)
+
+
+func get_weapon_speed_multiplier() -> float:
+	return _weapon_speed_multiplier
 
 
 func set_build_mode_active(active: bool) -> void:

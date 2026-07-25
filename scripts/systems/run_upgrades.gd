@@ -91,8 +91,7 @@ static func apply(upgrade_id: StringName, tree: SceneTree) -> void:
 		&"magazine":
 			_scale_weapon_int(tree, &"magazine_size", 1.25)
 		&"ammo_reserve":
-			_scale_weapon_int(tree, &"maximum_reserve_ammunition", 1.3)
-			_scale_weapon_int(tree, &"reserve_ammunition", 1.3)
+			_add_reserve_capacity(tree, 0.3)
 		&"reload":
 			_scale_reload(tree, 0.8)
 		&"max_health":
@@ -151,6 +150,12 @@ static func _scale_weapon_int(
 		var value: Variant = weapon.get(property)
 		if value != null:
 			weapon.set(property, ceili(int(value) * multiplier))
+
+
+static func _add_reserve_capacity(tree: SceneTree, ratio: float) -> void:
+	for weapon in _get_weapons(tree):
+		if weapon.has_method(&"add_reserve_capacity"):
+			weapon.call(&"add_reserve_capacity", ratio)
 
 
 static func _scale_reload(tree: SceneTree, multiplier: float) -> void:

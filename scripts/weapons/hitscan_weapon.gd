@@ -26,6 +26,8 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @export_range(1, 20, 1) var pellet_count: int = 1
 @export_range(0.0, 20.0, 0.5) var spread_degrees: float = 0.0
 @export var automatic_fire: bool = true
+## Movement penalty applied to the player while this weapon is equipped.
+@export_range(0.5, 1.0, 0.01) var move_speed_multiplier: float = 1.0
 @export var proximity_auto_fire_enabled: bool = true
 @export_range(1.0, 12.0, 0.25) var proximity_auto_fire_range: float = 6.0
 @export var weapon_id: StringName = &"assault_rifle"
@@ -37,9 +39,15 @@ const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 @onready var reload_timer: Timer = %ReloadTimer
 
 const PROXIMITY_SCAN_INTERVAL := 0.12
+## Reserve capacity bonuses stack additively on the weapon's own capacity and
+## stop here, so a run's worth of BANDOLIER cards cannot compound the reserve
+## into the thousands.
+const RESERVE_CAPACITY_BONUS_CAP := 1.0
 
 var current_ammunition: int
 var reserve_ammunition: int
+var _base_maximum_reserve_ammunition: int
+var _reserve_capacity_bonus: float = 0.0
 var _cooldown_remaining: float = 0.0
 var _reload_duration_multiplier: float = 1.0
 var _tracer_material: StandardMaterial3D
@@ -54,6 +62,7 @@ func _ready() -> void:
 	reload_timer.timeout.connect(_finish_reload)
 	reload_timer.wait_time = _get_effective_reload_duration()
 	current_ammunition = magazine_size
+	_base_maximum_reserve_ammunition = maximum_reserve_ammunition
 	reserve_ammunition = mini(starting_reserve_ammunition, maximum_reserve_ammunition)
 	_tracer_material = StandardMaterial3D.new()
 	_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -220,6 +229,20 @@ func add_ammunition(amount: int) -> int:
 	if added_ammunition > 0:
 		_emit_ammunition_changed()
 	return added_ammunition
+
+
+func add_reserve_capacity(ratio: float) -> int:
+	# Every source of extra reserve (skill tree, run cards) goes through here so
+	# they share one additive budget and one ceiling, then tops the reserve up.
+	if ratio <= 0.0:
+		return 0
+	_reserve_capacity_bonus = minf(
+		_reserve_capacity_bonus + ratio, RESERVE_CAPACITY_BONUS_CAP
+	)
+	maximum_reserve_ammunition = int(round(
+		_base_maximum_reserve_ammunition * (1.0 + _reserve_capacity_bonus)
+	))
+	return add_ammunition(maximum_reserve_ammunition)
 
 
 func _emit_ammunition_changed() -> void:

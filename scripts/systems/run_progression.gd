@@ -7,8 +7,12 @@ extends Node
 signal run_xp_changed(current_xp: int, required_xp: int, level: int)
 signal run_level_gained(level: int, choices: Array)
 
-const BASE_XP_REQUIREMENT := 10
-const XP_REQUIREMENT_GROWTH := 6
+## The requirement grows quadratically: a purely linear curve let a ten-minute
+## run reach level 50, which burned through the whole upgrade pool in one
+## sitting. With the quadratic term the same run lands around level 23.
+const BASE_XP_REQUIREMENT := 12
+const XP_REQUIREMENT_GROWTH := 8
+const XP_REQUIREMENT_CURVE := 1.35
 const CHOICE_COUNT := 3
 
 var run_level: int = 1
@@ -26,7 +30,12 @@ func _ready() -> void:
 
 
 func get_required_xp() -> int:
-	return BASE_XP_REQUIREMENT + XP_REQUIREMENT_GROWTH * (run_level - 1)
+	var levels_gained := float(run_level - 1)
+	return (
+		BASE_XP_REQUIREMENT
+		+ XP_REQUIREMENT_GROWTH * (run_level - 1)
+		+ roundi(XP_REQUIREMENT_CURVE * levels_gained * levels_gained)
+	)
 
 
 func add_run_xp(amount: int) -> int:

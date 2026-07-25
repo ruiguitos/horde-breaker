@@ -35,6 +35,7 @@ var _variant_button: Button
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_hide_unselectable_classes()
 	back_button.pressed.connect(GameManager.open_main_menu)
 	skill_tree_button.pressed.connect(GameManager.open_skill_tree)
 	armory_button.pressed.connect(GameManager.open_armory)
@@ -85,13 +86,14 @@ func _refresh() -> void:
 		renegade_status_label,
 		renegade_button
 	)
-	_configure_character(
-		MEDIC_DATA,
-		medic_panel,
-		medic_progress_label,
-		medic_status_label,
-		medic_button
-	)
+	if MEDIC_DATA.is_selectable:
+		_configure_character(
+			MEDIC_DATA,
+			medic_panel,
+			medic_progress_label,
+			medic_status_label,
+			medic_button
+		)
 
 	var selected_data := SaveManager.get_character_data(
 		SaveManager.get_selected_character()
@@ -111,6 +113,17 @@ func _refresh() -> void:
 		SaveManager.get_secondary_weapon(selected_data.character_id)
 	)
 	_refresh_variant_row(selected_data.character_id)
+
+
+func _hide_unselectable_classes() -> void:
+	# The squad is Recruit + Renegade for now. A class parked with
+	# `is_selectable = false` keeps its data, save entries and scenes, but never
+	# reaches the roster — and a save that still points at it falls back.
+	if MEDIC_DATA.is_selectable:
+		return
+	medic_panel.visible = false
+	if SaveManager.get_selected_character() == MEDIC_DATA.character_id:
+		SaveManager.select_character(RECRUIT_DATA.character_id)
 
 
 func _build_variant_row() -> void:
@@ -239,29 +252,8 @@ func _get_mastery_detail(character_id: StringName) -> String:
 
 
 func _get_weapon_name(weapon_id: StringName) -> String:
-	if weapon_id == &"assault_rifle":
-		return "Assault Rifle"
-	if weapon_id == &"pistol":
-		return "Pistol"
-	if weapon_id == &"shotgun":
-		return "Shotgun"
-	if weapon_id == &"smg":
-		return "SMG"
-	if weapon_id == &"worn_sword":
-		return "Worn Sword"
-	if weapon_id == &"spear":
-		return "Spear"
-	if weapon_id == &"fire_axe":
-		return "Fire Axe"
-	if weapon_id == &"storm_rifle":
-		return "Storm Rifle"
-	if weapon_id == &"siege_breaker":
-		return "Siege Breaker"
-	if weapon_id == &"hornet":
-		return "Hornet"
-	if weapon_id == &"cleaver":
-		return "Cleaver"
-	return "—"
+	var weapon_data := WeaponCatalog.get_weapon_data(weapon_id)
+	return weapon_data.display_name if weapon_data != null else "—"
 
 
 func _on_character_pressed(character_data: CharacterData) -> void:

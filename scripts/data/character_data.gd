@@ -3,6 +3,10 @@ extends Resource
 
 @export var character_id: StringName = &""
 @export var display_name: String = ""
+## Squad roster switch. Turning this off hides the class from the selection
+## screen and from spawning without deleting anything, so it can come back the
+## day the squad grows again.
+@export var is_selectable: bool = true
 @export_range(1, 100, 1) var maximum_level: int = 10
 @export_range(0, 100000, 1) var unlock_cost: int = 0
 @export_range(1.0, 1000.0, 1.0) var base_health: float = 100.0

@@ -66,8 +66,22 @@ func equip_slot(slot: int) -> bool:
 	_active_weapon = next_weapon
 	_active_slot = slot
 	_set_weapon_active(_active_weapon, true)
+	_apply_weapon_speed_penalty(_active_weapon)
 	active_weapon_changed.emit(_active_weapon, _active_slot)
 	return true
+
+
+func _apply_weapon_speed_penalty(weapon: Node3D) -> void:
+	# Heavy weapons (Machine Gun, Minigun) trade mobility for firepower; the
+	# penalty only applies while they are the active weapon.
+	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
+	if player == null or not player.has_method(&"set_weapon_speed_multiplier"):
+		return
+	var multiplier: Variant = weapon.get(&"move_speed_multiplier") if weapon != null else null
+	player.call(
+		&"set_weapon_speed_multiplier",
+		float(multiplier) if multiplier != null else 1.0
+	)
 
 
 func get_active_weapon() -> Node3D:

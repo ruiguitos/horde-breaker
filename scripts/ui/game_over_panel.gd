@@ -149,6 +149,16 @@ func _apply_outcome_style(
 
 
 func _show_player_defeat() -> void:
+	# run_objective listens to the same `died` signal and answers with the far
+	# richer run_finished summary. Deferring lets that one win regardless of the
+	# order the two listeners were connected in; this stays as the fallback for
+	# scenes without a run objective.
+	_show_defeat_fallback.call_deferred()
+
+
+func _show_defeat_fallback() -> void:
+	if visible:
+		return
 	_show_game_over(
 		"The horde took your operative down.\nRegroup and try again."
 	)

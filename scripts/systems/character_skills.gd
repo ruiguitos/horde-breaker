@@ -199,13 +199,8 @@ func _apply_to_weapon(weapon: Node, bonuses: Dictionary) -> void:
 			float(weapon.call(&"get_reload_duration_multiplier"))
 			* float(bonuses.get("reload_mult", 1.0))
 		)
+	# Reserve bonuses share the weapon's additive capacity budget with the run
+	# cards instead of multiplying the current values.
 	var reserve_mult := float(bonuses.get("ammo_reserve_mult", 1.0))
-	if reserve_mult != 1.0:
-		var max_reserve: Variant = weapon.get(&"maximum_reserve_ammunition")
-		if max_reserve != null:
-			weapon.set(
-				&"maximum_reserve_ammunition", ceili(int(max_reserve) * reserve_mult)
-			)
-		var reserve: Variant = weapon.get(&"reserve_ammunition")
-		if reserve != null:
-			weapon.set(&"reserve_ammunition", ceili(int(reserve) * reserve_mult))
+	if reserve_mult > 1.0 and weapon.has_method(&"add_reserve_capacity"):
+		weapon.call(&"add_reserve_capacity", reserve_mult - 1.0)

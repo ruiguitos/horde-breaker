@@ -12,12 +12,15 @@ const STORM_RIFLE: WeaponData = preload("res://data/weapons/storm_rifle.tres")
 const SIEGE_BREAKER: WeaponData = preload("res://data/weapons/siege_breaker.tres")
 const HORNET: WeaponData = preload("res://data/weapons/hornet.tres")
 const CLEAVER: WeaponData = preload("res://data/weapons/cleaver.tres")
+const MACHINE_GUN: WeaponData = preload("res://data/weapons/machine_gun.tres")
+const MINIGUN: WeaponData = preload("res://data/weapons/minigun.tres")
 
 const ALL_WEAPONS: Array[WeaponData] = [
 	ASSAULT_RIFLE,
 	PISTOL,
 	SHOTGUN,
 	SMG,
+	MACHINE_GUN,
 	WORN_SWORD,
 	SPEAR,
 	FIRE_AXE,
@@ -25,6 +28,7 @@ const ALL_WEAPONS: Array[WeaponData] = [
 	SIEGE_BREAKER,
 	HORNET,
 	CLEAVER,
+	MINIGUN,
 ]
 
 

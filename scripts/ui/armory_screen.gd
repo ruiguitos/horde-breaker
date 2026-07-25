@@ -275,6 +275,8 @@ func _get_weapon_role(weapon_id: StringName) -> String:
 		return "SIDEARM"
 	if weapon_id == &"shotgun":
 		return "CLOSE-RANGE FIREARM"
+	if weapon_id in [&"machine_gun", &"minigun"]:
+		return "SUPPRESSION - SLOWS YOU DOWN"
 	if weapon_id == &"worn_sword":
 		return "MELEE - SLASH"
 	if weapon_id == &"spear":
