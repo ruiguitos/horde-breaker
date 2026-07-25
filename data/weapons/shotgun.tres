@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"shotgun"
 display_name = "Shotgun"
+category = &"close_range"
 required_character_id = &"renegade"
 required_level = 1
 credit_cost = 0

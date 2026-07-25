@@ -22,6 +22,7 @@ func _initialize() -> void:
 func _run() -> void:
 	await process_frame
 	_test_roster()
+	_test_categories()
 	_test_machine_gun()
 	_test_reserve_capacity()
 	_test_xp_curve()
@@ -45,6 +46,37 @@ func _test_roster() -> void:
 	for weapon_data in recruit_weapons:
 		recruit_ids.append(weapon_data.weapon_id)
 	_check("roster: recruit can buy the spear", recruit_ids.has(&"spear"))
+
+
+func _test_categories() -> void:
+	var sections := WeaponCatalog.get_compatible_weapons_by_category(&"recruit")
+	_check("categories: every section is used", sections.size() == 5)
+	var names: Array[String] = []
+	var listed := 0
+	for section in sections:
+		names.append(String(section["name"]))
+		listed += (section["weapons"] as Array).size()
+		_check(
+			"categories: %s is not empty" % String(section["name"]),
+			(section["weapons"] as Array).size() > 0
+		)
+	_check(
+		"categories: in display order",
+		names == ["ASSAULT", "SIDEARM", "CLOSE RANGE", "HEAVY", "MELEE"]
+	)
+	# Shotgun and Worn Sword are Renegade-only, so the Recruit sees fewer than
+	# the full catalog; nothing compatible may go missing though.
+	var compatible := WeaponCatalog.get_compatible_weapons(&"recruit").size()
+	_check(
+		"categories: every compatible weapon is listed once (%d of %d)" % [
+			listed, compatible
+		],
+		listed == compatible
+	)
+	_check(
+		"categories: machine gun is heavy",
+		WeaponCatalog.get_weapon_data(&"machine_gun").category == &"heavy"
+	)
 
 
 func _test_machine_gun() -> void:

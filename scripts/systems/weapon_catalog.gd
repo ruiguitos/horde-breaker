@@ -32,6 +32,17 @@ const ALL_WEAPONS: Array[WeaponData] = [
 ]
 
 
+## Armory sections, in display order. A weapon whose category matches none of
+## these falls into the last group.
+const CATEGORIES: Array[Dictionary] = [
+	{"id": &"assault", "name": "ASSAULT"},
+	{"id": &"sidearm", "name": "SIDEARM"},
+	{"id": &"close_range", "name": "CLOSE RANGE"},
+	{"id": &"heavy", "name": "HEAVY"},
+	{"id": &"melee", "name": "MELEE"},
+]
+
+
 static func get_weapon_data(weapon_id: StringName) -> WeaponData:
 	for weapon_data in ALL_WEAPONS:
 		if weapon_data.weapon_id == weapon_id:
@@ -48,3 +59,37 @@ static func get_compatible_weapons(character_id: StringName) -> Array[WeaponData
 		):
 			compatible.append(weapon_data)
 	return compatible
+
+
+static func get_compatible_weapons_by_category(
+	character_id: StringName
+) -> Array[Dictionary]:
+	# One entry per non-empty section, already in CATEGORIES order, so the
+	# armory can lay itself out without knowing the category rules.
+	var by_category: Dictionary[StringName, Array] = {}
+	var last_category: StringName = CATEGORIES[CATEGORIES.size() - 1]["id"]
+	for weapon_data in get_compatible_weapons(character_id):
+		if not weapon_data.is_playable:
+			continue
+		var category := weapon_data.category
+		if not _has_category(category):
+			category = last_category
+		if not by_category.has(category):
+			by_category[category] = []
+		by_category[category].append(weapon_data)
+	var sections: Array[Dictionary] = []
+	for category in CATEGORIES:
+		var category_id: StringName = category["id"]
+		if by_category.has(category_id):
+			sections.append({
+				"name": String(category["name"]),
+				"weapons": by_category[category_id],
+			})
+	return sections
+
+
+static func _has_category(category_id: StringName) -> bool:
+	for category in CATEGORIES:
+		if category["id"] == category_id:
+			return true
+	return false

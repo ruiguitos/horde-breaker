@@ -115,6 +115,13 @@ func _refresh() -> void:
 	_refresh_variant_row(selected_data.character_id)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Esc mirrors the BACK button, like every other menu page.
+	if event.is_action_pressed(&"ui_cancel"):
+		GameManager.open_main_menu()
+		get_viewport().set_input_as_handled()
+
+
 func _hide_unselectable_classes() -> void:
 	# The squad is Recruit + Renegade for now. A class parked with
 	# `is_selectable = false` keeps its data, save entries and scenes, but never

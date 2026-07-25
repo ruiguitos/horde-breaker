@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"machine_gun"
 display_name = "Machine Gun"
+category = &"heavy"
 required_level = 6
 credit_cost = 800
 is_playable = true

@@ -28,7 +28,7 @@ size = Vector3(2.8, 1.8, 2.2)
 
 [node name="WornSword" type="Node3D" groups=["player_weapon"]]
 script = ExtResource("1_melee_script")
-proximity_auto_attack_range = 3.0
+proximity_auto_attack_range = 4.0
 damage = 50.0
 
 [node name="SwordVisualPivot" type="Node3D" parent="."]

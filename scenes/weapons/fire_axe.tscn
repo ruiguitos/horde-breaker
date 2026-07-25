@@ -33,7 +33,7 @@ attack_cooldown = 0.9
 swing_duration = 0.3
 aim_range = 9.0
 attack_animation = &"Slash"
-proximity_auto_attack_range = 3.4
+proximity_auto_attack_range = 4.6
 
 [node name="SwordVisualPivot" type="Node3D" parent="."]
 unique_name_in_owner = true

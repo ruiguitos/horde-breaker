@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"siege_breaker"
 display_name = "Siege Breaker"
+category = &"close_range"
 required_level = 1
 credit_cost = 0
 is_playable = true

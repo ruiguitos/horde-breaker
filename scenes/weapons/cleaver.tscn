@@ -30,6 +30,7 @@ size = Vector3(2.8, 1.8, 2.2)
 script = ExtResource("1_melee_script")
 attack_cooldown = 0.5
 damage = 90.0
+proximity_auto_attack_range = 4.5
 
 [node name="SwordVisualPivot" type="Node3D" parent="."]
 unique_name_in_owner = true

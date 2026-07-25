@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"storm_rifle"
 display_name = "Storm Rifle"
+category = &"assault"
 required_level = 1
 credit_cost = 0
 is_playable = true

@@ -39,6 +39,13 @@ func _ready() -> void:
 	)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Esc mirrors the BACK button, like every other menu page.
+	if event.is_action_pressed(&"ui_cancel"):
+		GameManager.open_character_selection()
+		get_viewport().set_input_as_handled()
+
+
 func _rebuild() -> void:
 	var character_id := SaveManager.get_selected_character()
 	var character_data := SaveManager.get_character_data(character_id)
@@ -63,10 +70,46 @@ func _rebuild() -> void:
 	)
 	for child in weapons_list.get_children():
 		child.queue_free()
-	for weapon_data in WeaponCatalog.get_compatible_weapons(character_id):
-		if weapon_data.is_playable:
+	var section_count := 0
+	for section in WeaponCatalog.get_compatible_weapons_by_category(character_id):
+		var listed: Array[WeaponData] = []
+		for weapon_value in section["weapons"]:
+			var weapon_data := weapon_value as WeaponData
+			if not _is_locked_evolution(character_id, weapon_data.weapon_id):
+				listed.append(weapon_data)
+		if listed.is_empty():
+			continue
+		weapons_list.add_child(
+			_build_section_header(String(section["name"]), section_count > 0)
+		)
+		section_count += 1
+		for weapon_data in listed:
 			weapons_list.add_child(_build_weapon_card(character_id, weapon_data))
 	UiAnimations.enhance_buttons(weapons_list)
+
+
+func _is_locked_evolution(
+	character_id: StringName, weapon_id: StringName
+) -> bool:
+	# Evolutions are earned with kills, never bought. They cost 0 Credits, so
+	# listing one before it unlocks would hand it over for free.
+	return (
+		WeaponEvolution.is_evolved_weapon(weapon_id)
+		and not SaveManager.is_weapon_purchased(character_id, weapon_id)
+	)
+
+
+func _build_section_header(title: String, add_top_gap: bool) -> Control:
+	var header := Label.new()
+	header.theme_type_variation = &"EyebrowLabel"
+	header.text = title
+	header.add_theme_color_override(&"font_color", ACCENT_COLOR)
+	if add_top_gap:
+		# The list separation alone reads as a single run of cards; the extra
+		# top margin is what makes the sections legible while scrolling.
+		header.custom_minimum_size = Vector2(0, 34)
+		header.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	return header
 
 
 func _build_weapon_card(
@@ -130,28 +173,23 @@ func _build_weapon_card(
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	details.add_theme_constant_override(&"separation", 4)
 	content.add_child(details)
-	var name_label := Label.new()
+	var name_label := _make_card_label(weapon_data.display_name.to_upper(), state_color)
 	name_label.add_theme_font_size_override(&"font_size", 20)
-	name_label.add_theme_color_override(&"font_color", state_color)
-	name_label.text = weapon_data.display_name.to_upper()
 	details.add_child(name_label)
-	var role_label := Label.new()
+	var role_label := _make_card_label(
+		"%s  ·  %s" % [_get_weapon_role(weapon_data.weapon_id), state_text],
+		state_color
+	)
 	role_label.theme_type_variation = &"MutedLabel"
-	role_label.text = "%s  ·  %s" % [
-		_get_weapon_role(weapon_data.weapon_id), state_text
-	]
-	role_label.add_theme_color_override(&"font_color", state_color)
 	details.add_child(role_label)
 	var evolution_text := _get_evolution_text(character_id, weapon_data.weapon_id)
 	if not evolution_text.is_empty():
-		var evolution_label := Label.new()
+		var evolution_label := _make_card_label(evolution_text, ACCENT_COLOR)
 		evolution_label.theme_type_variation = &"MutedLabel"
-		evolution_label.text = evolution_text
-		evolution_label.add_theme_color_override(&"font_color", ACCENT_COLOR)
 		details.add_child(evolution_label)
 
 	var actions := HBoxContainer.new()
-	actions.custom_minimum_size = Vector2(330, 0)
+	actions.custom_minimum_size = Vector2(300, 0)
 	actions.alignment = BoxContainer.ALIGNMENT_END
 	actions.add_theme_constant_override(&"separation", 10)
 	content.add_child(actions)
@@ -174,6 +212,19 @@ func _build_weapon_card(
 	return card
 
 
+func _make_card_label(text: String, color: Color) -> Label:
+	# Clipping is what keeps the screen inside the window: an unclipped Label
+	# reports the full text width as its minimum size, and a long weapon line
+	# used to push the whole page past both edges of the viewport.
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override(&"font_color", color)
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
+
+
 func _get_weapon_state_text(
 	is_equipped: bool,
 	is_owned: bool,
@@ -189,7 +240,8 @@ func _get_weapon_state_text(
 		return "LEVEL %d REQUIRED" % weapon_data.required_level
 	if credits_short:
 		return "CREDITS SHORT"
-	return "AVAILABLE  ·  %d CREDITS" % weapon_data.credit_cost
+	# The price already sits on the buy button next to it.
+	return "AVAILABLE"
 
 
 func _get_weapon_state_color(
@@ -226,7 +278,7 @@ func _make_equip_button(
 	is_equipped: bool
 ) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(152, 42)
+	button.custom_minimum_size = Vector2(142, 42)
 	button.text = (
 		"EQUIPPED [%s]" if is_equipped else "EQUIP [%s]"
 	) % ("1" if slot == &"primary" else "2")
@@ -244,7 +296,8 @@ func _make_purchase_button(
 	character_id: StringName, weapon_data: WeaponData
 ) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(220, 42)
+	button.custom_minimum_size = Vector2(294, 42)
+	button.clip_text = true
 	var character_level := SaveManager.get_character_level(character_id)
 	if character_level < weapon_data.required_level:
 		button.text = "REQUIRES LEVEL %d" % weapon_data.required_level
@@ -268,20 +321,25 @@ func _get_weapon_name(weapon_id: StringName) -> String:
 	return weapon_data.display_name if weapon_data != null else "-"
 
 
+const WEAPON_ROLES: Dictionary[StringName, String] = {
+	&"assault_rifle": "AUTOMATIC RIFLE",
+	&"storm_rifle": "AUTOMATIC RIFLE",
+	&"smg": "RAPID-FIRE SMG",
+	&"hornet": "RAPID-FIRE SMG",
+	&"pistol": "SIDEARM",
+	&"shotgun": "CLOSE-RANGE FIREARM",
+	&"siege_breaker": "CLOSE-RANGE FIREARM",
+	&"machine_gun": "SUPPRESSION - SLOWS YOU DOWN",
+	&"minigun": "SUPPRESSION - SLOWS YOU DOWN",
+	&"worn_sword": "MELEE - SLASH",
+	&"cleaver": "MELEE - SLASH",
+	&"spear": "MELEE - THRUST",
+	&"fire_axe": "MELEE - HEAVY SWING",
+}
+
+
 func _get_weapon_role(weapon_id: StringName) -> String:
-	if weapon_id == &"assault_rifle":
-		return "AUTOMATIC RIFLE"
-	if weapon_id == &"pistol":
-		return "SIDEARM"
-	if weapon_id == &"shotgun":
-		return "CLOSE-RANGE FIREARM"
-	if weapon_id in [&"machine_gun", &"minigun"]:
-		return "SUPPRESSION - SLOWS YOU DOWN"
-	if weapon_id == &"worn_sword":
-		return "MELEE - SLASH"
-	if weapon_id == &"spear":
-		return "MELEE - THRUST"
-	return "WEAPON"
+	return WEAPON_ROLES.get(weapon_id, "WEAPON")
 
 
 func _on_purchase_pressed(
@@ -349,7 +407,5 @@ func _get_evolution_text(
 	var required := int(evolution["kills_required"])
 	var kills := mini(SaveManager.get_weapon_kills(character_id, weapon_id), required)
 	if SaveManager.is_weapon_purchased(character_id, evolution["evolved_id"]):
-		return "EVOLUTION UNLOCKED: %s" % String(evolution["name"])
-	return "EVOLVES INTO %s  ·  %d / %d KILLS" % [
-		String(evolution["name"]), kills, required
-	]
+		return "UNLOCKED: %s" % String(evolution["name"])
+	return "→ %s  ·  %d/%d KILLS" % [String(evolution["name"]), kills, required]

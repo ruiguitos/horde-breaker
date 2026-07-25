@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"pistol"
 display_name = "Pistol"
+category = &"sidearm"
 required_level = 2
 credit_cost = 250
 is_playable = true

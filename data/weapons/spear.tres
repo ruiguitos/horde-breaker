@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"spear"
 display_name = "Spear"
+category = &"melee"
 required_level = 1
 credit_cost = 0
 is_playable = true

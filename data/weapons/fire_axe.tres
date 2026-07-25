@@ -7,6 +7,7 @@
 script = ExtResource("1_weapon_data")
 weapon_id = &"fire_axe"
 display_name = "Fire Axe"
+category = &"melee"
 required_level = 4
 credit_cost = 500
 is_playable = true

@@ -8,6 +8,8 @@ const WORLD_COLLISION_MASK := 1
 const DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/damage_number_3d.tscn")
 const ENEMY_GROUP := &"enemy"
 const AUTO_SCAN_INTERVAL := 0.12
+const ATTACK_VOLUME_WIDTH := 2.6
+const ATTACK_VOLUME_HEIGHT := 3.0
 
 @export var display_name: String = "Worn Sword"
 @export var weapon_id: StringName = &"worn_sword"
@@ -32,6 +34,25 @@ var _auto_scan_time: float = 0.0
 
 func _ready() -> void:
 	sword_visual_pivot.rotation.y = REST_ROTATION_Y
+	_fit_attack_volume_to_reach()
+
+
+func _fit_attack_volume_to_reach() -> void:
+	# The swing volume is derived from the reach instead of being authored per
+	# scene. The two had drifted apart: every melee weapon triggered its swing
+	# about 0.7 m further out than the box could reach, and was offset sideways
+	# on top of that, so the auto-attack kept swinging at nothing.
+	var box := attack_collision.shape as BoxShape3D
+	if box == null:
+		push_error("MeleeWeapon requires a BoxShape3D attack volume.")
+		return
+	var sized := box.duplicate() as BoxShape3D
+	sized.size = Vector3(
+		ATTACK_VOLUME_WIDTH, ATTACK_VOLUME_HEIGHT, proximity_auto_attack_range
+	)
+	attack_collision.shape = sized
+	# Centred on the weapon's forward axis, covering 0..reach in front of it.
+	attack_area.position = Vector3(0.0, 0.0, -proximity_auto_attack_range * 0.5)
 
 
 func _physics_process(delta: float) -> void:
@@ -165,10 +186,14 @@ func _get_damage_target(collider: Object) -> Node3D:
 func _has_clear_path_to(target: Node3D) -> bool:
 	if target == null:
 		return false
+	# Aim at the body hitbox, not at the feet: a ray to ground level clips the
+	# terrain on any slope and the hit gets thrown away.
+	var target_position := target.global_position + Vector3.UP * 1.0
+	var body_hitbox := target.get_node_or_null("BodyHitbox") as Node3D
+	if body_hitbox != null:
+		target_position = body_hitbox.global_position
 	var ray_query := PhysicsRayQueryParameters3D.create(
-		global_position,
-		target.global_position + Vector3.UP * 0.4,
-		WORLD_COLLISION_MASK
+		global_position, target_position, WORLD_COLLISION_MASK
 	)
 	return get_world_3d().direct_space_state.intersect_ray(ray_query).is_empty()
 
