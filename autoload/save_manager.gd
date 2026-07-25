@@ -255,10 +255,8 @@ func can_unlock_skill_node(character_id: StringName, node_id: StringName) -> boo
 		or get_character_level(character_id) < SkillTree.get_required_level(node_id)
 	):
 		return false
-	var prerequisite := SkillTree.get_prerequisite_id(node_id)
-	return (
-		prerequisite == &""
-		or is_skill_node_unlocked(character_id, prerequisite)
+	return SkillTree.is_prerequisite_met(
+		node_id, Array(get_unlocked_skill_nodes(character_id))
 	)
 
 

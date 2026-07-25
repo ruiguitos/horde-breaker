@@ -161,13 +161,25 @@ func _apply_display_state() -> void:
 		window.mode = target_mode
 		await get_tree().process_frame
 	if _target_fullscreen:
+		_apply_content_scale(window, get_active_resolution())
 		display_settings_applied.emit(true, get_active_resolution())
 		return
 	if window.size != get_resolution():
 		window.size = get_resolution()
 		await get_tree().process_frame
 	window.move_to_center()
+	_apply_content_scale(window, get_active_resolution())
 	display_settings_applied.emit(false, get_active_resolution())
+
+
+func _apply_content_scale(window: Window, resolution: Vector2i) -> void:
+	# The canvas has to follow the window, not stay pinned to the project's base
+	# size. It used to render at 1152x648 and stretch to whatever the window
+	# was, so picking a higher resolution only made everything bigger and
+	# blurrier instead of giving the interface its extra room.
+	if resolution.x <= 0 or resolution.y <= 0:
+		return
+	window.content_scale_size = resolution
 
 
 func _apply_vsync() -> void:

@@ -26,8 +26,18 @@ func _capture() -> void:
 	var target := arguments[0]
 	var output_path := arguments[1]
 	var capture_size := Vector2i(int(arguments[2]), int(arguments[3]))
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-	DisplayServer.window_set_size(capture_size)
+	# Go through SettingsManager: it owns the window and would otherwise reassert
+	# the player's saved resolution over anything set here. An isolated config
+	# file keeps the capture from rewriting the real settings.
+	var settings := root.get_node_or_null("/root/SettingsManager")
+	if settings != null:
+		settings.call(&"load_settings", "user://horde_breaker_capture_settings.cfg")
+		settings.call(&"set_fullscreen", false)
+		settings.call(&"set_resolution", capture_size)
+		await settings.display_settings_applied
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_size(capture_size)
 	var scene_path := String(MENU_SCENES.get(target, ARENA_SCENE))
 	var scene_error := change_scene_to_file(scene_path)
 	if scene_error != OK:
@@ -39,7 +49,6 @@ func _capture() -> void:
 	if fps_overlay != null:
 		fps_overlay.visible = false
 	await _wait_frames(35 if MENU_SCENES.has(target) else 100)
-	DisplayServer.window_set_size(capture_size)
 	if not MENU_SCENES.has(target):
 		if not _prepare_arena_target(target):
 			quit(1)

@@ -1,5 +1,10 @@
 extends Control
 
+## Skill screen laid out as three separate trees, one per branch, drawn the way
+## progression trees usually read: a trunk that forks into two paths, diamond
+## nodes wired together by lines that light up as they unlock, and a single
+## detail panel describing whatever node is under the cursor.
+
 const UNLOCKED_COLOR := Color(0.44, 0.82, 0.59, 1.0)
 const LOCKED_COLOR := Color(0.55, 0.6, 0.65, 1.0)
 const ACCENT_COLOR := Color(0.957, 0.694, 0.31, 1.0)
@@ -10,10 +15,24 @@ const BRANCH_COLORS := {
 	SkillTree.BRANCH_EXPEDITION: Color(0.36, 0.68, 0.88, 1.0),
 }
 
+## Tree geometry, in pixels inside each branch panel.
+const NODE_SIZE := Vector2(56.0, 56.0)
+const TIER_SPACING := 64.0
+const COLUMN_SPACING := 88.0
+const TREE_TOP_MARGIN := 32.0
+const TREE_SIZE := Vector2(268.0, 314.0)
+
 @onready var title_label: Label = %TitleLabel
 @onready var points_label: Label = %PointsLabel
 @onready var branches_container: HBoxContainer = %Branches
 @onready var back_button: Button = %BackButton
+
+var _detail_title: Label
+var _detail_body: Label
+var _detail_state: Label
+var _unlock_button: Button
+var _focused_node_id: StringName = &""
+var _node_buttons: Dictionary[StringName, Button] = {}
 
 
 func _ready() -> void:
@@ -21,8 +40,16 @@ func _ready() -> void:
 	back_button.pressed.connect(GameManager.open_character_selection)
 	SaveManager.skill_points_changed.connect(_on_skill_points_changed)
 	SaveManager.character_progress_changed.connect(_on_character_progress_changed)
+	_build_detail_panel()
 	_rebuild()
 	back_button.grab_focus()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Esc mirrors the BACK button, like every other menu page.
+	if event.is_action_pressed(&"ui_cancel"):
+		GameManager.open_character_selection()
+		get_viewport().set_input_as_handled()
 
 
 func _on_skill_points_changed(_character_id: StringName) -> void:
@@ -33,6 +60,48 @@ func _on_character_progress_changed(
 	_character_id: StringName, _level: int, _xp: int
 ) -> void:
 	_rebuild()
+
+
+func _build_detail_panel() -> void:
+	# Built in code so the existing scene keeps its layout: a single panel under
+	# the trees describes whichever node the cursor is on, which is what keeps
+	# the nodes themselves free of text.
+	var panel := PanelContainer.new()
+	panel.name = "DetailPanel"
+	panel.theme_type_variation = &"MenuPanel"
+	panel.custom_minimum_size = Vector2(0, 84)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(&"margin_left", 18)
+	margin.add_theme_constant_override(&"margin_top", 10)
+	margin.add_theme_constant_override(&"margin_right", 18)
+	margin.add_theme_constant_override(&"margin_bottom", 10)
+	panel.add_child(margin)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 20)
+	margin.add_child(row)
+	var text_column := VBoxContainer.new()
+	text_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_column.add_theme_constant_override(&"separation", 3)
+	row.add_child(text_column)
+	_detail_title = Label.new()
+	_detail_title.add_theme_font_override(&"font", CARD_TITLE_FONT)
+	_detail_title.add_theme_font_size_override(&"font_size", 18)
+	text_column.add_child(_detail_title)
+	_detail_body = Label.new()
+	_detail_body.theme_type_variation = &"MutedLabel"
+	_detail_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_column.add_child(_detail_body)
+	_detail_state = Label.new()
+	_detail_state.theme_type_variation = &"MutedLabel"
+	text_column.add_child(_detail_state)
+	_unlock_button = Button.new()
+	_unlock_button.theme_type_variation = &"PrimaryButton"
+	_unlock_button.custom_minimum_size = Vector2(210, 42)
+	_unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_unlock_button.pressed.connect(_on_unlock_pressed)
+	row.add_child(_unlock_button)
+	branches_container.get_parent().add_child(panel)
+	_show_detail(&"")
 
 
 func _rebuild() -> void:
@@ -51,186 +120,297 @@ func _rebuild() -> void:
 	for child in branches_container.get_children():
 		branches_container.remove_child(child)
 		child.queue_free()
+	_node_buttons.clear()
 	for branch in SkillTree.BRANCHES:
-		branches_container.add_child(_build_branch_column(character_id, branch))
-	UiAnimations.enhance_buttons(self)
+		branches_container.add_child(_build_branch_panel(character_id, branch))
+	_show_detail(_focused_node_id)
 
 
-func _build_branch_column(
+func _build_branch_panel(
 	character_id: StringName, branch: Dictionary
-) -> VBoxContainer:
+) -> PanelContainer:
 	var branch_id: StringName = branch["id"]
 	var branch_color: Color = BRANCH_COLORS.get(branch_id, ACCENT_COLOR)
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"MenuPanel"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(&"margin_left", 10)
+	margin.add_theme_constant_override(&"margin_top", 12)
+	margin.add_theme_constant_override(&"margin_right", 10)
+	margin.add_theme_constant_override(&"margin_bottom", 10)
+	panel.add_child(margin)
 	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override(&"separation", 0)
+	column.add_theme_constant_override(&"separation", 2)
+	margin.add_child(column)
+
 	var branch_title := Label.new()
 	branch_title.theme_type_variation = &"SectionTitle"
 	branch_title.add_theme_color_override(&"font_color", branch_color)
 	branch_title.text = String(branch["title"])
 	branch_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(branch_title)
-	var branch_nodes := SkillTree.get_branch_nodes(branch_id)
-	for node_index in branch_nodes.size():
-		var node_definition: Dictionary = branch_nodes[node_index]
-		column.add_child(
-			_build_node_card(character_id, node_definition, branch_color)
+	var tagline := Label.new()
+	tagline.theme_type_variation = &"MutedLabel"
+	tagline.add_theme_font_size_override(&"font_size", 12)
+	tagline.text = String(branch["tagline"])
+	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(tagline)
+
+	var canvas := _make_tree_canvas(character_id, branch_id, branch_color)
+	column.add_child(canvas)
+	return panel
+
+
+func _make_tree_canvas(
+	character_id: StringName, branch_id: StringName, branch_color: Color
+) -> Control:
+	var canvas := Control.new()
+	canvas.custom_minimum_size = TREE_SIZE
+	# Shrink-centre rather than expand: node positions are computed against
+	# TREE_SIZE, so the canvas has to keep exactly that width to stay centred.
+	canvas.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	canvas.clip_contents = true
+	var links := _TreeLinks.new()
+	links.set_anchors_preset(Control.PRESET_FULL_RECT)
+	links.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	links.branch_color = branch_color
+	canvas.add_child(links)
+
+	var nodes := SkillTree.get_branch_nodes(branch_id)
+	var positions: Dictionary[StringName, Vector2] = {}
+	for node_definition in nodes:
+		var node_id: StringName = node_definition["id"]
+		positions[node_id] = _get_node_position(node_definition)
+		var button := _build_node_button(
+			character_id, node_definition, branch_color
 		)
-		if node_index < branch_nodes.size() - 1:
-			column.add_child(
-				_build_connector(character_id, node_definition, branch_color)
-			)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(spacer)
-	return column
+		button.position = positions[node_id] - NODE_SIZE * 0.5
+		canvas.add_child(button)
+		_node_buttons[node_id] = button
+	# Links are described in canvas space and drawn behind the buttons.
+	for node_definition in nodes:
+		var node_id: StringName = node_definition["id"]
+		for prerequisite_value in node_definition["requires"]:
+			var prerequisite := StringName(prerequisite_value)
+			if not positions.has(prerequisite):
+				continue
+			links.links.append({
+				"from": positions[prerequisite],
+				"to": positions[node_id],
+				"active": SaveManager.is_skill_node_unlocked(
+					character_id, prerequisite
+				),
+			})
+	return canvas
 
 
-func _build_node_card(
+func _get_node_position(node_definition: Dictionary) -> Vector2:
+	var tier := int(node_definition["tier"])
+	var node_column := int(node_definition["column"])
+	return Vector2(
+		TREE_SIZE.x * 0.5 + float(node_column) * COLUMN_SPACING * 0.5,
+		TREE_TOP_MARGIN + float(tier - 1) * TIER_SPACING
+	)
+
+
+func _build_node_button(
 	character_id: StringName,
 	node_definition: Dictionary,
 	branch_color: Color
-) -> PanelContainer:
+) -> Button:
 	var node_id: StringName = node_definition["id"]
 	var unlocked := SaveManager.is_skill_node_unlocked(character_id, node_id)
 	var can_unlock := SaveManager.can_unlock_skill_node(character_id, node_id)
-
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override(
-		&"panel", _make_node_style(unlocked, can_unlock, branch_color)
-	)
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override(&"margin_left", 12)
-	margin.add_theme_constant_override(&"margin_top", 7)
-	margin.add_theme_constant_override(&"margin_right", 12)
-	margin.add_theme_constant_override(&"margin_bottom", 7)
-	card.add_child(margin)
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override(&"separation", 3)
-	margin.add_child(content)
-
-	var title := Label.new()
-	title.add_theme_font_size_override(&"font_size", 16)
-	title.add_theme_font_override(&"font", CARD_TITLE_FONT)
-	title.add_theme_color_override(
-		&"font_color",
-		ACCENT_COLOR if unlocked else branch_color if can_unlock else LOCKED_COLOR
-	)
-	title.text = "%d · %s  [LV %d]" % [
-		int(node_definition["tier"]),
-		String(node_definition["title"]),
-		SkillTree.get_required_level(node_id),
+	var button := Button.new()
+	button.size = NODE_SIZE
+	button.custom_minimum_size = NODE_SIZE
+	button.flat = true
+	button.focus_mode = Control.FOCUS_NONE
+	button.tooltip_text = "%s\n%s" % [
+		String(node_definition["title"]), String(node_definition["description"])
 	]
-	content.add_child(title)
-
-	var description := Label.new()
-	description.theme_type_variation = &"MutedLabel"
-	description.add_theme_font_size_override(&"font_size", 13)
-	description.text = String(node_definition["description"])
-	content.add_child(description)
-
-	if unlocked:
-		content.add_child(_make_state_label("UNLOCKED", UNLOCKED_COLOR))
-	elif can_unlock:
-		var button := Button.new()
-		button.theme_type_variation = &"PrimaryButton"
-		button.custom_minimum_size = Vector2(0, 32)
-		button.text = "UNLOCK  ·  1 PT"
-		button.pressed.connect(_on_unlock_pressed.bind(node_id))
-		content.add_child(button)
-	else:
-		content.add_child(
-			_make_state_label(
-				_get_locked_reason(character_id, node_id), LOCKED_COLOR
-			)
-		)
-	return card
+	button.add_child(
+		_make_node_diamond(node_definition, unlocked, can_unlock, branch_color)
+	)
+	button.mouse_entered.connect(_show_detail.bind(node_id))
+	button.pressed.connect(_show_detail.bind(node_id))
+	return button
 
 
-func _build_connector(
-	character_id: StringName,
-	previous_node: Dictionary,
+func _make_node_diamond(
+	node_definition: Dictionary,
+	unlocked: bool,
+	can_unlock: bool,
 	branch_color: Color
 ) -> Control:
-	var holder := CenterContainer.new()
-	holder.custom_minimum_size = Vector2(0.0, 8.0)
-	var line := ColorRect.new()
-	line.custom_minimum_size = Vector2(3.0, 8.0)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var previous_id: StringName = previous_node["id"]
-	line.color = (
-		branch_color.darkened(0.12)
-		if SaveManager.is_skill_node_unlocked(character_id, previous_id)
-		else Color(0.25, 0.29, 0.32, 0.55)
+	var diamond := _NodeDiamond.new()
+	diamond.set_anchors_preset(Control.PRESET_FULL_RECT)
+	diamond.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	diamond.branch_color = branch_color
+	diamond.unlocked = unlocked
+	diamond.can_unlock = can_unlock
+	diamond.tier_text = str(int(node_definition["tier"]))
+	return diamond
+
+
+func _show_detail(node_id: StringName) -> void:
+	_focused_node_id = node_id
+	var character_id := SaveManager.get_selected_character()
+	var node_definition := SkillTree.get_node_definition(node_id)
+	if node_definition.is_empty():
+		_detail_title.text = "SELECT A SKILL"
+		_detail_title.add_theme_color_override(&"font_color", LOCKED_COLOR)
+		_detail_body.text = (
+			"Hover a node to read what it does. Each branch forks in two after "
+			+ "the first skill; the capstone opens from either path."
+		)
+		_detail_state.text = ""
+		_unlock_button.visible = false
+		return
+	var branch_color: Color = BRANCH_COLORS.get(
+		node_definition["branch"], ACCENT_COLOR
 	)
-	holder.add_child(line)
-	return holder
-
-
-func _make_node_style(
-	unlocked: bool, can_unlock: bool, branch_color: Color
-) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.035, 0.052, 0.068, 0.97)
-	style.border_width_left = 2
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 2
-	style.corner_radius_top_right = 2
-	style.corner_radius_bottom_left = 2
-	style.corner_radius_bottom_right = 2
+	var unlocked := SaveManager.is_skill_node_unlocked(character_id, node_id)
+	var can_unlock := SaveManager.can_unlock_skill_node(character_id, node_id)
+	_detail_title.text = "%s  ·  TIER %d" % [
+		String(node_definition["title"]).to_upper(), int(node_definition["tier"])
+	]
+	_detail_title.add_theme_color_override(
+		&"font_color", ACCENT_COLOR if unlocked else branch_color
+	)
+	_detail_body.text = String(node_definition["description"])
 	if unlocked:
-		style.bg_color = Color(0.095, 0.075, 0.045, 0.98)
-		style.border_color = ACCENT_COLOR
-		style.shadow_color = Color(0.957, 0.694, 0.31, 0.22)
-		style.shadow_size = 7
-	elif can_unlock:
-		style.bg_color = Color(
-			branch_color.r * 0.12,
-			branch_color.g * 0.12,
-			branch_color.b * 0.12,
-			0.98
-		)
-		style.border_color = branch_color
-		style.shadow_color = Color(
-			branch_color.r, branch_color.g, branch_color.b, 0.28
-		)
-		style.shadow_size = 8
-	else:
-		style.bg_color = Color(0.022, 0.032, 0.043, 0.92)
-		style.border_color = Color(
-			branch_color.r, branch_color.g, branch_color.b, 0.24
-		)
-	return style
+		_detail_state.text = "UNLOCKED"
+		_detail_state.add_theme_color_override(&"font_color", UNLOCKED_COLOR)
+		_unlock_button.visible = false
+		return
+	_detail_state.text = _get_requirement_text(character_id, node_id)
+	_detail_state.add_theme_color_override(
+		&"font_color", branch_color if can_unlock else LOCKED_COLOR
+	)
+	_unlock_button.visible = true
+	_unlock_button.disabled = not can_unlock
+	_unlock_button.text = "UNLOCK  ·  1 PT" if can_unlock else "LOCKED"
 
 
-func _get_locked_reason(character_id: StringName, node_id: StringName) -> String:
+func _get_requirement_text(
+	character_id: StringName, node_id: StringName
+) -> String:
 	var required_level := SkillTree.get_required_level(node_id)
 	if SaveManager.get_character_level(character_id) < required_level:
 		return "REQUIRES LEVEL %d" % required_level
-	var prerequisite := SkillTree.get_prerequisite_id(node_id)
-	if (
-		prerequisite != &""
-		and not SaveManager.is_skill_node_unlocked(character_id, prerequisite)
-	):
-		return "REQUIRES PREVIOUS SKILL"
+	var unlocked_ids := Array(SaveManager.get_unlocked_skill_nodes(character_id))
+	if not SkillTree.is_prerequisite_met(node_id, unlocked_ids):
+		var names: PackedStringArray = []
+		for prerequisite in SkillTree.get_prerequisites(node_id):
+			var definition := SkillTree.get_node_definition(
+				StringName(prerequisite)
+			)
+			if not definition.is_empty():
+				names.append(String(definition["title"]).to_upper())
+		return "REQUIRES %s" % " OR ".join(names)
 	if SaveManager.get_available_skill_points(character_id) <= 0:
-		return "NO SKILL POINTS"
-	return "LOCKED"
+		return "NO SKILL POINTS  ·  NEXT AT LEVEL %d" % (
+			SaveManager.get_next_skill_point_level(character_id)
+		)
+	return "READY TO UNLOCK  ·  LEVEL %d REQUIRED" % required_level
 
 
-func _make_state_label(text: String, color: Color) -> Label:
-	var label := Label.new()
-	label.add_theme_font_size_override(&"font_size", 13)
-	label.add_theme_color_override(&"font_color", color)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.custom_minimum_size = Vector2(0, 32)
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.text = text
-	return label
-
-
-func _on_unlock_pressed(node_id: StringName) -> void:
-	SaveManager.unlock_skill_node(SaveManager.get_selected_character(), node_id)
+func _on_unlock_pressed() -> void:
+	if _focused_node_id == &"":
+		return
+	SaveManager.unlock_skill_node(
+		SaveManager.get_selected_character(), _focused_node_id
+	)
 	# _rebuild runs via the skill_points_changed signal.
+
+
+## Draws the wiring between nodes behind the buttons.
+class _TreeLinks:
+	extends Control
+
+	const INACTIVE_COLOR := Color(0.25, 0.29, 0.32, 0.75)
+
+	var links: Array[Dictionary] = []
+	var branch_color := Color.WHITE
+
+	func _draw() -> void:
+		for link in links:
+			var from: Vector2 = link["from"]
+			var to: Vector2 = link["to"]
+			var active: bool = link["active"]
+			var color := (
+				branch_color.darkened(0.1) if active else INACTIVE_COLOR
+			)
+			var width := 4.0 if active else 2.0
+			# Elbow routing: down, across, then down again, so forks read as
+			# branches instead of diagonal spaghetti.
+			var midpoint_y := (from.y + to.y) * 0.5
+			draw_line(from, Vector2(from.x, midpoint_y), color, width, true)
+			draw_line(
+				Vector2(from.x, midpoint_y), Vector2(to.x, midpoint_y),
+				color, width, true
+			)
+			draw_line(Vector2(to.x, midpoint_y), to, color, width, true)
+
+
+## A single skill node: a diamond that reads as locked, available or unlocked.
+class _NodeDiamond:
+	extends Control
+
+	const TIER_FONT := preload("res://assets/fonts/Rajdhani-SemiBold.ttf")
+	const LOCKED_FILL := Color(0.05, 0.07, 0.09, 0.95)
+	const LOCKED_LINE := Color(0.3, 0.34, 0.38, 0.7)
+
+	var branch_color := Color.WHITE
+	var unlocked := false
+	var can_unlock := false
+	var tier_text := ""
+
+	func _draw() -> void:
+		var center := size * 0.5
+		var radius := minf(size.x, size.y) * 0.46
+		var points := PackedVector2Array([
+			center + Vector2(0.0, -radius),
+			center + Vector2(radius, 0.0),
+			center + Vector2(0.0, radius),
+			center + Vector2(-radius, 0.0),
+		])
+		var fill := LOCKED_FILL
+		var line := LOCKED_LINE
+		var line_width := 2.0
+		if unlocked:
+			fill = Color(branch_color.r, branch_color.g, branch_color.b, 0.35)
+			line = branch_color
+			line_width = 3.0
+		elif can_unlock:
+			fill = Color(branch_color.r, branch_color.g, branch_color.b, 0.14)
+			line = branch_color
+			line_width = 3.0
+		draw_colored_polygon(points, fill)
+		var outline := points.duplicate()
+		outline.append(points[0])
+		draw_polyline(outline, line, line_width, true)
+		# An unlocked node gets a filled core, the way spent points usually read.
+		if unlocked:
+			var core := PackedVector2Array([
+				center + Vector2(0.0, -radius * 0.42),
+				center + Vector2(radius * 0.42, 0.0),
+				center + Vector2(0.0, radius * 0.42),
+				center + Vector2(-radius * 0.42, 0.0),
+			])
+			draw_colored_polygon(core, branch_color)
+			return
+		var font := TIER_FONT
+		var text_size := font.get_string_size(tier_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+		draw_string(
+			font,
+			center + Vector2(-text_size.x * 0.5, text_size.y * 0.32),
+			tier_text,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			18,
+			line
+		)

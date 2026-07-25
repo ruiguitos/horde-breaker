@@ -167,6 +167,16 @@ func _apply_to_player(bonuses: Dictionary) -> void:
 	var speed_mult := float(bonuses.get("move_speed_mult", 1.0))
 	player.set(&"move_speed", float(player.get(&"move_speed")) * speed_mult)
 	player.set(&"sprint_speed", float(player.get(&"sprint_speed")) * speed_mult)
+	# Pickup range lives on the run progression, alongside the MAGNETIC FIELD
+	# card that scales the same value during a run.
+	var pickup_mult := float(bonuses.get("pickup_radius_mult", 1.0))
+	if pickup_mult != 1.0:
+		var progression := get_tree().get_first_node_in_group(&"run_progression")
+		if progression != null:
+			progression.set(
+				&"pickup_radius_multiplier",
+				float(progression.get(&"pickup_radius_multiplier")) * pickup_mult
+			)
 
 
 func _apply_to_weapons(bonuses: Dictionary) -> void:
@@ -199,6 +209,11 @@ func _apply_to_weapon(weapon: Node, bonuses: Dictionary) -> void:
 			float(weapon.call(&"get_reload_duration_multiplier"))
 			* float(bonuses.get("reload_mult", 1.0))
 		)
+	var magazine_mult := float(bonuses.get("magazine_mult", 1.0))
+	if magazine_mult != 1.0:
+		var magazine: Variant = weapon.get(&"magazine_size")
+		if magazine != null:
+			weapon.set(&"magazine_size", ceili(int(magazine) * magazine_mult))
 	# Reserve bonuses share the weapon's additive capacity budget with the run
 	# cards instead of multiplying the current values.
 	var reserve_mult := float(bonuses.get("ammo_reserve_mult", 1.0))
