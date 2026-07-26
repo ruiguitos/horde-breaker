@@ -45,6 +45,9 @@ const SOURCES: Array[Dictionary] = [
 ## Anything flatter than this is ground to walk on, not an obstacle, so it gets
 ## no collider (roads, pavement, manhole covers).
 const MINIMUM_COLLIDER_HEIGHT := 0.5
+## How far ground tiles sit above the world plane. Enough to beat z-fighting,
+## small enough that nothing trips on it.
+const GROUND_CLEARANCE := 0.03
 ## Common modular grid sizes to test the measured footprints against.
 const CANDIDATE_MODULES: Array[float] = [1.0, 2.0, 4.0, 8.0, 16.0]
 const MODULE_TOLERANCE := 0.15
@@ -172,14 +175,36 @@ func _build_item(file_path: String, prefix: String, scale: float = 1.0) -> Dicti
 		"mesh": merged,
 		"bounds": bounds,
 	}
+	# Ground tiles are dropped so their top surface sits at y = 0, level with the
+	# world ground. Otherwise the player walks on the world plane while the
+	# asphalt stands proud of it, and ends up buried to the waist in the road.
+	if bounds.size.y < MINIMUM_COLLIDER_HEIGHT:
+		# A hair above the world ground, not level with it: at exactly y = 0 the
+		# two coplanar surfaces z-fight and the road tears into flickering
+		# triangles.
+		var top := bounds.position.y + bounds.size.y
+		entry["mesh"] = _offset_mesh(merged, Vector3(0.0, GROUND_CLEARANCE - top, 0.0))
+		return entry
 	# A box derived from the model's own bounds: cheap, and good enough for a
-	# navigation obstacle and for walking into. Flat pieces get none.
+	# navigation obstacle and for walking into.
 	if bounds.size.y >= MINIMUM_COLLIDER_HEIGHT:
 		var shape := BoxShape3D.new()
 		shape.size = bounds.size
 		entry["shape"] = shape
 		entry["shape_offset"] = bounds.position + bounds.size * 0.5
 	return entry
+
+
+func _offset_mesh(mesh: ArrayMesh, offset: Vector3) -> ArrayMesh:
+	var moved := ArrayMesh.new()
+	for surface in mesh.get_surface_count():
+		var tool := SurfaceTool.new()
+		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		tool.append_from(mesh, surface, Transform3D(Basis(), offset))
+		var index := moved.get_surface_count()
+		tool.commit(moved)
+		moved.surface_set_material(index, mesh.surface_get_material(surface))
+	return moved
 
 
 func _merge_meshes(instance: Node3D) -> ArrayMesh:

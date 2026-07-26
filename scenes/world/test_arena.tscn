@@ -1,45 +1,39 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
-[ext_resource type="Environment" path="res://resources/atmosphere_presets/calm.tres" id="2_btgqr"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
+[ext_resource type="Environment" path="res://resources/atmosphere_presets/calm.tres" id="2_ysxki"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
 [ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="5_wave_manager_script"]
-[ext_resource type="PackedScene" path="res://scenes/world/camp_core.tscn" id="6_camp_core"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
-[ext_resource type="Script" path="res://scripts/systems/camp_core.gd" id="9_uvjfp"]
-[ext_resource type="Script" path="res://scripts/systems/fortification_site.gd" id="12_d3l8b"]
+[ext_resource type="Script" path="res://scripts/pickups/ammo_pickup.gd" id="10_eij3c"]
+[ext_resource type="Script" path="res://scripts/pickups/scrap_pickup.gd" id="12_isy77"]
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
-[ext_resource type="Script" path="res://scripts/pickups/ammo_pickup.gd" id="15_n846s"]
-[ext_resource type="Script" path="res://scripts/pickups/scrap_pickup.gd" id="17_je3g0"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="17_scrap_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
-[ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
-[ext_resource type="PackedScene" path="res://scenes/world/exploration_pois.tscn" id="20_exploration_pois"]
 [ext_resource type="Script" path="res://scripts/systems/world_streamer.gd" id="21_world_streamer"]
 [ext_resource type="Script" path="res://scripts/systems/pickup_randomizer.gd" id="25_pickup_randomizer"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="26_3175d"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="26_brute"]
+[ext_resource type="Script" path="res://scripts/ui/build_catalog.gd" id="27_3filw"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="27_spitter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="28_boss"]
+[ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="29_btgqr"]
 [ext_resource type="Script" path="res://scripts/systems/character_skills.gd" id="29_character_skills"]
 [ext_resource type="PackedScene" path="res://scenes/world/world_environment.tscn" id="30_world_environment"]
 [ext_resource type="Script" path="res://scripts/systems/atmosphere_controller.gd" id="31_atmosphere"]
-[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="31_l3gxt"]
-[ext_resource type="Script" path="res://scripts/systems/build_grid.gd" id="32_build_grid"]
-[ext_resource type="Script" path="res://scripts/ui/build_catalog.gd" id="32_pplfp"]
+[ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="31_uvjfp"]
 [ext_resource type="Script" path="res://scripts/systems/camp_builder.gd" id="33_camp_builder"]
-[ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="34_btw3l"]
+[ext_resource type="Script" path="res://scripts/ui/game_over_panel.gd" id="33_d3l8b"]
 [ext_resource type="PackedScene" path="res://scenes/ui/build_catalog.tscn" id="34_build_catalog"]
-[ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="36_rieb0"]
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="35_n846s"]
 [ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="36_run_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="37_upgrade_panel"]
-[ext_resource type="Script" path="res://scripts/ui/game_over_panel.gd" id="38_5n1ud"]
 [ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="38_run_objective"]
-[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="40_r23pl"]
 [ext_resource type="MeshLibrary" path="res://resources/map_tiles_pack.meshlib" id="41_btgqr"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
@@ -52,42 +46,10 @@ size = Vector3(256, 1, 256)
 [sub_resource type="BoxShape3D" id="Shape_floor"]
 size = Vector3(256, 1, 256)
 
-[sub_resource type="StandardMaterial3D" id="Material_wall"]
-albedo_color = Color(0.42, 0.44, 0.48, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="Mesh_wall"]
-material = SubResource("Material_wall")
-size = Vector3(65, 4, 1)
-
-[sub_resource type="BoxShape3D" id="Shape_wall"]
-size = Vector3(65, 4, 1)
-
-[sub_resource type="StandardMaterial3D" id="Material_obstacle"]
-albedo_color = Color(0.22, 0.32, 0.42, 1)
-roughness = 0.86
-
-[sub_resource type="BoxMesh" id="Mesh_center_obstacle"]
-material = SubResource("Material_obstacle")
-size = Vector3(6, 2, 2)
-
-[sub_resource type="BoxShape3D" id="Shape_center_obstacle"]
-size = Vector3(6, 2.6, 2.6)
-
-[sub_resource type="BoxMesh" id="Mesh_side_obstacle"]
-material = SubResource("Material_obstacle")
-size = Vector3(2, 2, 5)
-
-[sub_resource type="BoxShape3D" id="Shape_west_obstacle"]
-size = Vector3(2.6, 2.6, 6)
-
-[sub_resource type="BoxShape3D" id="Shape_east_obstacle"]
-size = Vector3(3, 3, 5.8)
-
 [node name="TestArena" type="Node3D" unique_id=963471712]
 
 [node name="Environment" type="WorldEnvironment" parent="." unique_id=1682927441 instance=ExtResource("30_world_environment")]
-environment = ExtResource("2_btgqr")
+environment = ExtResource("2_ysxki")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1578075932]
 transform = Transform3D(0.86602527, 0.38302252, -0.32139382, 0, 0.64278734, 0.7660447, 0.50000024, -0.66341406, 0.55667007, 0, 0, 0)
@@ -103,8 +65,6 @@ directional_light_path = NodePath("../DirectionalLight3D")
 script = ExtResource("2_navigation_script")
 navigation_half_extent = 32.0
 
-[node name="ExplorationPOIs" type="Node3D" parent="." unique_id=118510117 instance=ExtResource("20_exploration_pois")]
-
 [node name="LoadedSectors" type="Node3D" parent="." unique_id=1806810687 groups=["world_streamer"]]
 script = ExtResource("21_world_streamer")
 
@@ -117,124 +77,9 @@ mesh = SubResource("Mesh_floor")
 [node name="Collision" type="CollisionShape3D" parent="Floor" unique_id=2009191109]
 shape = SubResource("Shape_floor")
 
-[node name="Walls" type="Node3D" parent="." unique_id=1233646922]
-
-[node name="NorthWall" type="StaticBody3D" parent="Walls" unique_id=1899428412]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -32.5)
-
-[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall" unique_id=1485590187]
-visible = false
-mesh = SubResource("Mesh_wall")
-
-[node name="Collision" type="CollisionShape3D" parent="Walls/NorthWall" unique_id=768310955]
-shape = SubResource("Shape_wall")
-disabled = true
-
-[node name="SouthWall" type="StaticBody3D" parent="Walls" unique_id=1113688787]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 32.5)
-
-[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall" unique_id=84943756]
-visible = false
-mesh = SubResource("Mesh_wall")
-
-[node name="Collision" type="CollisionShape3D" parent="Walls/SouthWall" unique_id=1192355442]
-shape = SubResource("Shape_wall")
-disabled = true
-
-[node name="EastWall" type="StaticBody3D" parent="Walls" unique_id=1487055593]
-transform = Transform3D(-3.6199901e-06, 0, 1, 0, 1, 0, -1, 0, -3.6199901e-06, 32.5, 2, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall" unique_id=800128283]
-visible = false
-mesh = SubResource("Mesh_wall")
-
-[node name="Collision" type="CollisionShape3D" parent="Walls/EastWall" unique_id=1545261249]
-shape = SubResource("Shape_wall")
-disabled = true
-
-[node name="WestWall" type="StaticBody3D" parent="Walls" unique_id=733800540]
-transform = Transform3D(-3.6199901e-06, 0, 1, 0, 1, 0, -1, 0, -3.6199901e-06, -32.5, 2, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall" unique_id=92065943]
-visible = false
-mesh = SubResource("Mesh_wall")
-
-[node name="Collision" type="CollisionShape3D" parent="Walls/WestWall" unique_id=1148957447]
-shape = SubResource("Shape_wall")
-disabled = true
-
-[node name="Obstacles" type="Node3D" parent="." unique_id=1176201173]
-
-[node name="CentralBarricade" type="StaticBody3D" parent="Obstacles" unique_id=2031264465 groups=["navigation_blocker"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/CentralBarricade" unique_id=49805599]
-visible = false
-mesh = SubResource("Mesh_center_obstacle")
-
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/CentralBarricade" unique_id=2032846120]
-shape = SubResource("Shape_center_obstacle")
-disabled = true
-
-[node name="WestCover" type="StaticBody3D" parent="Obstacles" unique_id=193512667 groups=["navigation_blocker"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.3, -5)
-
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/WestCover" unique_id=802338168]
-visible = false
-mesh = SubResource("Mesh_side_obstacle")
-
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/WestCover" unique_id=1364205513]
-shape = SubResource("Shape_west_obstacle")
-disabled = true
-
-[node name="EastCover" type="StaticBody3D" parent="Obstacles" unique_id=1104807508 groups=["navigation_blocker"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.5, 5)
-
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/EastCover" unique_id=542239732]
-visible = false
-mesh = SubResource("Mesh_side_obstacle")
-
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/EastCover" unique_id=352349863]
-shape = SubResource("Shape_east_obstacle")
-disabled = true
-
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=279748592]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 8)
 script = ExtResource("1_player_spawner")
-
-[node name="CampCore" type="StaticBody3D" parent="." unique_id=222209854 groups=["camp_core"] instance=ExtResource("6_camp_core")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 5.5)
-collision_layer = 3
-collision_mask = 5
-script = ExtResource("9_uvjfp")
-
-[node name="CampConstruction" type="Node3D" parent="." unique_id=1255375799]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 5.5)
-
-[node name="BuildGrid" type="Node3D" parent="CampConstruction" unique_id=1763954270]
-script = ExtResource("32_build_grid")
-
-[node name="GhostContainer" type="Node3D" parent="CampConstruction" unique_id=1837797461]
-
-[node name="BuiltStructures" type="Node3D" parent="CampConstruction" unique_id=663884195]
-
-[node name="FortificationSite" type="StaticBody3D" parent="." unique_id=1061142737 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 1.5)
-collision_layer = 3
-collision_mask = 5
-script = ExtResource("12_d3l8b")
-
-[node name="FortificationSiteWest" type="StaticBody3D" parent="." unique_id=919594772 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 5.5)
-collision_layer = 3
-collision_mask = 5
-script = ExtResource("12_d3l8b")
-
-[node name="FortificationSiteEast" type="StaticBody3D" parent="." unique_id=2132239066 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 5.5)
-collision_layer = 3
-collision_mask = 5
-script = ExtResource("12_d3l8b")
 
 [node name="Pickups" type="Node3D" parent="." unique_id=1821863234]
 script = ExtResource("25_pickup_randomizer")
@@ -243,55 +88,55 @@ script = ExtResource("25_pickup_randomizer")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.25, 7.5)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("15_n846s")
+script = ExtResource("10_eij3c")
 
 [node name="ScrapNorthWest" type="Area3D" parent="Pickups" unique_id=1162813251 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.35, -25)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapNorthEast" type="Area3D" parent="Pickups" unique_id=1629222921 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.35, -20)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapSouthWest" type="Area3D" parent="Pickups" unique_id=1176029151 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0.35, 24)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapSouthEast" type="Area3D" parent="Pickups" unique_id=581216392 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.35, 27)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapNorthRoad" type="Area3D" parent="Pickups" unique_id=1007796312 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.35, -21)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapEastRoad" type="Area3D" parent="Pickups" unique_id=1205115295 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0.35, 3)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapSouthRoad" type="Area3D" parent="Pickups" unique_id=1262856023 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.35, 25)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="ScrapWestRoad" type="Area3D" parent="Pickups" unique_id=928120484 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0.35, -3)
 collision_layer = 8
 collision_mask = 2
-script = ExtResource("17_je3g0")
+script = ExtResource("12_isy77")
 
 [node name="EnemySpawns" type="Node3D" parent="." unique_id=1716055139]
 unique_name_in_owner = true
@@ -360,8 +205,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-theme = ExtResource("31_l3gxt")
-script = ExtResource("32_pplfp")
+theme = ExtResource("26_3175d")
+script = ExtResource("27_3filw")
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1852646348]
 layer = 5
@@ -374,8 +219,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme = ExtResource("31_l3gxt")
-script = ExtResource("34_btw3l")
+theme = ExtResource("26_3175d")
+script = ExtResource("29_btgqr")
 
 [node name="UpgradeLayer" type="CanvasLayer" parent="." unique_id=1106077616]
 layer = 9
@@ -388,8 +233,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("31_l3gxt")
-script = ExtResource("36_rieb0")
+theme = ExtResource("26_3175d")
+script = ExtResource("31_uvjfp")
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=1224248010]
 layer = 10
@@ -403,8 +248,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("31_l3gxt")
-script = ExtResource("38_5n1ud")
+theme = ExtResource("26_3175d")
+script = ExtResource("33_d3l8b")
 
 [node name="PauseLayer" type="CanvasLayer" parent="." unique_id=1079247811]
 layer = 20
@@ -418,15 +263,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("31_l3gxt")
-script = ExtResource("40_r23pl")
+theme = ExtResource("26_3175d")
+script = ExtResource("35_n846s")
 
 [node name="MapRoads" type="GridMap" parent="." unique_id=1189318964 groups=["map_gridmap"]]
 mesh_library = ExtResource("41_btgqr")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(4, 65532, 372, 4, 65533, 372, 4, 65534, 372, 4, 65535, 1442195, 4, 0, 372, 4, 1, 372, 4, 2, 372, 4, 3, 372, 5, 65532, 372, 5, 65533, 372, 5, 65534, 372, 5, 65535, 1442195, 5, 0, 372, 5, 1, 372, 5, 2, 372, 5, 3, 372, 6, 65532, 372, 6, 65533, 372, 6, 65534, 372, 6, 65535, 1442195, 6, 0, 372, 6, 1, 372, 6, 2, 372, 6, 3, 372, 7, 65532, 403, 7, 65533, 403, 7, 65534, 403, 7, 65535, 402, 7, 0, 403, 7, 1, 403, 7, 2, 403, 7, 3, 403, 8, 65532, 372, 8, 65533, 372, 8, 65534, 372, 8, 65535, 1442195, 8, 0, 372, 8, 1, 372, 8, 2, 372, 8, 3, 372, 9, 65532, 372, 9, 65533, 372, 9, 65534, 372, 9, 65535, 1442195, 9, 0, 372, 9, 1, 372, 9, 2, 372, 9, 3, 372, 10, 65532, 372, 10, 65533, 372, 10, 65534, 372, 10, 65535, 1442195, 10, 0, 372, 10, 1, 372, 10, 2, 372, 10, 3, 372, 11, 65532, 372, 11, 65533, 372, 11, 65534, 372, 11, 65535, 1442195, 11, 0, 372, 11, 1, 372, 11, 2, 372, 11, 3, 372)
+"cells": PackedInt32Array(65524, 65524, 372, 65524, 65525, 372, 65524, 65526, 372, 65524, 65527, 1442195, 65524, 65528, 372, 65524, 65529, 372, 65524, 65530, 372, 65524, 65531, 372, 65525, 65524, 372, 65525, 65525, 372, 65525, 65526, 372, 65525, 65527, 1442195, 65525, 65528, 372, 65525, 65529, 372, 65525, 65530, 372, 65525, 65531, 372, 65526, 65524, 372, 65526, 65525, 372, 65526, 65526, 372, 65526, 65527, 1442195, 65526, 65528, 372, 65526, 65529, 372, 65526, 65530, 372, 65526, 65531, 372, 65527, 65524, 403, 65527, 65525, 403, 65527, 65526, 403, 65527, 65527, 402, 65527, 65528, 403, 65527, 65529, 403, 65527, 65530, 403, 65527, 65531, 403, 65528, 65524, 372, 65528, 65525, 372, 65528, 65526, 372, 65528, 65527, 1442195, 65528, 65528, 372, 65528, 65529, 372, 65528, 65530, 372, 65528, 65531, 372, 65529, 65524, 372, 65529, 65525, 372, 65529, 65526, 372, 65529, 65527, 1442195, 65529, 65528, 372, 65529, 65529, 372, 65529, 65530, 372, 65529, 65531, 372, 65530, 65524, 372, 65530, 65525, 372, 65530, 65526, 372, 65530, 65527, 1442195, 65530, 65528, 372, 65530, 65529, 372, 65530, 65530, 372, 65530, 65531, 372, 65531, 65524, 372, 65531, 65525, 372, 65531, 65526, 372, 65531, 65527, 1442195, 65531, 65528, 372, 65531, 65529, 372, 65531, 65530, 372, 65531, 65531, 372, 65524, 65532, 372, 65524, 65533, 372, 65524, 65534, 372, 65524, 65535, 1442195, 65524, 0, 372, 65524, 1, 372, 65524, 2, 372, 65524, 3, 372, 65525, 65532, 372, 65525, 65533, 372, 65525, 65534, 372, 65525, 65535, 1442195, 65525, 0, 372, 65525, 1, 372, 65525, 2, 372, 65525, 3, 372, 65526, 65532, 372, 65526, 65533, 372, 65526, 65534, 372, 65526, 65535, 1442195, 65526, 0, 372, 65526, 1, 372, 65526, 2, 372, 65526, 3, 372, 65527, 65532, 403, 65527, 65533, 403, 65527, 65534, 403, 65527, 65535, 402, 65527, 0, 403, 65527, 1, 403, 65527, 2, 403, 65527, 3, 403, 65528, 65532, 372, 65528, 65533, 372, 65528, 65534, 372, 65528, 65535, 1442195, 65528, 0, 372, 65528, 1, 372, 65528, 2, 372, 65528, 3, 372, 65529, 65532, 372, 65529, 65533, 372, 65529, 65534, 372, 65529, 65535, 1442195, 65529, 0, 372, 65529, 1, 372, 65529, 2, 372, 65529, 3, 372, 65530, 65532, 372, 65530, 65533, 372, 65530, 65534, 372, 65530, 65535, 1442195, 65530, 0, 372, 65530, 1, 372, 65530, 2, 372, 65530, 3, 372, 65531, 65532, 372, 65531, 65533, 372, 65531, 65534, 372, 65531, 65535, 1442195, 65531, 0, 372, 65531, 1, 372, 65531, 2, 372, 65531, 3, 372, 65524, 4, 372, 65524, 5, 372, 65524, 6, 372, 65524, 7, 1442195, 65524, 8, 372, 65524, 9, 372, 65524, 10, 372, 65524, 11, 372, 65525, 4, 372, 65525, 5, 372, 65525, 6, 372, 65525, 7, 1442195, 65525, 8, 372, 65525, 9, 372, 65525, 10, 372, 65525, 11, 372, 65526, 4, 372, 65526, 5, 372, 65526, 6, 372, 65526, 7, 1442195, 65526, 8, 372, 65526, 9, 372, 65526, 10, 372, 65526, 11, 372, 65527, 4, 403, 65527, 5, 403, 65527, 6, 403, 65527, 7, 402, 65527, 8, 403, 65527, 9, 403, 65527, 10, 403, 65527, 11, 403, 65528, 4, 372, 65528, 5, 372, 65528, 6, 372, 65528, 7, 1442195, 65528, 8, 372, 65528, 9, 372, 65528, 10, 372, 65528, 11, 372, 65529, 4, 372, 65529, 5, 372, 65529, 6, 372, 65529, 7, 1442195, 65529, 8, 372, 65529, 9, 372, 65529, 10, 372, 65529, 11, 372, 65530, 4, 372, 65530, 5, 372, 65530, 6, 372, 65530, 7, 1442195, 65530, 8, 372, 65530, 9, 372, 65530, 10, 372, 65530, 11, 372, 65531, 4, 372, 65531, 5, 372, 65531, 6, 372, 65531, 7, 1442195, 65531, 8, 372, 65531, 9, 372, 65531, 10, 372, 65531, 11, 372, 65524, 12, 372, 65524, 13, 372, 65524, 14, 372, 65524, 15, 1442195, 65524, 16, 372, 65524, 17, 372, 65524, 18, 372, 65524, 19, 372, 65525, 12, 372, 65525, 13, 372, 65525, 14, 372, 65525, 15, 1442195, 65525, 16, 372, 65525, 17, 372, 65525, 18, 372, 65525, 19, 372, 65526, 12, 372, 65526, 13, 372, 65526, 14, 372, 65526, 15, 1442195, 65526, 16, 372, 65526, 17, 372, 65526, 18, 372, 65526, 19, 372, 65527, 12, 403, 65527, 13, 403, 65527, 14, 403, 65527, 15, 402, 65527, 16, 403, 65527, 17, 403, 65527, 18, 403, 65527, 19, 403, 65528, 12, 372, 65528, 13, 372, 65528, 14, 372, 65528, 15, 1442195, 65528, 16, 372, 65528, 17, 372, 65528, 18, 372, 65528, 19, 372, 65529, 12, 372, 65529, 13, 372, 65529, 14, 372, 65529, 15, 1442195, 65529, 16, 372, 65529, 17, 372, 65529, 18, 372, 65529, 19, 372, 65530, 12, 372, 65530, 13, 372, 65530, 14, 372, 65530, 15, 1442195, 65530, 16, 372, 65530, 17, 372, 65530, 18, 372, 65530, 19, 372, 65531, 12, 372, 65531, 13, 372, 65531, 14, 372, 65531, 15, 1442195, 65531, 16, 372, 65531, 17, 372, 65531, 18, 372, 65531, 19, 372, 65532, 65524, 372, 65532, 65525, 372, 65532, 65526, 372, 65532, 65527, 1442195, 65532, 65528, 372, 65532, 65529, 372, 65532, 65530, 372, 65532, 65531, 372, 65533, 65524, 372, 65533, 65525, 372, 65533, 65526, 372, 65533, 65527, 1442195, 65533, 65528, 372, 65533, 65529, 372, 65533, 65530, 372, 65533, 65531, 372, 65534, 65524, 372, 65534, 65525, 372, 65534, 65526, 372, 65534, 65527, 1442195, 65534, 65528, 372, 65534, 65529, 372, 65534, 65530, 372, 65534, 65531, 372, 65535, 65524, 403, 65535, 65525, 403, 65535, 65526, 403, 65535, 65527, 402, 65535, 65528, 403, 65535, 65529, 403, 65535, 65530, 403, 65535, 65531, 403, 0, 65524, 372, 0, 65525, 372, 0, 65526, 372, 0, 65527, 1442195, 0, 65528, 372, 0, 65529, 372, 0, 65530, 372, 0, 65531, 372, 1, 65524, 372, 1, 65525, 372, 1, 65526, 372, 1, 65527, 1442195, 1, 65528, 372, 1, 65529, 372, 1, 65530, 372, 1, 65531, 372, 2, 65524, 372, 2, 65525, 372, 2, 65526, 372, 2, 65527, 1442195, 2, 65528, 372, 2, 65529, 372, 2, 65530, 372, 2, 65531, 372, 3, 65524, 372, 3, 65525, 372, 3, 65526, 372, 3, 65527, 1442195, 3, 65528, 372, 3, 65529, 372, 3, 65530, 372, 3, 65531, 372, 65532, 65532, 372, 65532, 65533, 372, 65532, 65534, 372, 65532, 65535, 1442195, 65532, 0, 372, 65532, 1, 372, 65532, 2, 372, 65532, 3, 372, 65533, 65532, 372, 65533, 65533, 372, 65533, 65534, 372, 65533, 65535, 1442195, 65533, 0, 372, 65533, 1, 372, 65533, 2, 372, 65533, 3, 372, 65534, 65532, 372, 65534, 65533, 372, 65534, 65534, 372, 65534, 65535, 1442195, 65534, 0, 372, 65534, 1, 372, 65534, 2, 372, 65534, 3, 372, 65535, 65532, 403, 65535, 65533, 403, 65535, 65534, 403, 65535, 65535, 402, 65535, 0, 403, 65535, 1, 403, 65535, 2, 403, 65535, 3, 403, 0, 65532, 372, 0, 65533, 372, 0, 65534, 372, 0, 65535, 1442195, 0, 0, 372, 0, 1, 372, 0, 2, 372, 0, 3, 372, 1, 65532, 372, 1, 65533, 372, 1, 65534, 372, 1, 65535, 1442195, 1, 0, 372, 1, 1, 372, 1, 2, 372, 1, 3, 372, 2, 65532, 372, 2, 65533, 372, 2, 65534, 372, 2, 65535, 1442195, 2, 0, 372, 2, 1, 372, 2, 2, 372, 2, 3, 372, 3, 65532, 372, 3, 65533, 372, 3, 65534, 372, 3, 65535, 1442195, 3, 0, 372, 3, 1, 372, 3, 2, 372, 3, 3, 372, 65532, 4, 372, 65532, 5, 372, 65532, 6, 372, 65532, 7, 1442195, 65532, 8, 372, 65532, 9, 372, 65532, 10, 372, 65532, 11, 372, 65533, 4, 372, 65533, 5, 372, 65533, 6, 372, 65533, 7, 1442195, 65533, 8, 372, 65533, 9, 372, 65533, 10, 372, 65533, 11, 372, 65534, 4, 372, 65534, 5, 372, 65534, 6, 372, 65534, 7, 1442195, 65534, 8, 372, 65534, 9, 372, 65534, 10, 372, 65534, 11, 372, 65535, 4, 403, 65535, 5, 403, 65535, 6, 403, 65535, 7, 402, 65535, 8, 403, 65535, 9, 403, 65535, 10, 403, 65535, 11, 403, 0, 4, 372, 0, 5, 372, 0, 6, 372, 0, 7, 1442195, 0, 8, 372, 0, 9, 372, 0, 10, 372, 0, 11, 372, 1, 4, 372, 1, 5, 372, 1, 6, 372, 1, 7, 1442195, 1, 8, 372, 1, 9, 372, 1, 10, 372, 1, 11, 372, 2, 4, 372, 2, 5, 372, 2, 6, 372, 2, 7, 1442195, 2, 8, 372, 2, 9, 372, 2, 10, 372, 2, 11, 372, 3, 4, 372, 3, 5, 372, 3, 6, 372, 3, 7, 1442195, 3, 8, 372, 3, 9, 372, 3, 10, 372, 3, 11, 372, 65532, 12, 372, 65532, 13, 372, 65532, 14, 372, 65532, 15, 1442195, 65532, 16, 372, 65532, 17, 372, 65532, 18, 372, 65532, 19, 372, 65533, 12, 372, 65533, 13, 372, 65533, 14, 372, 65533, 15, 1442195, 65533, 16, 372, 65533, 17, 372, 65533, 18, 372, 65533, 19, 372, 65534, 12, 372, 65534, 13, 372, 65534, 14, 372, 65534, 15, 1442195, 65534, 16, 372, 65534, 17, 372, 65534, 18, 372, 65534, 19, 372, 65535, 12, 403, 65535, 13, 403, 65535, 14, 403, 65535, 15, 402, 65535, 16, 403, 65535, 17, 403, 65535, 18, 403, 65535, 19, 403, 0, 12, 372, 0, 13, 372, 0, 14, 372, 0, 15, 1442195, 0, 16, 372, 0, 17, 372, 0, 18, 372, 0, 19, 372, 1, 12, 372, 1, 13, 372, 1, 14, 372, 1, 15, 1442195, 1, 16, 372, 1, 17, 372, 1, 18, 372, 1, 19, 372, 2, 12, 372, 2, 13, 372, 2, 14, 372, 2, 15, 1442195, 2, 16, 372, 2, 17, 372, 2, 18, 372, 2, 19, 372, 3, 12, 372, 3, 13, 372, 3, 14, 372, 3, 15, 1442195, 3, 16, 372, 3, 17, 372, 3, 18, 372, 3, 19, 372, 4, 65524, 372, 4, 65525, 372, 4, 65526, 372, 4, 65527, 1442195, 4, 65528, 372, 4, 65529, 372, 4, 65530, 372, 4, 65531, 372, 5, 65524, 372, 5, 65525, 372, 5, 65526, 372, 5, 65527, 1442195, 5, 65528, 372, 5, 65529, 372, 5, 65530, 372, 5, 65531, 372, 6, 65524, 372, 6, 65525, 372, 6, 65526, 372, 6, 65527, 1442195, 6, 65528, 372, 6, 65529, 372, 6, 65530, 372, 6, 65531, 372, 7, 65524, 403, 7, 65525, 403, 7, 65526, 403, 7, 65527, 402, 7, 65528, 403, 7, 65529, 403, 7, 65530, 403, 7, 65531, 403, 8, 65524, 372, 8, 65525, 372, 8, 65526, 372, 8, 65527, 1442195, 8, 65528, 372, 8, 65529, 372, 8, 65530, 372, 8, 65531, 372, 9, 65524, 372, 9, 65525, 372, 9, 65526, 372, 9, 65527, 1442195, 9, 65528, 372, 9, 65529, 372, 9, 65530, 372, 9, 65531, 372, 10, 65524, 372, 10, 65525, 372, 10, 65526, 372, 10, 65527, 1442195, 10, 65528, 372, 10, 65529, 372, 10, 65530, 372, 10, 65531, 372, 11, 65524, 372, 11, 65525, 372, 11, 65526, 372, 11, 65527, 1442195, 11, 65528, 372, 11, 65529, 372, 11, 65530, 372, 11, 65531, 372, 4, 65532, 372, 4, 65533, 372, 4, 65534, 372, 4, 65535, 1442195, 4, 0, 372, 4, 1, 372, 4, 2, 372, 4, 3, 372, 5, 65532, 372, 5, 65533, 372, 5, 65534, 372, 5, 65535, 1442195, 5, 0, 372, 5, 1, 372, 5, 2, 372, 5, 3, 372, 6, 65532, 372, 6, 65533, 372, 6, 65534, 372, 6, 65535, 1442195, 6, 0, 372, 6, 1, 372, 6, 2, 372, 6, 3, 372, 7, 65532, 403, 7, 65533, 403, 7, 65534, 403, 7, 65535, 402, 7, 0, 403, 7, 1, 403, 7, 2, 403, 7, 3, 403, 8, 65532, 372, 8, 65533, 372, 8, 65534, 372, 8, 65535, 1442195, 8, 0, 372, 8, 1, 372, 8, 2, 372, 8, 3, 372, 9, 65532, 372, 9, 65533, 372, 9, 65534, 372, 9, 65535, 1442195, 9, 0, 372, 9, 1, 372, 9, 2, 372, 9, 3, 372, 10, 65532, 372, 10, 65533, 372, 10, 65534, 372, 10, 65535, 1442195, 10, 0, 372, 10, 1, 372, 10, 2, 372, 10, 3, 372, 11, 65532, 372, 11, 65533, 372, 11, 65534, 372, 11, 65535, 1442195, 11, 0, 372, 11, 1, 372, 11, 2, 372, 11, 3, 372, 4, 4, 372, 4, 5, 372, 4, 6, 372, 4, 7, 1442195, 4, 8, 372, 4, 9, 372, 4, 10, 372, 4, 11, 372, 5, 4, 372, 5, 5, 372, 5, 6, 372, 5, 7, 1442195, 5, 8, 372, 5, 9, 372, 5, 10, 372, 5, 11, 372, 6, 4, 372, 6, 5, 372, 6, 6, 372, 6, 7, 1442195, 6, 8, 372, 6, 9, 372, 6, 10, 372, 6, 11, 372, 7, 4, 403, 7, 5, 403, 7, 6, 403, 7, 7, 402, 7, 8, 403, 7, 9, 403, 7, 10, 403, 7, 11, 403, 8, 4, 372, 8, 5, 372, 8, 6, 372, 8, 7, 1442195, 8, 8, 372, 8, 9, 372, 8, 10, 372, 8, 11, 372, 9, 4, 372, 9, 5, 372, 9, 6, 372, 9, 7, 1442195, 9, 8, 372, 9, 9, 372, 9, 10, 372, 9, 11, 372, 10, 4, 372, 10, 5, 372, 10, 6, 372, 10, 7, 1442195, 10, 8, 372, 10, 9, 372, 10, 10, 372, 10, 11, 372, 11, 4, 372, 11, 5, 372, 11, 6, 372, 11, 7, 1442195, 11, 8, 372, 11, 9, 372, 11, 10, 372, 11, 11, 372, 4, 12, 372, 4, 13, 372, 4, 14, 372, 4, 15, 1442195, 4, 16, 372, 4, 17, 372, 4, 18, 372, 4, 19, 372, 5, 12, 372, 5, 13, 372, 5, 14, 372, 5, 15, 1442195, 5, 16, 372, 5, 17, 372, 5, 18, 372, 5, 19, 372, 6, 12, 372, 6, 13, 372, 6, 14, 372, 6, 15, 1442195, 6, 16, 372, 6, 17, 372, 6, 18, 372, 6, 19, 372, 7, 12, 403, 7, 13, 403, 7, 14, 403, 7, 15, 402, 7, 16, 403, 7, 17, 403, 7, 18, 403, 7, 19, 403, 8, 12, 372, 8, 13, 372, 8, 14, 372, 8, 15, 1442195, 8, 16, 372, 8, 17, 372, 8, 18, 372, 8, 19, 372, 9, 12, 372, 9, 13, 372, 9, 14, 372, 9, 15, 1442195, 9, 16, 372, 9, 17, 372, 9, 18, 372, 9, 19, 372, 10, 12, 372, 10, 13, 372, 10, 14, 372, 10, 15, 1442195, 10, 16, 372, 10, 17, 372, 10, 18, 372, 10, 19, 372, 11, 12, 372, 11, 13, 372, 11, 14, 372, 11, 15, 1442195, 11, 16, 372, 11, 17, 372, 11, 18, 372, 11, 19, 372, 12, 65524, 372, 12, 65525, 372, 12, 65526, 372, 12, 65527, 1442195, 12, 65528, 372, 12, 65529, 372, 12, 65530, 372, 12, 65531, 372, 13, 65524, 372, 13, 65525, 372, 13, 65526, 372, 13, 65527, 1442195, 13, 65528, 372, 13, 65529, 372, 13, 65530, 372, 13, 65531, 372, 14, 65524, 372, 14, 65525, 372, 14, 65526, 372, 14, 65527, 1442195, 14, 65528, 372, 14, 65529, 372, 14, 65530, 372, 14, 65531, 372, 15, 65524, 403, 15, 65525, 403, 15, 65526, 403, 15, 65527, 402, 15, 65528, 403, 15, 65529, 403, 15, 65530, 403, 15, 65531, 403, 16, 65524, 372, 16, 65525, 372, 16, 65526, 372, 16, 65527, 1442195, 16, 65528, 372, 16, 65529, 372, 16, 65530, 372, 16, 65531, 372, 17, 65524, 372, 17, 65525, 372, 17, 65526, 372, 17, 65527, 1442195, 17, 65528, 372, 17, 65529, 372, 17, 65530, 372, 17, 65531, 372, 18, 65524, 372, 18, 65525, 372, 18, 65526, 372, 18, 65527, 1442195, 18, 65528, 372, 18, 65529, 372, 18, 65530, 372, 18, 65531, 372, 19, 65524, 372, 19, 65525, 372, 19, 65526, 372, 19, 65527, 1442195, 19, 65528, 372, 19, 65529, 372, 19, 65530, 372, 19, 65531, 372, 12, 65532, 372, 12, 65533, 372, 12, 65534, 372, 12, 65535, 1442195, 12, 0, 372, 12, 1, 372, 12, 2, 372, 12, 3, 372, 13, 65532, 372, 13, 65533, 372, 13, 65534, 372, 13, 65535, 1442195, 13, 0, 372, 13, 1, 372, 13, 2, 372, 13, 3, 372, 14, 65532, 372, 14, 65533, 372, 14, 65534, 372, 14, 65535, 1442195, 14, 0, 372, 14, 1, 372, 14, 2, 372, 14, 3, 372, 15, 65532, 403, 15, 65533, 403, 15, 65534, 403, 15, 65535, 402, 15, 0, 403, 15, 1, 403, 15, 2, 403, 15, 3, 403, 16, 65532, 372, 16, 65533, 372, 16, 65534, 372, 16, 65535, 1442195, 16, 0, 372, 16, 1, 372, 16, 2, 372, 16, 3, 372, 17, 65532, 372, 17, 65533, 372, 17, 65534, 372, 17, 65535, 1442195, 17, 0, 372, 17, 1, 372, 17, 2, 372, 17, 3, 372, 18, 65532, 372, 18, 65533, 372, 18, 65534, 372, 18, 65535, 1442195, 18, 0, 372, 18, 1, 372, 18, 2, 372, 18, 3, 372, 19, 65532, 372, 19, 65533, 372, 19, 65534, 372, 19, 65535, 1442195, 19, 0, 372, 19, 1, 372, 19, 2, 372, 19, 3, 372, 12, 4, 372, 12, 5, 372, 12, 6, 372, 12, 7, 1442195, 12, 8, 372, 12, 9, 372, 12, 10, 372, 12, 11, 372, 13, 4, 372, 13, 5, 372, 13, 6, 372, 13, 7, 1442195, 13, 8, 372, 13, 9, 372, 13, 10, 372, 13, 11, 372, 14, 4, 372, 14, 5, 372, 14, 6, 372, 14, 7, 1442195, 14, 8, 372, 14, 9, 372, 14, 10, 372, 14, 11, 372, 15, 4, 403, 15, 5, 403, 15, 6, 403, 15, 7, 402, 15, 8, 403, 15, 9, 403, 15, 10, 403, 15, 11, 403, 16, 4, 372, 16, 5, 372, 16, 6, 372, 16, 7, 1442195, 16, 8, 372, 16, 9, 372, 16, 10, 372, 16, 11, 372, 17, 4, 372, 17, 5, 372, 17, 6, 372, 17, 7, 1442195, 17, 8, 372, 17, 9, 372, 17, 10, 372, 17, 11, 372, 18, 4, 372, 18, 5, 372, 18, 6, 372, 18, 7, 1442195, 18, 8, 372, 18, 9, 372, 18, 10, 372, 18, 11, 372, 19, 4, 372, 19, 5, 372, 19, 6, 372, 19, 7, 1442195, 19, 8, 372, 19, 9, 372, 19, 10, 372, 19, 11, 372, 12, 12, 372, 12, 13, 372, 12, 14, 372, 12, 15, 1442195, 12, 16, 372, 12, 17, 372, 12, 18, 372, 12, 19, 372, 13, 12, 372, 13, 13, 372, 13, 14, 372, 13, 15, 1442195, 13, 16, 372, 13, 17, 372, 13, 18, 372, 13, 19, 372, 14, 12, 372, 14, 13, 372, 14, 14, 372, 14, 15, 1442195, 14, 16, 372, 14, 17, 372, 14, 18, 372, 14, 19, 372, 15, 12, 403, 15, 13, 403, 15, 14, 403, 15, 15, 402, 15, 16, 403, 15, 17, 403, 15, 18, 403, 15, 19, 403, 16, 12, 372, 16, 13, 372, 16, 14, 372, 16, 15, 1442195, 16, 16, 372, 16, 17, 372, 16, 18, 372, 16, 19, 372, 17, 12, 372, 17, 13, 372, 17, 14, 372, 17, 15, 1442195, 17, 16, 372, 17, 17, 372, 17, 18, 372, 17, 19, 372, 18, 12, 372, 18, 13, 372, 18, 14, 372, 18, 15, 1442195, 18, 16, 372, 18, 17, 372, 18, 18, 372, 18, 19, 372, 19, 12, 372, 19, 13, 372, 19, 14, 372, 19, 15, 1442195, 19, 16, 372, 19, 17, 372, 19, 18, 372, 19, 19, 372)
 }
 
 [node name="MapStructures" type="GridMap" parent="." unique_id=1043167224 groups=["map_gridmap"]]
@@ -434,7 +279,7 @@ mesh_library = ExtResource("41_btgqr")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(4, 65533, 0, 4, 0, 6, 5, 65534, 655372, 6, 65533, 1441795, 6, 1, 12, 6, 2, 655363, 6, 3, 655360, 8, 65533, 12, 8, 1, 1048584, 8, 2, 1441795, 8, 3, 3, 9, 65532, 8, 9, 65534, 1441800, 9, 0, 655363, 9, 1, 1441800, 10, 65532, 1048576, 10, 65533, 3, 10, 65534, 1441804, 10, 0, 1441798, 10, 1, 1048584, 10, 2, 655401, 11, 65532, 1048579, 11, 65533, 3, 11, 65534, 1048584, 11, 0, 655363, 11, 1, 1048579, 11, 2, 655360, 11, 3, 12, 4, 65532, 444)
+"cells": PackedInt32Array(65524, 65525, 1048578, 65524, 65530, 378, 65524, 65531, 655362, 65525, 65524, 1441796, 65526, 65525, 4, 65528, 65524, 1048580, 65528, 65529, 4, 65528, 65530, 1048954, 65529, 65525, 1442170, 65529, 65529, 1048580, 65529, 65531, 655738, 65530, 65526, 1048580, 65531, 65524, 1048954, 65531, 65531, 319, 65525, 2, 378, 65528, 65532, 655362, 65529, 65533, 1441794, 65529, 0, 1442170, 65529, 2, 1442168, 65530, 65533, 1442170, 65530, 0, 1442170, 65530, 2, 655362, 65531, 3, 319, 65524, 8, 4, 65524, 9, 1441794, 65524, 10, 376, 65524, 11, 655364, 65525, 6, 378, 65526, 9, 1048580, 65528, 4, 655736, 65528, 5, 2, 65529, 5, 2, 65529, 6, 655362, 65529, 8, 1048580, 65529, 10, 655738, 65530, 6, 1048578, 65531, 9, 4, 65531, 11, 319, 65524, 12, 1048588, 65524, 13, 1441792, 65524, 18, 1441792, 65525, 13, 655368, 65525, 14, 1048582, 65525, 18, 12, 65526, 12, 1441804, 65526, 13, 1048584, 65526, 17, 3, 65526, 18, 1048582, 65528, 13, 6, 65528, 19, 1048588, 65529, 12, 1048582, 65529, 13, 655369, 65529, 14, 655369, 65529, 16, 1048579, 65529, 17, 1048579, 65529, 18, 1441804, 65530, 13, 655360, 65530, 16, 655360, 65531, 13, 1441792, 65531, 14, 1048584, 65531, 16, 1048579, 65531, 17, 8, 65531, 19, 444, 65533, 65531, 1048578, 65534, 65524, 1048954, 65534, 65525, 378, 65534, 65529, 655738, 65534, 65531, 1048580, 0, 65524, 1441796, 0, 65531, 4, 1, 65524, 376, 1, 65529, 1441796, 2, 65524, 1048952, 2, 65525, 655364, 2, 65526, 1048954, 2, 65531, 2, 3, 65531, 319, 65532, 4, 1048578, 65532, 5, 1048580, 65532, 9, 376, 65533, 4, 376, 65533, 6, 2, 65533, 9, 1048952, 65534, 10, 4, 0, 11, 1441796, 1, 4, 1048952, 1, 5, 1441796, 1, 9, 1048952, 1, 11, 1048580, 3, 5, 378, 3, 6, 655362, 3, 8, 655364, 3, 9, 1442168, 3, 10, 376, 3, 11, 319, 65532, 13, 1441798, 65532, 14, 655363, 65532, 16, 1441798, 65532, 17, 8, 65532, 18, 655363, 65532, 19, 1441801, 65533, 13, 1441792, 65533, 17, 655369, 65533, 18, 1048588, 65534, 13, 655368, 0, 12, 1441795, 0, 19, 9, 1, 12, 9, 1, 13, 1048588, 1, 16, 12, 1, 17, 1441798, 1, 18, 655368, 1, 19, 1048582, 2, 13, 1048584, 2, 16, 655366, 2, 18, 1441792, 2, 19, 6, 3, 13, 12, 3, 14, 12, 3, 17, 655366, 3, 18, 655372, 3, 19, 444, 4, 65529, 376, 4, 65531, 1442168, 5, 65525, 1441794, 5, 65529, 376, 6, 65531, 655738, 9, 65524, 376, 9, 65526, 2, 9, 65530, 655738, 10, 65526, 378, 10, 65528, 655736, 11, 65524, 376, 11, 65530, 1441796, 11, 65531, 319, 4, 65533, 655362, 4, 2, 1048954, 5, 65532, 1048954, 5, 65533, 4, 5, 0, 655364, 5, 1, 378, 6, 1, 376, 8, 1, 655738, 9, 65533, 655736, 10, 1, 1441794, 11, 65532, 378, 11, 65533, 378, 11, 1, 1048954, 11, 3, 319, 4, 11, 1048578, 5, 8, 1048580, 5, 10, 1048580, 5, 11, 655738, 8, 10, 1048580, 9, 11, 1442168, 10, 4, 1442170, 10, 6, 655362, 10, 9, 1441796, 10, 10, 1442170, 11, 8, 655362, 11, 10, 1048954, 11, 11, 319, 4, 12, 655368, 4, 13, 655368, 4, 16, 1048576, 5, 13, 1048585, 5, 16, 12, 5, 17, 655372, 5, 18, 655360, 6, 13, 0, 6, 17, 1441792, 8, 12, 9, 9, 12, 9, 9, 13, 8, 9, 16, 1048579, 9, 18, 655368, 9, 19, 655372, 10, 14, 1441800, 10, 19, 0, 11, 12, 655363, 11, 13, 1441800, 11, 14, 655366, 11, 19, 444, 12, 65528, 1441792, 12, 65529, 1441792, 12, 65530, 3, 13, 65524, 9, 13, 65525, 655360, 13, 65529, 655360, 13, 65531, 655368, 14, 65524, 12, 14, 65525, 1048582, 14, 65529, 6, 17, 65528, 6, 17, 65529, 1441800, 17, 65530, 655366, 17, 65531, 9, 18, 65525, 655366, 18, 65528, 1048584, 18, 65530, 12, 18, 65531, 9, 19, 65524, 8, 19, 65531, 444, 12, 65534, 8, 12, 0, 655368, 12, 2, 3, 12, 3, 655369, 13, 65533, 0, 13, 0, 655369, 13, 1, 1048579, 13, 2, 1048576, 13, 3, 1048588, 14, 65532, 1441792, 14, 1, 1048582, 14, 3, 1048588, 16, 65533, 0, 17, 65533, 3, 17, 65534, 1441801, 17, 1, 655372, 18, 1, 655369, 18, 2, 8, 19, 65534, 655363, 19, 0, 9, 19, 3, 444, 12, 4, 655372, 12, 5, 1048582, 12, 6, 655360, 12, 8, 1048588, 12, 9, 8, 12, 10, 1441798, 12, 11, 655363, 13, 4, 1048584, 13, 5, 655369, 13, 11, 655366, 14, 4, 1048584, 14, 5, 9, 16, 4, 655363, 16, 10, 655363, 17, 4, 1048576, 17, 6, 1048585, 17, 10, 8, 18, 4, 12, 18, 8, 1441795, 18, 9, 1441804, 18, 11, 1048588, 19, 8, 1441795, 19, 9, 1048582, 19, 10, 1048576, 19, 11, 444, 12, 12, 655402, 12, 13, 1048618, 12, 16, 1048618, 12, 19, 1441835, 13, 12, 45, 13, 13, 42, 13, 16, 43, 13, 19, 1048621, 14, 13, 1048618, 14, 19, 1048621, 16, 13, 45, 17, 14, 1048618, 18, 13, 45, 18, 16, 1048621, 18, 18, 655403, 18, 19, 655402, 19, 12, 1048621, 19, 13, 41, 19, 16, 1441833, 19, 17, 1048621, 19, 19, 444)
 }
 
 [node name="MapProps" type="GridMap" parent="." unique_id=1315334506 groups=["map_gridmap"]]
@@ -442,5 +287,5 @@ mesh_library = ExtResource("41_btgqr")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(7, 65533, 354, 7, 2, 655723, 10, 65535, 1442149, 5, 65535, 1048938, 9, 65533, 420, 6, 1, 1442213, 6, 65534, 413, 11, 0, 413, 4, 1, 428, 9, 65532, 655788)
+"cells": PackedInt32Array(65527, 65525, 655723, 65530, 65529, 655781, 65527, 0, 655710, 65531, 2, 655780, 65524, 65532, 1048997, 65527, 11, 350, 65527, 9, 1442146, 65525, 4, 1442205, 65531, 8, 1048995, 65525, 5, 1442211, 65527, 17, 1048930, 65527, 14, 362, 65527, 18, 1048933, 65531, 18, 1442213, 65526, 18, 413, 65535, 65524, 357, 65535, 65525, 1442149, 3, 65531, 655773, 0, 65528, 1048995, 65532, 65532, 420, 3, 65532, 655780, 65532, 3, 420, 3, 3, 1442212, 65535, 4, 363, 65535, 9, 655717, 2, 4, 1442213, 3, 5, 1048995, 65532, 10, 1048989, 65535, 18, 655710, 65535, 14, 655714, 65534, 12, 655779, 2, 17, 655779, 7, 65524, 655723, 7, 65525, 354, 9, 65524, 655780, 4, 65524, 1048997, 7, 2, 357, 7, 65534, 1442149, 8, 0, 1442213, 7, 8, 1048933, 11, 9, 655780, 7, 14, 354, 7, 18, 1442149, 7, 12, 357, 10, 16, 419, 11, 14, 1442213, 9, 19, 655779, 15, 65530, 655714, 15, 65526, 1442149, 12, 65524, 1048995, 18, 65529, 1442212, 15, 1, 655717, 15, 65534, 1442142, 13, 65533, 1048989, 15, 9, 1048930, 15, 6, 655723, 15, 8, 1048926, 19, 10, 1442213, 12, 11, 1442212, 15, 14, 655710, 14, 12, 1442205)
 }

@@ -1,25 +1,22 @@
-[gd_resource type="Environment" load_steps=3 format=3]
+[gd_resource type="Environment" format=3]
 
-[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
-sky_top_color = Color(0.09, 0.12, 0.19, 1)
-sky_horizon_color = Color(0.72, 0.46, 0.28, 1)
-sky_curve = 0.14
-ground_bottom_color = Color(0.025, 0.025, 0.03, 1)
-ground_horizon_color = Color(0.5, 0.35, 0.24, 1)
-sun_angle_max = 25.0
-sun_curve = 0.18
+[ext_resource type="Texture2D" path="res://assets/models/kenney_skyboxes/skybox-day.png" id="1_3vqe0"]
 
-[sub_resource type="Sky" id="Sky"]
-sky_material = SubResource("SkyMaterial")
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_w8n3c"]
+panorama = ExtResource("1_3vqe0")
+energy_multiplier = 0.35
+
+[sub_resource type="Sky" id="Sky_7lom6"]
+sky_material = SubResource("PanoramaSkyMaterial_w8n3c")
 
 [resource]
 background_mode = 2
-sky = SubResource("Sky")
+sky = SubResource("Sky_7lom6")
 ambient_light_source = 3
 ambient_light_color = Color(0.54, 0.6, 0.69, 1)
+ambient_light_sky_contribution = 0.6
 ambient_light_energy = 0.62
 fog_enabled = true
 fog_light_color = Color(0.55, 0.48, 0.42, 1)
 fog_density = 0.0018
 fog_sky_affect = 0.18
-tonemap_exposure = 1.0
