@@ -13,9 +13,15 @@ extends SceneTree
 const ARENA_PATH := "res://scenes/world/test_arena.tscn"
 const LIBRARY_PATH := "res://resources/map_tiles.meshlib"
 const CELL_SIZE := Vector3(8.0, 4.0, 8.0)
-## Sector (1, 0), east of the camp: cells 8..15 on x, 0..7 on z.
-const SECTOR_ORIGIN := Vector2i(8, 0)
+## Which sector to paint, in the streamer's coordinates. (1, 0) is east of camp.
+const SECTOR_COORDS := Vector2i(1, 0)
+## A 64 m sector is 8 cells of 8 m. Sector (sx, sy) is centred on
+## (sx * 64, sy * 64), so it spans cells sx * 8 - 4 .. sx * 8 + 3 on each axis.
 const SECTOR_CELLS := 8
+const SECTOR_ORIGIN := Vector2i(
+	SECTOR_COORDS.x * SECTOR_CELLS - SECTOR_CELLS / 2,
+	SECTOR_COORDS.y * SECTOR_CELLS - SECTOR_CELLS / 2
+)
 
 # Rotation helpers: GridMap orientations are indices into a basis table.
 const ROT_0 := 0

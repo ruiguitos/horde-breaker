@@ -421,26 +421,26 @@ grow_vertical = 2
 theme = ExtResource("31_l3gxt")
 script = ExtResource("40_r23pl")
 
-[node name="MapRoads" type="GridMap" parent="." groups=["map_gridmap"]]
+[node name="MapRoads" type="GridMap" parent="." unique_id=1189318964 groups=["map_gridmap"]]
 mesh_library = ExtResource("41_f4wsb")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(8, 2, 4, 8, 3, 1441792, 8, 4, 655364, 9, 2, 4, 9, 3, 1441792, 9, 4, 655364, 10, 0, 1048580, 10, 1, 1048580, 10, 2, 1048580, 10, 3, 1441792, 10, 4, 1048580, 10, 5, 1048580, 10, 6, 1048580, 10, 7, 1048580, 11, 0, 0, 11, 1, 0, 11, 2, 0, 11, 3, 1, 11, 4, 0, 11, 5, 0, 11, 6, 0, 11, 7, 0, 12, 0, 1441796, 12, 1, 1441796, 12, 2, 1441796, 12, 3, 1441792, 12, 4, 1441796, 12, 5, 1441796, 12, 6, 1441796, 12, 7, 1441796, 13, 2, 4, 13, 3, 1441792, 13, 4, 655364, 14, 2, 4, 14, 3, 1441792, 14, 4, 655364, 15, 2, 4, 15, 3, 1441792, 15, 4, 655364)
+"cells": PackedInt32Array(4, 65534, 4, 4, 65535, 1441792, 4, 0, 655364, 5, 65534, 4, 5, 65535, 1441792, 5, 0, 655364, 6, 65532, 1048580, 6, 65533, 1048580, 6, 65534, 1048580, 6, 65535, 1441792, 6, 0, 1048580, 6, 1, 1048580, 6, 2, 1048580, 6, 3, 1048580, 7, 65532, 0, 7, 65533, 0, 7, 65534, 0, 7, 65535, 1, 7, 0, 0, 7, 1, 0, 7, 2, 0, 7, 3, 0, 8, 65532, 1441796, 8, 65533, 1441796, 8, 65534, 1441796, 8, 65535, 1441792, 8, 0, 1441796, 8, 1, 1441796, 8, 2, 1441796, 8, 3, 1441796, 9, 65534, 4, 9, 65535, 1441792, 9, 0, 655364, 10, 65534, 4, 10, 65535, 1441792, 10, 0, 655364, 11, 65534, 4, 11, 65535, 1441792, 11, 0, 655364)
 }
 
-[node name="MapStructures" type="GridMap" parent="." groups=["map_gridmap"]]
+[node name="MapStructures" type="GridMap" parent="." unique_id=1043167224 groups=["map_gridmap"]]
 mesh_library = ExtResource("41_f4wsb")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(9, 1, 7, 9, 5, 6, 13, 1, 8, 14, 5, 655369, 8, 0, 6, 14, 0, 7, 8, 6, 15)
+"cells": PackedInt32Array(5, 65533, 7, 5, 1, 6, 9, 65533, 8, 10, 1, 655369, 4, 65532, 6, 10, 65532, 7, 4, 2, 15)
 }
 
-[node name="MapProps" type="GridMap" parent="." groups=["map_gridmap"]]
+[node name="MapProps" type="GridMap" parent="." unique_id=1315334506 groups=["map_gridmap"]]
 mesh_library = ExtResource("41_f4wsb")
 cell_size = Vector3(8, 4, 8)
 cell_center_y = false
 data = {
-"cells": PackedInt32Array(11, 1, 10, 11, 6, 655370, 14, 3, 1441802, 10, 3, 1441804, 13, 6, 11, 10, 2, 13, 15, 2, 13, 8, 4, 14, 12, 7, 14)
+"cells": PackedInt32Array(7, 65533, 10, 7, 2, 655370, 10, 65535, 1441802, 6, 65535, 1441804, 9, 2, 11, 6, 65534, 13, 11, 65534, 13, 4, 0, 14, 8, 3, 14)
 }
