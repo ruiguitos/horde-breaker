@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Paints all 16 sectors of the world into the arena's GridMap layers.
+## Paints every sector of the world into the arena's GridMap layers.
 ##
 ## Run:  <godot> --headless --path . --script res://tools/paint_world.gd
 ##
@@ -12,8 +12,11 @@ const ARENA_PATH := "res://scenes/world/test_arena.tscn"
 const LIBRARY_PATH := "res://resources/map_tiles_pack.meshlib"
 const CELL_SIZE := Vector3(8.0, 4.0, 8.0)
 const SECTOR_CELLS := 8
-const GRID_MIN := Vector2i(-1, -1)
-const GRID_MAX := Vector2i(2, 2)
+## Loaded at runtime rather than preloaded: world_streamer.gd references the
+## SaveManager autoload, which does not exist yet while a --script tool compiles.
+const STREAMER_PATH := "res://scripts/systems/world_streamer.gd"
+var _grid_min := Vector2i(-3, -3)
+var _grid_max := Vector2i(4, 4)
 ## The camp sector: kept open so the extraction zone stays readable.
 const CENTRE := Vector2i(0, 0)
 ## Road lane inside every sector. Fixed, so streets run unbroken across borders.
@@ -61,6 +64,12 @@ func _run() -> void:
 		push_error("Could not instantiate the arena")
 		quit(1)
 		return
+	# Match whatever the streamer actually streams, so the painted area and the
+	# loaded area can never drift apart.
+	var streamer: GDScript = load(STREAMER_PATH)
+	if streamer != null:
+		_grid_min = streamer.get(&"GRID_MIN")
+		_grid_max = streamer.get(&"GRID_MAX")
 	var library: MeshLibrary = load(LIBRARY_PATH)
 	for id in library.get_item_list():
 		_ids[library.get_item_name(id)] = id
@@ -72,8 +81,8 @@ func _run() -> void:
 	structures.clear()
 	props.clear()
 
-	for sx in range(GRID_MIN.x, GRID_MAX.x + 1):
-		for sy in range(GRID_MIN.y, GRID_MAX.y + 1):
+	for sx in range(_grid_min.x, _grid_max.x + 1):
+		for sy in range(_grid_min.y, _grid_max.y + 1):
 			var coords := Vector2i(sx, sy)
 			# Deterministic per sector, so repainting gives the same world.
 			_rng.seed = hash(coords) * 7919
@@ -89,7 +98,7 @@ func _run() -> void:
 		roads.get_used_cells().size(),
 		structures.get_used_cells().size(),
 		props.get_used_cells().size(),
-		(GRID_MAX.x - GRID_MIN.x + 1) * (GRID_MAX.y - GRID_MIN.y + 1),
+		(_grid_max.x - _grid_min.x + 1) * (_grid_max.y - _grid_min.y + 1),
 	])
 	quit(0)
 

@@ -24,7 +24,13 @@ func _run() -> void:
 	var grid_min: Vector2i = streamer.get(&"GRID_MIN")
 	var grid_max: Vector2i = streamer.get(&"GRID_MAX")
 	var sectors_per_axis := grid_max.x - grid_min.x + 1
-	_check("grid: 4 sectors per axis", sectors_per_axis == 4)
+	# Not a fixed count: the world can be resized. What matters is that it is
+	# square and that the ground below covers all of it.
+	_check(
+		"grid: %d sectors per axis, square" % sectors_per_axis,
+		sectors_per_axis >= 2
+			and sectors_per_axis == grid_max.y - grid_min.y + 1
+	)
 
 	# World bounds, in metres, derived from the streamer's own numbers.
 	var world_min := Vector2(
