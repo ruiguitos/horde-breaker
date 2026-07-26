@@ -1,8 +1,7 @@
-# Horde Breaker — Design do Mapa (proposta)
+# Horde Breaker — Design do Mapa
 
-Proposta de raiz para substituir o mapa atual (grelha de ruas + Quaternius
-Downtown MegaKit). Documento de **design**, não de implementação: descreve o que
-o mapa tem de fazer ao jogador e que peças são precisas para lá chegar.
+Documento de **design** do mapa: o que ele tem de fazer ao jogador e que peças
+são precisas para lá chegar. A implementação está na secção 8.
 
 Estado: **aprovado e em construção.** Ver a secção 8 no fim para o que já está
 feito e o que falta.
@@ -24,14 +23,14 @@ não é cenário decorativo. Cinco exigências, por ordem de importância:
    o caminho de volta tem de ser pior que o de ida.
 4. **Orientação sem HUD.** O jogador tem de saber onde está o acampamento por
    marcos visíveis, não pela bússola.
-5. **Barato de desenhar.** Renderer GL Compatibility, 140 inimigos. Peças
+5. **Barato de desenhar.** Peças
    reutilizadas, oclusão natural, poucos materiais distintos.
 
 ---
 
 ## 2. Estrutura macro: anéis + dois eixos
 
-Mundo 4×4 setores (256×256 m), acampamento no centro.
+Mundo 8×8 setores (512×512 m), extração no centro.
 
 ```
         ┌─────────┬─────────┬─────────┬─────────┐
@@ -82,8 +81,8 @@ Regra: de qualquer ponto do mapa, um eixo está a menos de ~40 m.
 
 ## 3. Vocabulário de peças
 
-Peças modulares de **16×16 m** (quatro por quarteirão de 32 m). Cada uma
-autora-se uma vez e reutiliza-se por todo o mapa.
+Peças modulares de **8×8 m** (célula do GridMap). As 448 peças reais vieram dos
+packs CC0; a tabela abaixo é o vocabulário de design que elas preenchem.
 
 ### Ruas
 | Peça | Notas |
@@ -138,11 +137,11 @@ Estas regras é que fazem a diferença entre um mapa e um amontoado de peças.
 
 ## 5. Como isto se implementa (esboço)
 
-Compatível com o que já existe (streaming 4×4, worker threads, seed por perfil):
+Compatível com o que já existe (streaming 8×8, worker threads, seed por perfil):
 
 1. **Peças autoradas** como cenas Godot ou numa `MeshLibrary` (GridMap).
-2. **Setor definido por dados** — cada setor é uma grelha 4×4 de slots de 16 m,
-   com o tipo de peça, rotação e lista de adereços.
+2. **Setor pintado** — cada setor é uma grelha 8×8 de células de 8 m nas três
+   camadas de GridMap da `test_arena.tscn`.
 3. **Gerador por seed** escolhe as peças respeitando as regras do ponto 4 e
    garantindo ligação das estradas nas fronteiras entre setores (contrato de
    bordo — já existe algo assim em `sector_edge_contract.gd`).
@@ -155,8 +154,7 @@ Isto substitui: a grelha de ruas atual e o pack Downtown.
 
 ## 6. Notas de desempenho
 
-O renderer é GL Compatibility e a horda já custa caro (ver secção 0 do
-OVERVIEW). O mapa tem de ajudar, não atrapalhar:
+Com Forward+ há folga (140 inimigos a 143 FPS), mas o mapa deve ajudar:
 
 - **poucos materiais distintos** — permite agrupar draw calls;
 - **peças repetidas** em vez de geometria única por sítio;
@@ -175,7 +173,7 @@ OVERVIEW). O mapa tem de ajudar, não atrapalhar:
 2. **Assets:** packs CC0 — Kenney (City Commercial/Industrial, Factory,
    Graveyard, Car, Mini Forest), KayKit City Builder Bits, Quaternius Zombie
    Apocalypse. Personagens mantêm-se as atuais.
-3. **Escala:** 4×4 setores de 64 m, sobre **um solo único** de 256×256 m.
+3. **Escala:** 8×8 setores de 64 m, sobre **um solo único** de 512×512 m.
 4. **Renderer:** Forward+ (era GL Compatibility) — 8,7× mais rápido.
 
 Por decidir: interiores praticáveis para além dos armazéns.
@@ -189,14 +187,14 @@ Por decidir: interiores praticáveis para além dos armazéns.
 | Passo | Detalhe |
 |---|---|
 | **Demolição** | gerador procedural de estradas, `city_layout_generator`, `road_graph`, `sector_edge_contract`, `city_layout_rules` e o debug overlay removidos (863 linhas) |
-| **Solo único** | 256×256 m sob a grelha 4×4 (−96..160, centro em 32,32); setores deixaram de ter chão próprio |
+| **Solo único** | 512×512 m sob a grelha 8×8 (−224..288, centro em 32,32); setores deixaram de ter chão próprio |
 | **Renderer** | Forward+: 140 inimigos passaram de 16,5 para 143,9 FPS |
 | **Camadas GridMap** | `MapRoads`, `MapStructures`, `MapProps` na arena, célula 8×4×8 m, grupo `map_gridmap` |
 | **Navegação** | `GridMapObstacles` converte células pintadas em obstáculos; lê as formas por peça, por isso o armazém continua praticável por dentro |
 | **Gerador** | passou a colocar **só conteúdo** (caches, munições, arma, spawns); 894 → 339 linhas |
 | **Assets** | 448 modelos importados, só glTF, com `SOURCE.md` e licença por pack |
 | **Escala dos packs** | Kenney e KayKit vêm em miniatura (edifício ≈ 1 m); escalados no `build_tile_library.gd` — cidade ×6, fábrica/cemitério/KayKit ×4, carros ×1,8 |
-| **Setor exemplo** | setor (1,0) pintado com os assets reais |
+| **Mundo pintado** | 64 setores: 4096 células de estrada, 1283 estruturas, 259 props |
 
 ### ⏸️ Playtest de 2026-07-26
 
@@ -207,9 +205,8 @@ começar por identificá-las em jogo antes de mexer no gerador de layout.
 
 ### ❌ Falta
 
-- **Pintar o mapa** — só o setor (1,0) está feito; faltam 15 setores.
-- **Skyboxes** — os 5 PNG Kenney estão importados mas ainda não ligados ao
-  `AtmosphereController` (a ideia: um céu por nível de ameaça).
+- **Afinar o mapa** — está todo pintado, mas por rever à mão.
+- ~~Skyboxes~~ — feito: um céu por nível de ameaça.
 - **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
   disponíveis e ainda não foram configurados.
 - **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
@@ -223,6 +220,6 @@ começar por identificá-las em jogo antes de mexer no gerador de layout.
 
 ```
 tools/build_tile_library.gd    packs → resources/map_tiles_pack.meshlib (+ mede módulos)
-tools/generate_map_tiles.gd    blockout de primitivas → resources/map_tiles.meshlib
-tools/paint_example_sector.gd  pinta o setor (1,0) como ponto de partida
+tools/paint_world.gd           pinta todos os setores
+tools/apply_skyboxes.gd        liga os céus aos presets de atmosfera
 ```

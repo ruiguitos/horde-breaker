@@ -2,103 +2,69 @@
 
 Ficheiro-mestre único e **ponto de entrada para qualquer sessão nova** (substitui
 o antigo HANDOFF): o que é o jogo, como está organizado, o que está feito e o que
-falta. Última atualização: 2026-07-24. Detalhe histórico em `PROGRESS.md`;
-plano por milestone em `ROADMAP.md`.
+falta. Última atualização: 2026-07-26. Detalhe histórico em `PROGRESS.md`;
+plano por milestone em `ROADMAP.md`; o mapa novo em `MAP_DESIGN.md`.
 
 ---
 
-## 0. ESTADO DA ÚLTIMA SESSÃO (2026-07-25) — LER PRIMEIRO
+## 0. ESTADO ATUAL (2026-07-26) — LER PRIMEIRO
 
-### 🟡 MAPA EM RECONSTRUÇÃO — ver `docs/MAP_DESIGN.md` secção 8
+Árvore limpa, nada por commitar.
 
-A demolição está feita e a base nova está de pé: solo único de 256×256 m,
-3 camadas de GridMap (célula 8 m), 448 modelos CC0 importados e escalados,
-navegação a ler as peças pintadas, gerador reduzido a conteúdo. O renderer
-passou para **Forward+** (140 inimigos: 16,5 → 143,9 FPS).
+### O que mudou de fundo
 
-**Falta pintar 15 dos 16 setores** (só o (1,0) está feito), ligar os skyboxes,
-configurar a atmosfera Forward+ e colocar os spawns à mão.
+| Área | Antes | Agora |
+|---|---|---|
+| **Renderer** | GL Compatibility | **Forward+** — 140 inimigos: 16,5 → **143,9 FPS** |
+| **Mundo** | 4×4 setores (256 m), chão por setor | **8×8 setores (512 m)** sobre **solo único** |
+| **Mapa** | gerado por código | **pintado à mão** em 3 camadas de GridMap |
+| **Gerador de setor** | 894 linhas, construía geometria | **339 linhas**, só conteúdo |
+| **Assets** | Quaternius + Downtown | **+448 modelos CC0** (Kenney, KayKit, Quaternius) |
+| **Classes** | 3 | **2** (Medic parqueado, recuperável) |
+| **Skill tree** | 3 colunas × 5 nós | **3 árvores com bifurcação, 36 nós** |
 
-<details>
-<summary>Decisão original (2026-07-25)</summary>
+### Removido a pedido do utilizador
 
-O utilizador decidiu **refazer o mapa por inteiro**:
+O **acampamento** (núcleo, construção, fortificações), o **beacon** e o setor
+este feito à mão, os **grayboxes** (paredes, obstáculos, POIs) e o `CampBuilder`.
 
-- **remover o pack de edifícios** (Quaternius Downtown City MegaKit,
-  `assets/models/city_test_model`);
-- **alterar as grelhas que geram as estradas**.
+Consequência a ter presente: a **zona de extração passou a ser a origem (0,0,0)**,
+porque `run_objective` procura o núcleo do campo e, não o encontrando, usa o
+centro. As 5 fases continuam a funcionar, mas **não há reabastecimento nem
+depósito de Scrap** até a base voltar como estruturas pintadas.
 
-**Não investir mais em layout urbano, colisões de edifícios ou densidade de
-props até o novo mapa estar definido** — todo o trabalho do M24 vai ser
-substituído. Perguntar primeiro qual é a direção pretendida.
+### ⚠️ Por confirmar
 
-*(Atualização: o pack de edifícios acabou por ficar; o que foi removido foi o
-gerador procedural de estradas.)*
+- **A suite completa não correu até ao fim** desde o mundo passar a 8×8.
+  Confirmados: `test_arena_wiring` 9/9, `test_world_ground` 9/9, arena sem erros.
+- **Arranque da arena em headless ficou lento** com 8×8 — fez a validação
+  exceder o tempo. Pode ser só volume de células, pode ser algo que não fecha.
+- **Inconsistências no mapa** notadas em playtest, ainda por catalogar
+  (`MAP_DESIGN.md` secção 8).
 
-</details>
+### Backlog pedido e ainda não feito
 
-### ⏳ DECISÃO À ESPERA DE RESPOSTA — FPS da horda
-
-Depois das correções desta sessão o custo com 140 inimigos caiu de 95 ms para
-60 ms/frame. O que resta é o **skinning** (~40 ms); desligá-lo põe o modelo em
-T-pose, logo não serve. As duas opções na mesa, **por decidir pelo utilizador**:
-
-1. **Baixar o teto de inimigos** (`HARD_ENEMY_CAP` = 140 em `wave_manager.gd`).
-   ~50 inimigos → 60 FPS · ~90 → 30 FPS. Imediato, mexe no feel.
-2. **Cozer uma pose estática** para os que estão fora do orçamento de animação.
-   Mantém os 140, bastante mais trabalho, rigidez visível atrás.
-
-Medições no commit `7881944`; harness em `tests/bench_horde.gd`.
-
----
-
-**Há trabalho por commitar.** Fazer `git add -A && git commit` antes de mexer.
-
-### Feito nesta sessão
-- **Perf — stutters resolvidos:** o pico ao carregar setores era a *construção da
-  navegação* (329 ms no `_ready` da `NavigationRegion3D`, na thread principal).
-  Agora é **pré-cozinhada na worker thread** (`SectorGenerator._bake_navigation_mesh`,
-  com transformações relativas) e o `arena_navigation` respeita a malha pronta.
-  Somou-se anexação incremental do setor (5 nós/frame) e spawns distribuídos
-  (3/frame). **Pico 405 ms → 20,6 ms; 0 frames acima de 33 ms em 300.**
-- **Melee auto-ataque:** as armas brancas não atacavam sozinhas. Agora atacam por
-  proximidade e **viram-se para o alvo** (Worn Sword 3,0 m · Cleaver 3,0 m ·
-  Fire Axe 3,4 m · Spear 4,2 m). Validado em jogo.
-- **Extração em 5 fases** (`run_objective.gd`): janela aos 60 s com aviso e
-  **surge da horda**, zona de extração no acampamento (raio 14 m), extrair vs
-  **"LEFT BEHIND"** (recompensa reduzida a 35%), **ecrã de resumo** (tempo, abates,
-  nível de run, Scrap, Credits) e **"PUSH ON"** (+5 min, recompensa ×2 acumulativa).
-
-### ⚠️ Pendente imediato
-O teste das 5 fases deu **11/13**. As 2 falhas são na extração *depois* do
-"push on". **Causa provável: o próprio teste** — chamou `extend_run()` com a
-árvore ainda pausada (o painel pausa; o botão real despausa antes em
-`_on_continue_pressed`). **Não foi confirmado.** Verificar primeiro:
-despausar no teste, ou jogar até ao fim e carregar em PUSH ON.
-
-### Decisões de design em aberto (perguntadas pelo utilizador)
-1. **Reduzir para 2 classes** (Recruit + Renegade), escondendo o Medic no menu
-   sem apagar código — recuperável se um dia houver esquadrão de 3.
-2. **Machine Gun** nova: dano 20 · cadência 14 · carregador 100 · recarga 3,5 s ·
-   auto-fire 14 m · **−15% velocidade enquanto equipada** · malha `Rifle`
-   embutida · nível 6 / 800 cr · evolui para MINIGUN aos 400 abates.
-
-### Balanceamento a investigar
-- XP da run sobe rápido demais (LV 50 em 10 min).
-- Munição em excesso: visto `50 / 1774` de reserva — **suspeita de a reserva
-  ultrapassar `maximum_reserve_ammunition`**; verificar `add_ammunition`.
+1. **`ESC` no menu de definições** (já funciona na seleção, armory e skill tree).
+2. **Base funcional de volta** — reabastecimento, depósito de Scrap, upgrades,
+   agora como estruturas pintadas.
+3. **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
+   disponíveis e continuam por configurar.
+4. **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
+5. **Afinar os 64 setores** e resolver as inconsistências do playtest.
 
 ---
 
 ## 1. O que é
 
 Horde shooter 3D em **terceira pessoa**, single-player, Windows, feito em
-**Godot 4.7 (mono, renderer GL Compatibility)**, GDScript tipado, **sem C#**.
+**Godot 4.7 (mono, renderer Forward+)**, GDScript tipado, **sem C#**.
 
-O jogador explora um **mundo aberto compacto** (grelha 4×4 de setores, 256×256 m)
-enquanto uma **horda contínua** nasce à volta e escala com o tempo. O acampamento
-central é o porto seguro (reabastecimento, depósito de Scrap, melhorias). Texto
-do jogo em **inglês**; documentação em **português**.
+O jogador explora um **mundo aberto** (grelha 8×8 de setores, 512×512 m, sobre um
+solo contínuo) enquanto uma **horda contínua** nasce à volta e escala com o tempo.
+O centro do mapa é a zona de extração. Texto do jogo em **inglês**; documentação
+em **português**.
+
+> O acampamento foi removido em 2026-07-26; volta como estruturas pintadas.
 
 **Direção atual:** *survivors-like no combate* (inspiração Yet Another Zombie
 Survivors) sobre um mundo aberto — cartas de upgrade por nível de run, orbes de
@@ -150,8 +116,7 @@ scenes/
   pickups/        scrap/ammo/health/weapon
   ui/             hud, tactical_map, damage_number, painéis
   weapons/        cenas das 7 armas (lógica + malhas invisíveis; visual = embutido no rig)
-  world/          test_arena, camp_core, camp_upgrade_station, fortification_site,
-                  city_road_grid, exploration_pois, sectors/east_sector
+  world/          test_arena (o mapa vive nas 3 camadas de GridMap desta cena)
 scripts/
   characters/     player, third_person_camera, imported_model_animation
   enemies/        normal_zombie (base), boss_breaker, damage_hitbox, spit_projectile
@@ -166,15 +131,28 @@ assets/
   icons/          retratos das classes + ícones das armas (gerados de modelos)
   models/
     quaternius_zombie_apocalypse/  personagens, inimigos, armas embutidas, props
-    city_test_model/               Quaternius Downtown MegaKit (CC0) — edifícios/estradas
+    kenney_city_commercial/        Kenney City Kit Commercial (CC0)
+    kenney_city_industrial/        Kenney City Kit Industrial (CC0)
+    kenney_factory_kit/            Kenney Factory Kit (CC0)
+    kenney_graveyard_kit/          Kenney Graveyard Kit (CC0)
+    kenney_car_kit/                Kenney Car Kit (CC0)
+    kenney_mini_forest/            Kenney Mini Forest (CC0)
+    kenney_skyboxes/               5 panoramas 4096x2048 (CC0)
+    kaykit_city_bits/              KayKit City Builder Bits (CC0)
+    city_test_model/               Quaternius Downtown MegaKit (CC0)
     mixamo/                        PARQUEADO (não usado)
   shaders/, themes/  tema partilhado da UI e shaders procedurais
-tools/            generate_ui_icons.gd (regenera ícones/retratos)
+tools/            generate_ui_icons.gd     regenera ícones/retratos
+                  build_tile_library.gd    packs -> map_tiles_pack.meshlib (+ mede módulos)
+                  paint_world.gd           pinta todos os setores
+                  apply_skyboxes.gd        liga os céus aos presets de atmosfera
+                  capture_ui_screen.gd     capturas
+tests/            10 scripts headless (extends SceneTree, prints TEST:/TEST FAIL:)
 docs/             este overview + GDD, ARCHITECTURE, ROADMAP, PROGRESS, TODO, INSPIRATIONS
 prompts/          prompts para agentes
 ```
 
-Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
+Números atuais: 78 scripts `.gd`, 65 cenas `.tscn`, 26 `.tres` de dados, 10 testes.
 
 ---
 
@@ -183,8 +161,9 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 | Sistema | Função |
 |---|---|
 | `wave_manager.gd` | **Diretor de horda contínuo**: threat level sobe **por tempo** (75 s/nível), spawns em lotes nos 6 pontos mais próximos (≥12 m), pesos por tipo, boss a cada 5 níveis, `cycle_completed` a cada 3. |
-| `world_streamer.gd` | Grelha 4×4; setores gerados em **worker threads**; carga 72 m / descarga 96 m; estado por setor; seed/visitados/farol persistidos no save. |
-| `sector_generator.gd` | Constrói o setor por seed: estradas, **edifícios CC0 reais** (com lote), props, caches, munições, caixa de arma (~⅓), **POI explorável** (~½), spawns, navegação. |
+| `world_streamer.gd` | Grelha 8×8 (512 m); setores gerados em **worker threads**; carga 72 m / descarga 96 m; estado por setor; seed e setores visitados persistidos no save. |
+| `sector_generator.gd` | **Só conteúdo, nunca geometria**: caches, munições, caixa de arma (~⅓), marcadores de spawn, paredes de limite e o bake de navegação. O mapa é pintado à mão. |
+| `gridmap_obstacles.gd` | Converte células pintadas do GridMap na lista de obstáculos que a navegação usa; lê as **formas por peça**, por isso o armazém fica praticável por dentro. |
 | `arena_navigation.gd` | Grelha de navegação em runtime que exclui `navigation_blocker`. Decisão: navmesh de editor não se aplica (setores gerados em runtime). |
 | `camp_economy.gd` | Scrap transportado/armazenado, multiplicadores, **melhorias da base** (Resupply Rate/Range, Scavenging), progresso de mastery de Scrap. |
 | `camp_core.gd` / `camp_upgrade_station.gd` | Núcleo, **zona de reabastecimento** (raio/valores crescem com upgrades), 3 pedestais de upgrade. |
@@ -194,7 +173,7 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 | `character_mastery.gd` | Objetivos de mastery (EXTERMINATOR/STORM RIDER/SCAVENGER). |
 | `character_variants.gd` | **Variantes de classe** (capstone da mastery): VETERAN/BERSERKER/COMBAT MEDIC. |
 | `weapon_catalog.gd` | Catálogo único das armas jogáveis (usado pelo controller e pelo ARMORY). |
-| `*_encounter.gd`, `sector_beacon.gd`, `pickup_randomizer.gd`, `hit_sound_library.gd` | Encontros dos POIs à mão, farol, randomização de loot do acampamento, sons sintetizados. |
+| `*_encounter.gd`, `pickup_randomizer.gd`, `hit_sound_library.gd` | Encontros dos POIs à mão, randomização de loot do acampamento, sons sintetizados. |
 
 **Layers de física:** 1=World · 2=Player · 3=Enemy hitboxes · bit 4 (valor 8)=Pickups/interações.
 **Save (`ConfigFile`):** `[profile]` credits/selected · `[world]` seed/visited_sectors/east_beacon · `[<classe>]` unlocked/level/xp/skill_nodes/purchased_weapons/selected slots/mastery_*/variant_active · `[input]` keybindings.
@@ -213,11 +192,15 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 - Feedback: números de dano, flash, sons, hit-marker, knockback ao jogador.
 
 ### Classes, Armas & Progressão
-- 3 classes (Recruit/Renegade/Medic) com passivos e loadout 1/2.
-- **7 armas:** AR, Pistol, Shotgun, **SMG**, Worn Sword, Spear, **Fire Axe** — visuais
-  são **malhas embutidas nos rigs** (decisão firme; nada ancorado ao pivot estático).
-- **ARMORY:** comprar armas com Credits (nível+custo), escolher slots 1/2 (persistente).
-- **Skill tree** permanente por classe; **mastery** (3 objetivos → Credits + variante).
+- 2 classes jogáveis (Recruit/Renegade); Medic parqueado via `is_selectable`.
+- **13 armas** em 5 categorias (ASSAULT/SIDEARM/CLOSE RANGE/HEAVY/MELEE): AR,
+  Pistol, Shotgun, SMG, **Machine Gun** (−15% velocidade), Worn Sword, Spear,
+  Fire Axe, + 5 evoluções (Storm Rifle, Siege Breaker, Hornet, Cleaver,
+  **Minigun**). Visuais são **malhas embutidas nos rigs** (decisão firme).
+- **ARMORY:** comprar com Credits (nível+custo), slots 1/2 persistentes, agrupado
+  por categoria. Evoluções **não aparecem à venda** antes de ganhas por abates.
+- **Skill tree** permanente: 3 árvores com bifurcação, **36 nós** em 7 tiers;
+  desbloqueio por clique com confirmação. **Mastery** (3 objetivos → variante).
 - **Variantes de classe** desbloqueadas ao completar a mastery.
 - Munição do chão **escala com o nível de ameaça**.
 
@@ -227,17 +210,22 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 - **Barra de XP + `LV n`** no HUD; auto-fire alargado e câmara recuada; auto-reload
   assim que o carregador esvazia.
 
-### Mundo aberto
-- Grelha 4×4 por seed em worker threads, streaming, navegação contínua.
-- Seed **fixo por perfil**, setores visitados e farol **persistidos no save**.
-- **Cidade a sério (M24):** layout urbano com **cruz de ruas de 16 m** e quatro
-  **quarteirões de 24×24 m**; os **edifícios CC0 reais** (Quaternius Downtown) só
-  são colocados dentro dos quarteirões, com lote próprio; props de cidade. O chão
-  em tiles repetidos foi removido do acampamento e do setor este. POIs exploráveis + emboscadas
-  por ciclo. Colisão dos edifícios **alinhada** com o visual (bug corrigido).
+### Mundo aberto — ver `MAP_DESIGN.md`
+- **8×8 setores (512 m)** sobre um **solo único**, streaming em worker threads.
+- **Mapa autorado à mão** em 3 camadas de GridMap (`MapRoads`, `MapStructures`,
+  `MapProps`), célula 8×4×8 m, a partir de **448 peças CC0** medidas e escaladas
+  (os packs Kenney/KayKit vêm em miniatura e são ampliados ×1,8 a ×6).
+- **Navegação lê as peças pintadas** (`gridmap_obstacles.gd`), pelas formas de
+  cada peça — o armazém continua praticável por dentro.
+- Gerador de setor reduzido a **conteúdo**: caches, munições, arma, spawns.
+- Seed **fixo por perfil**, setores visitados persistidos no save.
+- **Céu por nível de ameaça** (5 panoramas Kenney nos presets de atmosfera).
 
-### Acampamento
-- Zona de reabastecimento, depósito de Scrap, **3 upgrades** compráveis, 3 barricadas.
+### Acampamento — REMOVIDO (2026-07-26)
+O núcleo, as estações de upgrade e as fortificações foram apagados a pedido.
+O código (`camp_core.gd`, `camp_economy.gd`, `camp_upgrade_station.gd`,
+`fortification_site.gd`) continua no repositório e pode voltar como estruturas
+pintadas. **A extração passou a ser na origem (0,0,0).**
 
 ### UI / UX (facelift completo — Tier 1/2/3)
 - Menu principal com fundo 3D, seleção de classes com modelo 3D + mastery + variante,
@@ -254,20 +242,27 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 
 ## 6. O QUE FALTA ❌ (por milestone)
 
+### M27 — Mapa autorado (em curso)
+- [ ] **Catalogar as inconsistências** vistas no playtest de 2026-07-26.
+- [ ] Afinar densidade e composição dos 64 setores à mão no editor.
+- [ ] **Atmosfera Forward+**: nevoeiro volumétrico, SSAO, SSIL (agora possíveis).
+- [ ] **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
+- [ ] POIs pintados (a peça `ind_building_*` é a indicada) a repor as recompensas
+      que saíram com o POI procedural.
+- [ ] Coerência visual: Kenney e Quaternius têm estilos diferentes — usar por
+      zona, não intercalar.
+- [ ] Investigar o **arranque lento da arena em headless** com 8×8.
+
 ### M22 — Balanceamento (precisa de PLAYTEST teu)
-- [ ] Rever dano/cadência/regen das 3 classes **e das variantes** após jogar.
+- [ ] Rever dano/cadência/regen das 2 classes **e das variantes** após jogar.
 - [ ] Afinar a curva do diretor de horda (intervalo 75 s, lotes, limite simultâneo).
+      `HARD_ENEMY_CAP` = 140 **já não é o constrangimento** com Forward+.
 - [ ] Decidir se o disparo manual permanece.
 
-### M24 — Cidade a sério (continuação)
-- [ ] Tiles de estrada Downtown alinhadas (opcional — estradas atuais já texturadas).
-- [ ] Mais props (AC nas fachadas, drenos, veículos) e afinar densidade.
-- [ ] Fachadas reais nos POIs (manter interior+loot).
-- [ ] Atmosfera do mundo (luz/nevoeiro/hora dourada) alinhada com os assets.
-
-### M25 — Construção livre da base (feature grande, pedida)
-- [ ] Modo de construção no acampamento (grelha, preview fantasma, gasta Scrap).
-- [ ] Catálogo de estruturas (barricada, torre, parede, gerador…).
+### M25 — Base de volta (feature grande, pedida)
+- [ ] Repor reabastecimento, depósito de Scrap e upgrades como estruturas
+      pintadas (o código continua todo no repositório).
+- [ ] Modo de construção (grelha, preview fantasma, gasta Scrap).
 - [ ] Persistência do layout da base no save.
 - [ ] **Base evolui visualmente** conforme os upgrades comprados.
 
@@ -278,7 +273,7 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 - [ ] Evolução de armas por condições (inspiração YAZS).
 - [ ] Labels 3D `[F]` a mostrar a tecla real (após rebind).
 - [ ] Fundir marcadores coincidentes no mapa tático.
-- [ ] Mini-hitch do `add_child` dos setores (encaixar malhas por frames) — **em espera**.
+- [ ] **`ESC` no menu de definições** (já funciona nos outros ecrãs).
 
 ### Bloqueado (precisa de ti / assets)
 - Novos packs de arte = **download teu**; Mixamo **parqueado** (Quaternius cobre tudo);
@@ -291,10 +286,15 @@ Números atuais: ~59 scripts `.gd`, ~41 cenas `.tscn`, 13 `.tres` de dados.
 1. **Armas visíveis = malhas embutidas nos rigs Quaternius** (nunca ancorar ao
    `WeaponPivot` estático; pack de armas externo foi testado e revertido).
 2. **Mixamo parqueado** (`assets/models/mixamo/` existe mas não se usa).
-3. **Navegação = grelha runtime** (`arena_navigation.gd`); não migrar para navmesh de editor.
-4. **Inimigos perseguem só o jogador**; núcleo/base não são alvo nem condição de derrota.
-5. **Loot renova a cada partida**; persiste no save: seed, setores visitados, farol,
+3. **Navegação = grelha runtime** (`arena_navigation.gd`); não migrar para navmesh
+   de editor. As peças de GridMap entram nessa grelha via `gridmap_obstacles.gd`.
+4. **Inimigos perseguem só o jogador**; nada mais é alvo nem condição de derrota.
+5. **Loot renova a cada partida**; persiste no save: seed, setores visitados,
    progressão e compras.
+6. **Mapa autorado, não gerado**: o `sector_generator.gd` coloca só conteúdo.
+   Não voltar a pôr geometria procedural — colide com o que está pintado.
+7. **Renderer Forward+**: a mudança deu 8,7× de desempenho. Reverter para GL
+   Compatibility traz de volta o problema de FPS com hordas grandes.
 6. Não descarregar assets externos sem autorização; comunicação em PT-PT, código em inglês.
 
 ---
