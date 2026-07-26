@@ -1,6 +1,7 @@
-[gd_scene load_steps=47 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/player_spawner.gd" id="1_player_spawner"]
+[ext_resource type="Environment" path="res://resources/atmosphere_presets/calm.tres" id="2_btgqr"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="2_navigation_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
@@ -8,53 +9,41 @@
 [ext_resource type="PackedScene" path="res://scenes/world/camp_core.tscn" id="6_camp_core"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="26_brute"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="27_spitter"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="28_boss"]
+[ext_resource type="Script" path="res://scripts/systems/camp_core.gd" id="9_uvjfp"]
+[ext_resource type="Script" path="res://scripts/systems/fortification_site.gd" id="12_d3l8b"]
 [ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="13_character_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="14_pause_menu"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/ammo_pickup.tscn" id="15_ammo_pickup"]
+[ext_resource type="Script" path="res://scripts/pickups/ammo_pickup.gd" id="15_n846s"]
+[ext_resource type="Script" path="res://scripts/pickups/scrap_pickup.gd" id="17_je3g0"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/scrap_pickup.tscn" id="17_scrap_pickup"]
 [ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="18_camp_economy"]
 [ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="19_fortification_site"]
 [ext_resource type="PackedScene" path="res://scenes/world/exploration_pois.tscn" id="20_exploration_pois"]
 [ext_resource type="Script" path="res://scripts/systems/world_streamer.gd" id="21_world_streamer"]
 [ext_resource type="Script" path="res://scripts/systems/pickup_randomizer.gd" id="25_pickup_randomizer"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="26_brute"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="27_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="28_boss"]
 [ext_resource type="Script" path="res://scripts/systems/character_skills.gd" id="29_character_skills"]
 [ext_resource type="PackedScene" path="res://scenes/world/world_environment.tscn" id="30_world_environment"]
 [ext_resource type="Script" path="res://scripts/systems/atmosphere_controller.gd" id="31_atmosphere"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="31_l3gxt"]
 [ext_resource type="Script" path="res://scripts/systems/build_grid.gd" id="32_build_grid"]
+[ext_resource type="Script" path="res://scripts/ui/build_catalog.gd" id="32_pplfp"]
 [ext_resource type="Script" path="res://scripts/systems/camp_builder.gd" id="33_camp_builder"]
+[ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="34_btw3l"]
 [ext_resource type="PackedScene" path="res://scenes/ui/build_catalog.tscn" id="34_build_catalog"]
+[ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="36_rieb0"]
 [ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="36_run_progression"]
-[ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="38_run_objective"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="37_upgrade_panel"]
-
-[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_arena"]
-sky_top_color = Color(0.09, 0.12, 0.19, 1)
-sky_horizon_color = Color(0.72, 0.46, 0.28, 1)
-sky_curve = 0.14
-ground_bottom_color = Color(0.04, 0.05, 0.07, 1)
-ground_horizon_color = Color(0.5, 0.35, 0.24, 1)
-sun_angle_max = 25.0
-sun_curve = 0.18
-
-[sub_resource type="Sky" id="Sky_arena"]
-sky_material = SubResource("SkyMaterial_arena")
-
-[sub_resource type="Environment" id="Environment_test_arena"]
-background_mode = 2
-sky = SubResource("Sky_arena")
-ambient_light_source = 3
-ambient_light_energy = 0.6
-fog_enabled = true
-fog_light_color = Color(0.42, 0.32, 0.26, 1)
-fog_density = 0.002
-fog_sky_affect = 0.15
+[ext_resource type="Script" path="res://scripts/ui/game_over_panel.gd" id="38_5n1ud"]
+[ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="38_run_objective"]
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="40_r23pl"]
+[ext_resource type="MeshLibrary" path="res://resources/map_tiles.meshlib" id="41_f4wsb"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.28, 0.3, 0.33, 1)
-roughness = 1.0
 
 [sub_resource type="BoxMesh" id="Mesh_floor"]
 material = SubResource("Material_floor")
@@ -95,207 +84,242 @@ size = Vector3(2.6, 2.6, 6)
 [sub_resource type="BoxShape3D" id="Shape_east_obstacle"]
 size = Vector3(3, 3, 5.8)
 
-[node name="TestArena" type="Node3D"]
+[node name="TestArena" type="Node3D" unique_id=963471712]
 
-[node name="Environment" parent="." instance=ExtResource("30_world_environment")]
+[node name="Environment" type="WorldEnvironment" parent="." unique_id=1682927441 instance=ExtResource("30_world_environment")]
+environment = ExtResource("2_btgqr")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.872665, -0.523599, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1578075932]
+transform = Transform3D(0.86602527, 0.38302252, -0.32139382, 0, 0.64278734, 0.7660447, 0.50000024, -0.66341406, 0.55667007, 0, 0, 0)
 light_color = Color(1, 0.94, 0.84, 1)
 shadow_enabled = true
 
-[node name="AtmosphereController" type="Node" parent="."]
+[node name="AtmosphereController" type="Node" parent="." unique_id=43865191]
 script = ExtResource("31_atmosphere")
 world_environment_path = NodePath("../Environment")
 directional_light_path = NodePath("../DirectionalLight3D")
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." groups=["arena_navigation"]]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=451705471 groups=["arena_navigation"]]
 script = ExtResource("2_navigation_script")
 navigation_half_extent = 32.0
 
-[node name="ExplorationPOIs" parent="." instance=ExtResource("20_exploration_pois")]
+[node name="ExplorationPOIs" type="Node3D" parent="." unique_id=118510117 instance=ExtResource("20_exploration_pois")]
 
-[node name="LoadedSectors" type="Node3D" parent="." groups=["world_streamer"]]
+[node name="LoadedSectors" type="Node3D" parent="." unique_id=1806810687 groups=["world_streamer"]]
 script = ExtResource("21_world_streamer")
 
-[node name="Floor" type="StaticBody3D" parent="."]
-position = Vector3(32, -0.5, 32)
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1876412067]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, -0.5, 32)
 
-[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+[node name="Mesh" type="MeshInstance3D" parent="Floor" unique_id=860176016]
 mesh = SubResource("Mesh_floor")
 
-[node name="Collision" type="CollisionShape3D" parent="Floor"]
+[node name="Collision" type="CollisionShape3D" parent="Floor" unique_id=2009191109]
 shape = SubResource("Shape_floor")
 
-[node name="Walls" type="Node3D" parent="."]
+[node name="Walls" type="Node3D" parent="." unique_id=1233646922]
 
-[node name="NorthWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(0, 2, -32.5)
+[node name="NorthWall" type="StaticBody3D" parent="Walls" unique_id=1899428412]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -32.5)
 
-[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall"]
+[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthWall" unique_id=1485590187]
 visible = false
 mesh = SubResource("Mesh_wall")
 
-[node name="Collision" type="CollisionShape3D" parent="Walls/NorthWall"]
+[node name="Collision" type="CollisionShape3D" parent="Walls/NorthWall" unique_id=768310955]
 shape = SubResource("Shape_wall")
 disabled = true
 
-[node name="SouthWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(0, 2, 32.5)
+[node name="SouthWall" type="StaticBody3D" parent="Walls" unique_id=1113688787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 32.5)
 
-[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall"]
+[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthWall" unique_id=84943756]
 visible = false
 mesh = SubResource("Mesh_wall")
 
-[node name="Collision" type="CollisionShape3D" parent="Walls/SouthWall"]
+[node name="Collision" type="CollisionShape3D" parent="Walls/SouthWall" unique_id=1192355442]
 shape = SubResource("Shape_wall")
 disabled = true
 
-[node name="EastWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(32.5, 2, 0)
-rotation = Vector3(0, 1.5708, 0)
+[node name="EastWall" type="StaticBody3D" parent="Walls" unique_id=1487055593]
+transform = Transform3D(-3.6199901e-06, 0, 1, 0, 1, 0, -1, 0, -3.6199901e-06, 32.5, 2, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall"]
+[node name="Mesh" type="MeshInstance3D" parent="Walls/EastWall" unique_id=800128283]
 visible = false
 mesh = SubResource("Mesh_wall")
 
-[node name="Collision" type="CollisionShape3D" parent="Walls/EastWall"]
+[node name="Collision" type="CollisionShape3D" parent="Walls/EastWall" unique_id=1545261249]
 shape = SubResource("Shape_wall")
 disabled = true
 
-[node name="WestWall" type="StaticBody3D" parent="Walls"]
-position = Vector3(-32.5, 2, 0)
-rotation = Vector3(0, 1.5708, 0)
+[node name="WestWall" type="StaticBody3D" parent="Walls" unique_id=733800540]
+transform = Transform3D(-3.6199901e-06, 0, 1, 0, 1, 0, -1, 0, -3.6199901e-06, -32.5, 2, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall"]
+[node name="Mesh" type="MeshInstance3D" parent="Walls/WestWall" unique_id=92065943]
 visible = false
 mesh = SubResource("Mesh_wall")
 
-[node name="Collision" type="CollisionShape3D" parent="Walls/WestWall"]
+[node name="Collision" type="CollisionShape3D" parent="Walls/WestWall" unique_id=1148957447]
 shape = SubResource("Shape_wall")
 disabled = true
 
-[node name="Obstacles" type="Node3D" parent="."]
+[node name="Obstacles" type="Node3D" parent="." unique_id=1176201173]
 
-[node name="CentralBarricade" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(0, 1.3, 0)
+[node name="CentralBarricade" type="StaticBody3D" parent="Obstacles" unique_id=2031264465 groups=["navigation_blocker"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/CentralBarricade"]
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/CentralBarricade" unique_id=49805599]
 visible = false
 mesh = SubResource("Mesh_center_obstacle")
 
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/CentralBarricade"]
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/CentralBarricade" unique_id=2032846120]
 shape = SubResource("Shape_center_obstacle")
 disabled = true
 
-[node name="WestCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(-7, 1.3, -5)
+[node name="WestCover" type="StaticBody3D" parent="Obstacles" unique_id=193512667 groups=["navigation_blocker"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.3, -5)
 
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/WestCover"]
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/WestCover" unique_id=802338168]
 visible = false
 mesh = SubResource("Mesh_side_obstacle")
 
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/WestCover"]
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/WestCover" unique_id=1364205513]
 shape = SubResource("Shape_west_obstacle")
 disabled = true
 
-[node name="EastCover" type="StaticBody3D" parent="Obstacles" groups=["navigation_blocker"]]
-position = Vector3(7, 1.5, 5)
+[node name="EastCover" type="StaticBody3D" parent="Obstacles" unique_id=1104807508 groups=["navigation_blocker"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.5, 5)
 
-[node name="Mesh" type="MeshInstance3D" parent="Obstacles/EastCover"]
+[node name="Mesh" type="MeshInstance3D" parent="Obstacles/EastCover" unique_id=542239732]
 visible = false
 mesh = SubResource("Mesh_side_obstacle")
 
-[node name="Collision" type="CollisionShape3D" parent="Obstacles/EastCover"]
+[node name="Collision" type="CollisionShape3D" parent="Obstacles/EastCover" unique_id=352349863]
 shape = SubResource("Shape_east_obstacle")
 disabled = true
 
-[node name="PlayerSpawn" type="Marker3D" parent="."]
-position = Vector3(0, 1, 8)
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=279748592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 8)
 script = ExtResource("1_player_spawner")
 
-[node name="CampCore" parent="." instance=ExtResource("6_camp_core")]
-position = Vector3(-3.5, 0, 5.5)
+[node name="CampCore" type="StaticBody3D" parent="." unique_id=222209854 groups=["camp_core"] instance=ExtResource("6_camp_core")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 5.5)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("9_uvjfp")
 
-[node name="CampConstruction" type="Node3D" parent="."]
-position = Vector3(-3.5, 0, 5.5)
+[node name="CampConstruction" type="Node3D" parent="." unique_id=1255375799]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 5.5)
 
-[node name="BuildGrid" type="Node3D" parent="CampConstruction"]
+[node name="BuildGrid" type="Node3D" parent="CampConstruction" unique_id=1763954270]
 script = ExtResource("32_build_grid")
-grid_size = Vector2i(14, 14)
-cell_size = 2.0
-reserved_center_radius = 2
 
-[node name="GhostContainer" type="Node3D" parent="CampConstruction"]
+[node name="GhostContainer" type="Node3D" parent="CampConstruction" unique_id=1837797461]
 
-[node name="BuiltStructures" type="Node3D" parent="CampConstruction"]
+[node name="BuiltStructures" type="Node3D" parent="CampConstruction" unique_id=663884195]
 
-[node name="FortificationSite" parent="." instance=ExtResource("19_fortification_site")]
-position = Vector3(-3.5, 0, 1.5)
+[node name="FortificationSite" type="StaticBody3D" parent="." unique_id=1061142737 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 1.5)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("12_d3l8b")
 
-[node name="FortificationSiteWest" parent="." instance=ExtResource("19_fortification_site")]
-position = Vector3(-7.5, 0, 5.5)
+[node name="FortificationSiteWest" type="StaticBody3D" parent="." unique_id=919594772 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 5.5)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("12_d3l8b")
 
-[node name="FortificationSiteEast" parent="." instance=ExtResource("19_fortification_site")]
-position = Vector3(0.5, 0, 5.5)
+[node name="FortificationSiteEast" type="StaticBody3D" parent="." unique_id=2132239066 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("19_fortification_site")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 5.5)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("12_d3l8b")
 
-[node name="Pickups" type="Node3D" parent="."]
+[node name="Pickups" type="Node3D" parent="." unique_id=1821863234]
 script = ExtResource("25_pickup_randomizer")
 
-[node name="AmmoPickup" parent="Pickups" instance=ExtResource("15_ammo_pickup")]
-position = Vector3(1, 0.25, 7.5)
+[node name="AmmoPickup" type="Area3D" parent="Pickups" unique_id=755628278 groups=["ammo_pickup", "pickup"] instance=ExtResource("15_ammo_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.25, 7.5)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("15_n846s")
 
-[node name="ScrapNorthWest" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(-20, 0.35, -25)
+[node name="ScrapNorthWest" type="Area3D" parent="Pickups" unique_id=1162813251 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.35, -25)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapNorthEast" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(27, 0.35, -20)
+[node name="ScrapNorthEast" type="Area3D" parent="Pickups" unique_id=1629222921 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.35, -20)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapSouthWest" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(-25, 0.35, 24)
+[node name="ScrapSouthWest" type="Area3D" parent="Pickups" unique_id=1176029151 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0.35, 24)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapSouthEast" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(20, 0.35, 27)
+[node name="ScrapSouthEast" type="Area3D" parent="Pickups" unique_id=581216392 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.35, 27)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapNorthRoad" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(4, 0.35, -21)
+[node name="ScrapNorthRoad" type="Area3D" parent="Pickups" unique_id=1007796312 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.35, -21)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapEastRoad" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(25, 0.35, 3)
+[node name="ScrapEastRoad" type="Area3D" parent="Pickups" unique_id=1205115295 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0.35, 3)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapSouthRoad" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(-4, 0.35, 25)
+[node name="ScrapSouthRoad" type="Area3D" parent="Pickups" unique_id=1262856023 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.35, 25)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="ScrapWestRoad" parent="Pickups" instance=ExtResource("17_scrap_pickup")]
-position = Vector3(-24, 0.35, -3)
+[node name="ScrapWestRoad" type="Area3D" parent="Pickups" unique_id=928120484 groups=["pickup", "scrap_pickup"] instance=ExtResource("17_scrap_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0.35, -3)
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("17_je3g0")
 
-[node name="EnemySpawns" type="Node3D" parent="."]
+[node name="EnemySpawns" type="Node3D" parent="." unique_id=1716055139]
 unique_name_in_owner = true
 
-[node name="NorthSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(0, 1, -27)
+[node name="NorthSpawn" type="Marker3D" parent="EnemySpawns" unique_id=743023615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -27)
 
-[node name="NorthEastSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(23, 1, -23)
+[node name="NorthEastSpawn" type="Marker3D" parent="EnemySpawns" unique_id=245508204]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1, -23)
 
-[node name="EastSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(27, 1, 2)
+[node name="EastSpawn" type="Marker3D" parent="EnemySpawns" unique_id=1202239316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 1, 2)
 
-[node name="SouthEastSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(23, 1, 25)
+[node name="SouthEastSpawn" type="Marker3D" parent="EnemySpawns" unique_id=833796590]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1, 25)
 
-[node name="SouthWestSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(-24, 1, 24)
+[node name="SouthWestSpawn" type="Marker3D" parent="EnemySpawns" unique_id=624353835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1, 24)
 
-[node name="WestSpawn" type="Marker3D" parent="EnemySpawns"]
-position = Vector3(-27, 1, -4)
+[node name="WestSpawn" type="Marker3D" parent="EnemySpawns" unique_id=467249502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1, -4)
 
-[node name="Gameplay" type="Node" parent="."]
+[node name="Gameplay" type="Node" parent="." unique_id=1883498353]
 
-[node name="Enemies" type="Node3D" parent="Gameplay"]
+[node name="Enemies" type="Node3D" parent="Gameplay" unique_id=653312863]
 unique_name_in_owner = true
 
-[node name="WaveManager" type="Node" parent="Gameplay" groups=["wave_manager"]]
+[node name="WaveManager" type="Node" parent="Gameplay" unique_id=756832450 groups=["wave_manager"]]
 script = ExtResource("5_wave_manager_script")
 normal_zombie_scene = ExtResource("3_zombie")
 runner_zombie_scene = ExtResource("9_runner_zombie")
@@ -303,50 +327,120 @@ brute_zombie_scene = ExtResource("26_brute")
 spitter_zombie_scene = ExtResource("27_spitter")
 boss_scene = ExtResource("28_boss")
 
-[node name="CampEconomy" type="Node" parent="Gameplay" groups=["camp_economy"]]
+[node name="CampEconomy" type="Node" parent="Gameplay" unique_id=910967503 groups=["camp_economy"]]
 script = ExtResource("18_camp_economy")
 
-[node name="CampBuilder" type="Node" parent="Gameplay"]
+[node name="CampBuilder" type="Node" parent="Gameplay" unique_id=1126120861]
 script = ExtResource("33_camp_builder")
 build_grid_path = NodePath("../../CampConstruction/BuildGrid")
 ghost_container_path = NodePath("../../CampConstruction/GhostContainer")
 built_container_path = NodePath("../../CampConstruction/BuiltStructures")
 build_catalog_path = NodePath("../../BuildCatalogLayer/BuildCatalog")
-maximum_build_distance = 18.0
 
-[node name="CharacterSkills" type="Node" parent="Gameplay"]
+[node name="CharacterSkills" type="Node" parent="Gameplay" unique_id=1372948309]
 script = ExtResource("29_character_skills")
 
-[node name="RunObjective" type="Node" parent="Gameplay" groups=["run_objective"]]
+[node name="RunObjective" type="Node" parent="Gameplay" unique_id=1735184961 groups=["run_objective"]]
 script = ExtResource("38_run_objective")
 
-[node name="RunProgression" type="Node" parent="Gameplay" groups=["run_progression"]]
+[node name="RunProgression" type="Node" parent="Gameplay" unique_id=728907968 groups=["run_progression"]]
 script = ExtResource("36_run_progression")
 
-[node name="CharacterProgression" type="Node" parent="Gameplay"]
+[node name="CharacterProgression" type="Node" parent="Gameplay" unique_id=1007104829]
 script = ExtResource("13_character_progression")
 
-[node name="BuildCatalogLayer" type="CanvasLayer" parent="."]
+[node name="BuildCatalogLayer" type="CanvasLayer" parent="." unique_id=626479537]
 layer = 8
 
-[node name="BuildCatalog" parent="BuildCatalogLayer" instance=ExtResource("34_build_catalog")]
+[node name="BuildCatalog" type="Control" parent="BuildCatalogLayer" unique_id=1913884572 instance=ExtResource("34_build_catalog")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme = ExtResource("31_l3gxt")
+script = ExtResource("32_pplfp")
 
-[node name="HUDLayer" type="CanvasLayer" parent="."]
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1852646348]
 layer = 5
 
-[node name="GameHUD" parent="HUDLayer" instance=ExtResource("7_game_hud")]
+[node name="GameHUD" type="Control" parent="HUDLayer" unique_id=1931019368 instance=ExtResource("7_game_hud")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("31_l3gxt")
+script = ExtResource("34_btw3l")
 
-[node name="UpgradeLayer" type="CanvasLayer" parent="."]
+[node name="UpgradeLayer" type="CanvasLayer" parent="." unique_id=1106077616]
 layer = 9
 
-[node name="UpgradeChoicePanel" parent="UpgradeLayer" instance=ExtResource("37_upgrade_panel")]
+[node name="UpgradeChoicePanel" type="Control" parent="UpgradeLayer" unique_id=477047995 instance=ExtResource("37_upgrade_panel")]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_l3gxt")
+script = ExtResource("36_rieb0")
 
-[node name="GameOverLayer" type="CanvasLayer" parent="."]
+[node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=1224248010]
 layer = 10
 
-[node name="GameOverPanel" parent="GameOverLayer" instance=ExtResource("4_game_over")]
+[node name="GameOverPanel" type="Control" parent="GameOverLayer" unique_id=814189721 instance=ExtResource("4_game_over")]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_l3gxt")
+script = ExtResource("38_5n1ud")
 
-[node name="PauseLayer" type="CanvasLayer" parent="."]
+[node name="PauseLayer" type="CanvasLayer" parent="." unique_id=1079247811]
 layer = 20
 
-[node name="PauseMenu" parent="PauseLayer" instance=ExtResource("14_pause_menu")]
+[node name="PauseMenu" type="Control" parent="PauseLayer" unique_id=1521267684 instance=ExtResource("14_pause_menu")]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_l3gxt")
+script = ExtResource("40_r23pl")
+
+[node name="MapRoads" type="GridMap" parent="." unique_id=1459232723]
+mesh_library = ExtResource("41_f4wsb")
+cell_size = Vector3(8, 4, 8)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(8, 2, 4, 8, 3, 1441792, 8, 4, 655364, 9, 2, 4, 9, 3, 1441792, 9, 4, 655364, 10, 0, 1048580, 10, 1, 1048580, 10, 2, 1048580, 10, 3, 1441792, 10, 4, 1048580, 10, 5, 1048580, 10, 6, 1048580, 10, 7, 1048580, 11, 0, 0, 11, 1, 0, 11, 2, 0, 11, 3, 1, 11, 4, 0, 11, 5, 0, 11, 6, 0, 11, 7, 0, 12, 0, 1441796, 12, 1, 1441796, 12, 2, 1441796, 12, 3, 1441792, 12, 4, 1441796, 12, 5, 1441796, 12, 6, 1441796, 12, 7, 1441796, 13, 2, 4, 13, 3, 1441792, 13, 4, 655364, 14, 2, 4, 14, 3, 1441792, 14, 4, 655364, 15, 2, 4, 15, 3, 1441792, 15, 4, 655364)
+}
+
+[node name="MapStructures" type="GridMap" parent="." unique_id=1989755420]
+mesh_library = ExtResource("41_f4wsb")
+cell_size = Vector3(8, 4, 8)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(9, 1, 7, 9, 5, 6, 13, 1, 8, 14, 5, 655369, 8, 0, 6, 14, 0, 7, 8, 6, 15)
+}
+
+[node name="MapProps" type="GridMap" parent="." unique_id=882015455]
+mesh_library = ExtResource("41_f4wsb")
+cell_size = Vector3(8, 4, 8)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(11, 1, 10, 11, 6, 655370, 14, 3, 1441802, 10, 3, 1441804, 13, 6, 11, 10, 2, 13, 15, 2, 13, 8, 4, 14, 12, 7, 14)
+}
