@@ -1,2 +1,39 @@
-# Godot 4 editor cache
+# ====================
+# GODOT ESSENCIAL 
+# ====================
 .godot/
+.import/
+
+# ==========================================
+# COMPILAÇÕES E EXPORTAÇÕES
+# ==========================================
+/build/
+/export/
+*.exe
+*.apk
+*.aab
+*.pck
+*.zip
+
+# ==========================================
+# FICHEIROS TEMPORÁRIOS E BACKUPS
+# ==========================================
+*.tmp
+*.bak
+*.old
+*~
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ==========================================
+# CONFIGURAÇÕES PESSOAIS DO EDITOR
+# ==========================================
+/editor_layout.cfg
+/editor_settings.cfg
+
+# =======================================
+# Ignorar configurações pessoais de IA
+# =======================================
+.claude/
+prompts/
