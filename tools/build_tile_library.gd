@@ -17,18 +17,29 @@ const OUTPUT_PATH := "res://resources/map_tiles_pack.meshlib"
 
 ## Folders to pull models from. `prefix` keeps names unique across packs and
 ## groups them in the GridMap palette, which sorts alphabetically.
+## `scale` brings each pack to the game's metric scale, where the player is
+## ~1.8 m and a shipping container is 5.7 m.
+##
+## The Kenney and KayKit city packs are authored in miniature, for city builders
+## seen from above: their "buildings" measure about 1-2 m across, smaller than
+## the player. They have to be blown up to be walked among. Quaternius is
+## already metric and is left alone.
 const SOURCES: Array[Dictionary] = [
-	{
-		"path": "res://assets/models/quaternius_zombie_apocalypse/environment",
-		"prefix": "env_",
-	},
-	{
-		"path": "res://assets/models/quaternius_zombie_apocalypse/vehicles",
-		"prefix": "veh_",
-	},
-	# Drop new packs in here, for example:
-	# {"path": "res://assets/models/kenney_city_kit_commercial", "prefix": "city_"},
-	# {"path": "res://assets/models/kenney_car_kit", "prefix": "car_"},
+	# 1.24 m -> 7.4 m footprint, 3.15 m -> 19 m tall: a believable block that
+	# still fits inside one 8 m cell.
+	{"path": "res://assets/models/kenney_city_commercial", "prefix": "city_", "scale": 6.0},
+	{"path": "res://assets/models/kenney_city_industrial", "prefix": "ind_", "scale": 6.0},
+	# Factory pieces run to 2 m, so x4 lands them on the 8 m cell.
+	{"path": "res://assets/models/kenney_factory_kit", "prefix": "fac_", "scale": 4.0},
+	{"path": "res://assets/models/kenney_graveyard_kit", "prefix": "grav_", "scale": 4.0},
+	# Mini Forest is a whole kit (trees, platforms, props), not just trees.
+	{"path": "res://assets/models/kenney_mini_forest", "prefix": "forest_", "scale": 6.0},
+	# A 2.55 m toy car becomes 4.6 m, about the length of a real one.
+	{"path": "res://assets/models/kenney_car_kit", "prefix": "car_", "scale": 1.8},
+	# KayKit tiles ship on a 2 m base, so x4 makes one tile exactly one cell.
+	{"path": "res://assets/models/kaykit_city_bits", "prefix": "kay_", "scale": 4.0},
+	{"path": "res://assets/models/quaternius_zombie_apocalypse/environment", "prefix": "env_"},
+	{"path": "res://assets/models/quaternius_zombie_apocalypse/vehicles", "prefix": "veh_"},
 ]
 
 ## Anything flatter than this is ground to walk on, not an obstacle, so it gets
@@ -63,8 +74,10 @@ func _run() -> void:
 			continue
 		print("")
 		print("=== %s (%d models)" % [folder, files.size()])
+		var pack_footprints: Array[float] = []
+		var pack_scale := float(source.get("scale", 1.0))
 		for file_path in files:
-			var entry := _build_item(file_path, prefix)
+			var entry := _build_item(file_path, prefix, pack_scale)
 			if entry.is_empty():
 				continue
 			var bounds: AABB = entry["bounds"]
@@ -73,6 +86,8 @@ func _run() -> void:
 			if not entry.has("shape"):
 				footprints.append(bounds.size.x)
 				footprints.append(bounds.size.z)
+				pack_footprints.append(bounds.size.x)
+				pack_footprints.append(bounds.size.z)
 			print("  %-28s %5.2f x %5.2f x %5.2f m   collider=%s" % [
 				String(entry["name"]),
 				bounds.size.x, bounds.size.y, bounds.size.z,
@@ -89,6 +104,9 @@ func _run() -> void:
 				library.set_item_shapes(id, [
 					entry["shape"], Transform3D(Basis(), entry["shape_offset"])
 				])
+		# Per pack, because each vendor authors on its own module and a combined
+		# figure hides that.
+		print("  → %s" % _describe_module(pack_footprints))
 
 	for folder in missing:
 		print("MISSING: %s — folder not found, skipped" % folder)
@@ -130,7 +148,7 @@ func _list_models(folder: String) -> PackedStringArray:
 	return files
 
 
-func _build_item(file_path: String, prefix: String) -> Dictionary:
+func _build_item(file_path: String, prefix: String, scale: float = 1.0) -> Dictionary:
 	var packed := load(file_path) as PackedScene
 	if packed == null:
 		push_warning("Could not load %s" % file_path)
@@ -140,6 +158,9 @@ func _build_item(file_path: String, prefix: String) -> Dictionary:
 		push_warning("%s has no Node3D root" % file_path)
 		return {}
 	root.add_child(instance)
+	if not is_equal_approx(scale, 1.0):
+		instance.scale = Vector3.ONE * scale
+		instance.force_update_transform()
 	var merged := _merge_meshes(instance)
 	var bounds := _get_bounds(instance)
 	instance.queue_free()
@@ -166,12 +187,14 @@ func _merge_meshes(instance: Node3D) -> ArrayMesh:
 	# exploding into a draw call per node.
 	var tools: Dictionary = {}
 	var order: Array = []
+	# Ignore the instance's own transform so the pack scale set on it is baked
+	# into the merged mesh instead of being cancelled out.
+	var inverse := Transform3D(Basis(), Vector3.ZERO)
 	for value in instance.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := value as MeshInstance3D
 		if mesh_instance.mesh == null or not mesh_instance.visible:
 			continue
-		var relative := instance.global_transform.affine_inverse() \
-			* mesh_instance.global_transform
+		var relative := inverse * mesh_instance.global_transform
 		for surface in mesh_instance.mesh.get_surface_count():
 			var material := mesh_instance.get_active_material(surface)
 			var key := material.resource_path if material != null else "none"
@@ -200,12 +223,15 @@ func _merge_meshes(instance: Node3D) -> ArrayMesh:
 func _get_bounds(instance: Node3D) -> AABB:
 	var bounds := AABB()
 	var started := false
+	# Relative to the instance's own basis rather than its full transform, so
+	# the pack scale applied above is included in the measurement.
+	var inverse := Transform3D(instance.global_transform.basis, Vector3.ZERO).affine_inverse()
+	inverse = Transform3D(Basis(), Vector3.ZERO)
 	for value in instance.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := value as MeshInstance3D
 		if mesh_instance.mesh == null or not mesh_instance.visible:
 			continue
-		var relative := instance.global_transform.affine_inverse() \
-			* mesh_instance.global_transform
+		var relative := inverse * mesh_instance.global_transform
 		var item_bounds := relative * mesh_instance.mesh.get_aabb()
 		if not started:
 			bounds = item_bounds
@@ -213,6 +239,29 @@ func _get_bounds(instance: Node3D) -> AABB:
 		else:
 			bounds = bounds.merge(item_bounds)
 	return bounds
+
+
+func _describe_module(footprints: Array[float]) -> String:
+	if footprints.is_empty():
+		return "no flat tiling pieces (props only, placed freely)"
+	var best_module := 0.0
+	var best_score := -1.0
+	for module in CANDIDATE_MODULES:
+		var fitting := 0
+		for size in footprints:
+			var remainder := fmod(size, module)
+			if remainder <= MODULE_TOLERANCE or module - remainder <= MODULE_TOLERANCE:
+				fitting += 1
+		var score := float(fitting) / float(footprints.size())
+		if score >= best_score:
+			best_score = score
+			best_module = module
+	var largest := 0.0
+	for size in footprints:
+		largest = maxf(largest, size)
+	return "module %.1f m (%.0f%% of %d tiling pieces), largest %.2f m" % [
+		best_module, best_score * 100.0, footprints.size() / 2, largest
+	]
 
 
 func _report_module(footprints: Array[float]) -> void:

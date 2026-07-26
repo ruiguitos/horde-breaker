@@ -4,7 +4,8 @@ Proposta de raiz para substituir o mapa atual (grelha de ruas + Quaternius
 Downtown MegaKit). Documento de **design**, não de implementação: descreve o que
 o mapa tem de fazer ao jogador e que peças são precisas para lá chegar.
 
-Estado: **proposta, por aprovar.** Nada foi apagado ainda.
+Estado: **aprovado e em construção.** Ver a secção 8 no fim para o que já está
+feito e o que falta.
 
 ---
 
@@ -168,11 +169,53 @@ OVERVIEW). O mapa tem de ajudar, não atrapalhar:
 
 ---
 
-## 7. Decisões que faltam (para o utilizador)
+## 7. Decisões tomadas
 
-1. **Edifícios:** novo pack descarregado, ou geometria própria (caixas com
-   fachadas) até haver arte?
-2. **Autoria:** peças pintadas em GridMap dentro do Godot, blockout em
-   TrenchBroom, ou modeladas em Blender?
-3. **Escala:** mantemos 4×4 setores de 64 m, ou menos setores maiores?
-4. **Interiores:** só armazéns, ou também lojas e casas praticáveis?
+1. **Autoria:** peças pintadas em **GridMap** dentro do Godot (célula 8×4×8 m).
+2. **Assets:** packs CC0 — Kenney (City Commercial/Industrial, Factory,
+   Graveyard, Car, Mini Forest), KayKit City Builder Bits, Quaternius Zombie
+   Apocalypse. Personagens mantêm-se as atuais.
+3. **Escala:** 4×4 setores de 64 m, sobre **um solo único** de 256×256 m.
+4. **Renderer:** Forward+ (era GL Compatibility) — 8,7× mais rápido.
+
+Por decidir: interiores praticáveis para além dos armazéns.
+
+---
+
+## 8. Estado da obra
+
+### ✅ Feito
+
+| Passo | Detalhe |
+|---|---|
+| **Demolição** | gerador procedural de estradas, `city_layout_generator`, `road_graph`, `sector_edge_contract`, `city_layout_rules` e o debug overlay removidos (863 linhas) |
+| **Solo único** | 256×256 m sob a grelha 4×4 (−96..160, centro em 32,32); setores deixaram de ter chão próprio |
+| **Renderer** | Forward+: 140 inimigos passaram de 16,5 para 143,9 FPS |
+| **Camadas GridMap** | `MapRoads`, `MapStructures`, `MapProps` na arena, célula 8×4×8 m, grupo `map_gridmap` |
+| **Navegação** | `GridMapObstacles` converte células pintadas em obstáculos; lê as formas por peça, por isso o armazém continua praticável por dentro |
+| **Gerador** | passou a colocar **só conteúdo** (caches, munições, arma, spawns); 894 → 339 linhas |
+| **Assets** | 448 modelos importados, só glTF, com `SOURCE.md` e licença por pack |
+| **Escala dos packs** | Kenney e KayKit vêm em miniatura (edifício ≈ 1 m); escalados no `build_tile_library.gd` — cidade ×6, fábrica/cemitério/KayKit ×4, carros ×1,8 |
+| **Setor exemplo** | setor (1,0) pintado com os assets reais |
+
+### ❌ Falta
+
+- **Pintar o mapa** — só o setor (1,0) está feito; faltam 15 setores.
+- **Skyboxes** — os 5 PNG Kenney estão importados mas ainda não ligados ao
+  `AtmosphereController` (a ideia: um céu por nível de ameaça).
+- **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
+  disponíveis e ainda não foram configurados.
+- **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
+- **POIs** — o POI procedural saiu com o gerador; os pontos de interesse passam
+  a ser pintados (a peça `ind_building_*` é a indicada).
+- **Coerência visual** — Kenney e Quaternius têm estilos diferentes; usar por
+  zona em vez de intercalar, e rever depois de pintar.
+- **Densidade** — o setor exemplo ficou com edifícios demasiado juntos.
+
+### Ferramentas
+
+```
+tools/build_tile_library.gd    packs → resources/map_tiles_pack.meshlib (+ mede módulos)
+tools/generate_map_tiles.gd    blockout de primitivas → resources/map_tiles.meshlib
+tools/paint_example_sector.gd  pinta o setor (1,0) como ponto de partida
+```

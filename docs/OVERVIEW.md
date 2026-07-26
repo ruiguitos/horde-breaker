@@ -9,7 +9,18 @@ plano por milestone em `ROADMAP.md`.
 
 ## 0. ESTADO DA ÚLTIMA SESSÃO (2026-07-25) — LER PRIMEIRO
 
-### 🔴 DECIDIDO: O MAPA VAI SER REFEITO DE RAIZ
+### 🟡 MAPA EM RECONSTRUÇÃO — ver `docs/MAP_DESIGN.md` secção 8
+
+A demolição está feita e a base nova está de pé: solo único de 256×256 m,
+3 camadas de GridMap (célula 8 m), 448 modelos CC0 importados e escalados,
+navegação a ler as peças pintadas, gerador reduzido a conteúdo. O renderer
+passou para **Forward+** (140 inimigos: 16,5 → 143,9 FPS).
+
+**Falta pintar 15 dos 16 setores** (só o (1,0) está feito), ligar os skyboxes,
+configurar a atmosfera Forward+ e colocar os spawns à mão.
+
+<details>
+<summary>Decisão original (2026-07-25)</summary>
 
 O utilizador decidiu **refazer o mapa por inteiro**:
 
@@ -20,6 +31,11 @@ O utilizador decidiu **refazer o mapa por inteiro**:
 **Não investir mais em layout urbano, colisões de edifícios ou densidade de
 props até o novo mapa estar definido** — todo o trabalho do M24 vai ser
 substituído. Perguntar primeiro qual é a direção pretendida.
+
+*(Atualização: o pack de edifícios acabou por ficar; o que foi removido foi o
+gerador procedural de estradas.)*
+
+</details>
 
 ### ⏳ DECISÃO À ESPERA DE RESPOSTA — FPS da horda
 

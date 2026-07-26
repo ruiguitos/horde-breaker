@@ -11,7 +11,7 @@ extends SceneTree
 ## by. The camp sector (0,0) is left alone.
 
 const ARENA_PATH := "res://scenes/world/test_arena.tscn"
-const LIBRARY_PATH := "res://resources/map_tiles.meshlib"
+const LIBRARY_PATH := "res://resources/map_tiles_pack.meshlib"
 const CELL_SIZE := Vector3(8.0, 4.0, 8.0)
 ## Which sector to paint, in the streamer's coordinates. (1, 0) is east of camp.
 const SECTOR_COORDS := Vector2i(1, 0)
@@ -28,6 +28,18 @@ const ROT_0 := 0
 const ROT_90 := 22
 const ROT_180 := 10
 const ROT_270 := 16
+
+## Tiles used, by role. KayKit road pieces are exactly 8 x 8 m once scaled, so
+## they land on the cell without any fitting.
+const ROAD_STRAIGHT := "kay_road_straight"
+const ROAD_JUNCTION := "kay_road_junction"
+const GROUND := "kay_base"
+const BUILDINGS: Array[String] = [
+	"city_building_a", "city_building_d", "city_building_g",
+	"city_building_i", "city_building_m",
+]
+const WAREHOUSES: Array[String] = ["ind_building_a", "ind_building_c"]
+const CARS: Array[String] = ["car_sedan", "car_van", "car_taxi", "car_truck"]
 
 
 func _initialize() -> void:
@@ -48,6 +60,7 @@ func _run() -> void:
 	var roads := _ensure_gridmap(arena, "MapRoads", library)
 	var structures := _ensure_gridmap(arena, "MapStructures", library)
 	var props := _ensure_gridmap(arena, "MapProps", library)
+	# The library changed, so old indices would point at unrelated tiles.
 	roads.clear()
 	structures.clear()
 	props.clear()
@@ -76,74 +89,76 @@ func _run() -> void:
 func _paint_sector(
 	roads: GridMap, structures: GridMap, props: GridMap, ids: Dictionary
 ) -> void:
-	var origin := SECTOR_ORIGIN
-	# Two roads crossing the sector: column 3 north-south, row 3 east-west.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20260726
 	var road_column := 3
 	var road_row := 3
 	for x in SECTOR_CELLS:
 		for z in SECTOR_CELLS:
-			var cell := Vector3i(origin.x + x, 0, origin.y + z)
+			var cell := _cell(x, z)
 			var on_column := x == road_column
 			var on_row := z == road_row
 			if on_column and on_row:
-				roads.set_cell_item(cell, ids["road_crossing"], ROT_0)
+				_place(roads, cell, ids, ROAD_JUNCTION)
 			elif on_column:
-				roads.set_cell_item(cell, ids["road_straight"], ROT_0)
+				_place(roads, cell, ids, ROAD_STRAIGHT)
 			elif on_row:
-				roads.set_cell_item(cell, ids["road_straight"], ROT_90)
-			elif _is_pavement(x, z, road_column, road_row):
-				roads.set_cell_item(cell, ids["sidewalk"], _pavement_rotation(
-					x, z, road_column, road_row
-				))
+				_place(roads, cell, ids, ROAD_STRAIGHT, ROT_90)
+			else:
+				_place(roads, cell, ids, GROUND)
 
-	# Four blocks, each with a couple of buildings and a warehouse in one.
-	_place(structures, origin, 1, 1, ids["building_medium"])
-	_place(structures, origin, 1, 5, ids["building_small"])
-	_place(structures, origin, 5, 1, ids["building_tall"])
-	_place(structures, origin, 6, 5, ids["warehouse"], ROT_180)
-	_place(structures, origin, 0, 0, ids["building_small"])
-	_place(structures, origin, 6, 0, ids["building_medium"])
+	# Buildings fill the four blocks the roads carve out, one per cell so the
+	# streets stay clear.
+	for x in SECTOR_CELLS:
+		for z in SECTOR_CELLS:
+			if x == road_column or z == road_row:
+				continue
+			# Leave the cells next to the road free: that is the pavement, and
+			# it is where the player runs.
+			if absi(x - road_column) == 1 and absi(z - road_row) == 1:
+				continue
+			if rng.randf() > 0.55:
+				continue
+			var choice: String = BUILDINGS[rng.randi_range(0, BUILDINGS.size() - 1)]
+			_place(structures, _cell(x, z), ids, choice, _random_rotation(rng))
 
-	# Landmark for orientation, per the design rules.
-	_place(structures, origin, 0, 6, ids["water_tower"])
+	# One warehouse per sector: the interior arena the design asks for.
+	_place(structures, _cell(6, 6), ids, WAREHOUSES[0], ROT_180)
+	# A landmark to navigate by, per the design rules.
+	_place(structures, _cell(0, 0), ids, "env_water_tower")
 
-	# Props: wrecks funnel movement on the roads, debris dresses the corners.
-	_place(props, origin, road_column, 1, ids["car_wreck"])
-	_place(props, origin, road_column, 6, ids["car_wreck"], ROT_180)
-	_place(props, origin, 6, road_row, ids["car_wreck"], ROT_90)
-	_place(props, origin, 2, road_row, ids["barricade"], ROT_90)
-	_place(props, origin, 5, 6, ids["container"])
-	_place(props, origin, 2, 2, ids["rubble"])
-	_place(props, origin, 7, 2, ids["rubble"])
-	_place(props, origin, 0, 4, ids["tree"])
-	_place(props, origin, 4, 7, ids["tree"])
-
-
-func _is_pavement(x: int, z: int, column: int, row: int) -> bool:
-	return (
-		absi(x - column) == 1 or absi(z - row) == 1
-	)
+	# Wrecks on the roads funnel movement; debris dresses the rest.
+	_place(props, _cell(road_column, 1), ids, CARS[0])
+	_place(props, _cell(road_column, 6), ids, CARS[1], ROT_180)
+	_place(props, _cell(6, road_row), ids, CARS[2], ROT_90)
+	_place(props, _cell(1, road_row), ids, CARS[3], ROT_270)
+	_place(props, _cell(5, 1), ids, "env_container_green")
+	_place(props, _cell(2, 5), ids, "env_container_red", ROT_90)
+	_place(props, _cell(2, 2), ids, "env_barrel")
+	_place(props, _cell(7, 4), ids, "env_barrel")
+	_place(props, _cell(0, 5), ids, "env_street_lights")
+	_place(props, _cell(5, 0), ids, "env_street_lights", ROT_180)
 
 
-func _pavement_rotation(x: int, z: int, column: int, row: int) -> int:
-	if x == column - 1:
-		return ROT_270
-	if x == column + 1:
-		return ROT_90
-	if z == row - 1:
-		return ROT_0
-	return ROT_180
+func _cell(x: int, z: int) -> Vector3i:
+	return Vector3i(SECTOR_ORIGIN.x + x, 0, SECTOR_ORIGIN.y + z)
+
+
+func _random_rotation(rng: RandomNumberGenerator) -> int:
+	return [ROT_0, ROT_90, ROT_180, ROT_270][rng.randi_range(0, 3)]
 
 
 func _place(
 	grid: GridMap,
-	origin: Vector2i,
-	x: int,
-	z: int,
-	item: int,
+	cell: Vector3i,
+	ids: Dictionary,
+	tile_name: String,
 	rotation: int = ROT_0
 ) -> void:
-	grid.set_cell_item(Vector3i(origin.x + x, 0, origin.y + z), item, rotation)
+	if not ids.has(tile_name):
+		push_warning("Tile not in the library: %s" % tile_name)
+		return
+	grid.set_cell_item(cell, int(ids[tile_name]), rotation)
 
 
 func _ensure_gridmap(arena: Node3D, node_name: String, library: MeshLibrary) -> GridMap:
@@ -156,13 +171,13 @@ func _ensure_gridmap(arena: Node3D, node_name: String, library: MeshLibrary) -> 
 	grid.name = node_name
 	grid.mesh_library = library
 	grid.cell_size = CELL_SIZE
-	# The navigation bakers find painted tiles through this group.
-	grid.add_to_group(GridMapObstacles.GRIDMAP_GROUP, true)
 	# Cells are addressed by their corner, so a tile authored around its own
 	# origin lands centred on the cell.
 	grid.cell_center_x = true
 	grid.cell_center_y = false
 	grid.cell_center_z = true
+	# The navigation bakers find painted tiles through this group.
+	grid.add_to_group(GridMapObstacles.GRIDMAP_GROUP, true)
 	arena.add_child(grid)
 	return grid
 
