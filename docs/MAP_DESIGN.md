@@ -198,6 +198,13 @@ Por decidir: interiores praticáveis para além dos armazéns.
 | **Escala dos packs** | Kenney e KayKit vêm em miniatura (edifício ≈ 1 m); escalados no `build_tile_library.gd` — cidade ×6, fábrica/cemitério/KayKit ×4, carros ×1,8 |
 | **Setor exemplo** | setor (1,0) pintado com os assets reais |
 
+### ⏸️ Playtest de 2026-07-26
+
+O utilizador jogou o mapa 8×8 e considerou-o aceitável para avançar:
+*"parece-me haver algumas inconsistências, mas para já vamos deixar assim"*.
+As inconsistências não foram catalogadas — quando se voltar a este assunto,
+começar por identificá-las em jogo antes de mexer no gerador de layout.
+
 ### ❌ Falta
 
 - **Pintar o mapa** — só o setor (1,0) está feito; faltam 15 setores.
