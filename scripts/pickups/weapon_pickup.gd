@@ -8,7 +8,10 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 @export var weapon_id: StringName = &"shotgun"
 @export var weapon_display_name: String = "Shotgun"
 
-@onready var label: Label3D = $Label
+# Fetched leniently: the world streamer attaches a generated sector's nodes a
+# few per frame, so a crate can reach _ready before its own children have been
+# re-parented, and $Label would error out.
+@onready var label: Label3D = get_node_or_null("Label") as Label3D
 
 var _collected := false
 

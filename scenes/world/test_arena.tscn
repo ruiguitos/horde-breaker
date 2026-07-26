@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="3_zombie"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="4_game_over"]
 [ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="5_wave_manager_script"]
+[ext_resource type="Script" path="res://scripts/systems/world_streamer.gd" id="21_world_streamer"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="7_game_hud"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="9_runner_zombie"]
 [ext_resource type="Script" path="res://scripts/pickups/ammo_pickup.gd" id="10_eij3c"]
@@ -18,7 +19,6 @@
 [ext_resource type="Script" path="res://scripts/systems/pickup_randomizer.gd" id="25_pickup_randomizer"]
 [ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="26_3175d"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="26_brute"]
-[ext_resource type="Script" path="res://scripts/ui/build_catalog.gd" id="27_3filw"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="27_spitter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="28_boss"]
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="29_btgqr"]
@@ -26,9 +26,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/world_environment.tscn" id="30_world_environment"]
 [ext_resource type="Script" path="res://scripts/systems/atmosphere_controller.gd" id="31_atmosphere"]
 [ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="31_uvjfp"]
-[ext_resource type="Script" path="res://scripts/systems/camp_builder.gd" id="33_camp_builder"]
 [ext_resource type="Script" path="res://scripts/ui/game_over_panel.gd" id="33_d3l8b"]
-[ext_resource type="PackedScene" path="res://scenes/ui/build_catalog.tscn" id="34_build_catalog"]
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="35_n846s"]
 [ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="36_run_progression"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="37_upgrade_panel"]
@@ -65,6 +63,7 @@ script = ExtResource("2_navigation_script")
 navigation_half_extent = 32.0
 
 [node name="LoadedSectors" type="Node3D" parent="." unique_id=1806810687 groups=["world_streamer"]]
+script = ExtResource("21_world_streamer")
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=1876412067]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, -0.5, 32)
@@ -173,13 +172,6 @@ boss_scene = ExtResource("28_boss")
 [node name="CampEconomy" type="Node" parent="Gameplay" unique_id=910967503 groups=["camp_economy"]]
 script = ExtResource("18_camp_economy")
 
-[node name="CampBuilder" type="Node" parent="Gameplay" unique_id=1126120861]
-script = ExtResource("33_camp_builder")
-build_grid_path = NodePath("../../CampConstruction/BuildGrid")
-ghost_container_path = NodePath("../../CampConstruction/GhostContainer")
-built_container_path = NodePath("../../CampConstruction/BuiltStructures")
-build_catalog_path = NodePath("../../BuildCatalogLayer/BuildCatalog")
-
 [node name="CharacterSkills" type="Node" parent="Gameplay" unique_id=1372948309]
 script = ExtResource("29_character_skills")
 
@@ -191,20 +183,6 @@ script = ExtResource("36_run_progression")
 
 [node name="CharacterProgression" type="Node" parent="Gameplay" unique_id=1007104829]
 script = ExtResource("13_character_progression")
-
-[node name="BuildCatalogLayer" type="CanvasLayer" parent="." unique_id=626479537]
-layer = 8
-
-[node name="BuildCatalog" type="Control" parent="BuildCatalogLayer" unique_id=1913884572 instance=ExtResource("34_build_catalog")]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 1
-theme = ExtResource("26_3175d")
-script = ExtResource("27_3filw")
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1852646348]
 layer = 5
