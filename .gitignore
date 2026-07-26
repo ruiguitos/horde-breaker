@@ -36,8 +36,12 @@ desktop.ini
 # Ignorar configurações pessoais de IA
 # =======================================
 .claude/
+<<<<<<< HEAD
 prompts/
 # =======================================
 # Gerado por tools/build_tile_library.gd
 # =======================================
 /resources/map_tiles_pack.meshlib
+=======
+prompts/
+>>>>>>> e2b0f3e6aa5c7032648b5467c58eab851bae08c1

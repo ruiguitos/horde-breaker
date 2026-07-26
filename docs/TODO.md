@@ -145,6 +145,23 @@
   e das variantes, e a curva do diretor de horda (intervalo, lotes, limite) —
   precisa de sessão de jogo real; não é implementável às cegas.
 
+## Pedidos por detalhar (2026-07-27)
+
+Registados pelo utilizador como "todo", sem especificação. Antes de arrancar,
+perguntar o que incomoda em cada um — melhorar sem saber o alvo é adivinhar.
+
+- [ ] **Melhorar o menu principal.** O que existe: fundo 3D
+  (`menu_backdrop.tscn`), tipografia Rajdhani, botões animados. Por esclarecer:
+  é o aspeto, a estrutura (o que está lá e o que falta), ou a sensação de
+  arranque do jogo?
+- [ ] **Melhorar o mapa.** Sobrepõe-se ao trabalho já em curso em
+  `MAP_DESIGN.md` secção 8 — inclui as inconsistências notadas no playtest de
+  2026-07-26, que continuam por catalogar.
+- [ ] **Melhorar o minimapa.** Ambíguo: hoje existe o **mapa tático** em ecrã
+  cheio (`tactical_map.gd`, tecla `Tab`), mas **não existe minimapa permanente**
+  no HUD. Confirmar se o pedido é melhorar o mapa tático ou criar um minimapa
+  de canto.
+
 ## Regra
 
 Estes itens não alteram o âmbito do milestone atual. Quando forem concluídos, atualizar também `docs/PROGRESS.md`.
