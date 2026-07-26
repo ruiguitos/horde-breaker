@@ -108,7 +108,9 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 	var sector := Node3D.new()
 	sector.name = String(config["id"]).validate_node_name()
 	sector.add_to_group(&"world_sector")
-	_add_floor(sector)
+	# No per-sector floor: the whole 4x4 grid stands on one continuous ground
+	# plane owned by the arena. Sector-sized slabs left seams at the borders and
+	# punched holes in the world whenever a sector streamed out.
 	_add_outer_walls(sector, config.get("outer_walls", []))
 	_add_sector_label(sector, String(config.get("label", "")))
 	return {
@@ -145,19 +147,6 @@ static func build_sector(config: Dictionary) -> Node3D:
 	add_content_stage(context)
 	finish_sector(context)
 	return context["sector"]
-
-
-static func _add_floor(sector: Node3D) -> void:
-	var floor_body := StaticBody3D.new()
-	floor_body.name = "Floor"
-	floor_body.position = Vector3(0.0, -0.5, 0.0)
-	var collision := CollisionShape3D.new()
-	collision.name = "Collision"
-	var floor_shape := BoxShape3D.new()
-	floor_shape.size = Vector3(SECTOR_HALF_SIZE * 2.0, 1.0, SECTOR_HALF_SIZE * 2.0)
-	collision.shape = floor_shape
-	floor_body.add_child(collision)
-	sector.add_child(floor_body)
 
 
 static func _add_poi_building(
