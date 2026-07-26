@@ -37,3 +37,7 @@ desktop.ini
 # =======================================
 .claude/
 prompts/
+# =======================================
+# Gerado por tools/build_tile_library.gd
+# =======================================
+/resources/map_tiles_pack.meshlib
