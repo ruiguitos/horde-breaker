@@ -150,6 +150,8 @@ func _ensure_gridmap(arena: Node3D, node_name: String, library: MeshLibrary) -> 
 	grid.name = node_name
 	grid.mesh_library = library
 	grid.cell_size = CELL_SIZE
+	# The navigation bakers find painted tiles through this group.
+	grid.add_to_group(GridMapObstacles.GRIDMAP_GROUP, true)
 	# Cells are addressed by their corner, so a tile authored around its own
 	# origin lands centred on the cell.
 	grid.cell_center_x = true

@@ -139,7 +139,8 @@ static func add_content_stage(context: Dictionary) -> void:
 
 
 static func finish_sector(context: Dictionary) -> void:
-	_add_navigation(context["sector"])
+	var config: Dictionary = context["config"]
+	_add_navigation(context["sector"], config.get("painted_obstacles", []))
 
 
 static func build_sector(config: Dictionary) -> Node3D:
@@ -833,13 +834,17 @@ static func _add_sector_label(sector: Node3D, label_text: String) -> void:
 	sector.add_child(label)
 
 
-static func _bake_navigation_mesh(sector: Node3D) -> NavigationMesh:
+static func _bake_navigation_mesh(
+	sector: Node3D, painted_obstacles: Array = []
+) -> NavigationMesh:
 	# Same grid logic as arena_navigation, but computed with transforms relative
-	# to the still-detached sector so it can run off the main thread.
+	# to the still-detached sector so it can run off the main thread. Painted
+	# GridMap cells arrive pre-collected from the main thread, in the same
+	# {center, half_x, half_z} form as the node blockers below.
 	var cell_size := 1.0
 	var clearance := 0.65
 	var cell_count := int(round(SECTOR_HALF_SIZE * 2.0 / cell_size))
-	var blockers: Array = []
+	var blockers: Array = painted_obstacles.duplicate()
 	for node in sector.find_children("*", "StaticBody3D", true, false):
 		var body := node as StaticBody3D
 		if body == null or not body.is_in_group(&"navigation_blocker"):
@@ -916,13 +921,15 @@ static func _get_transform_relative_to(node: Node3D, ancestor: Node3D) -> Transf
 	return result
 
 
-static func _add_navigation(sector: Node3D) -> void:
+static func _add_navigation(sector: Node3D, painted_obstacles: Array) -> void:
 	var navigation_region := NavigationRegion3D.new()
 	navigation_region.name = "NavigationRegion3D"
 	navigation_region.set_script(NAVIGATION_SCRIPT)
 	navigation_region.set(&"navigation_half_extent", SECTOR_HALF_SIZE)
 	# Baked here (worker thread) so entering the tree costs almost nothing.
-	navigation_region.navigation_mesh = _bake_navigation_mesh(sector)
+	navigation_region.navigation_mesh = _bake_navigation_mesh(
+		sector, painted_obstacles
+	)
 	sector.add_child(navigation_region)
 
 

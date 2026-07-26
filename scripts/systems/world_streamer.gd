@@ -207,12 +207,27 @@ func _generate_sector(sector_id: StringName, definition: Dictionary) -> void:
 	# thread, so the main thread never pays the ~230 ms construction cost.
 	var state := _get_or_create_sector_state(sector_id, definition)
 	var coords: Vector2i = definition["coords"]
+	var sector_position: Vector3 = definition["position"]
+	# Painted GridMap cells have to be read here, on the main thread: the worker
+	# builds a detached subtree and cannot touch the scene. Without them the
+	# sector navmesh would ignore every hand-placed building.
+	var painted_obstacles := GridMapObstacles.collect_from_tree(
+		get_tree(),
+		Rect2(
+			sector_position.x - SECTOR_SIZE * 0.5,
+			sector_position.z - SECTOR_SIZE * 0.5,
+			SECTOR_SIZE,
+			SECTOR_SIZE
+		),
+		sector_position
+	)
 	var config := {
 		"id": sector_id,
 		"seed": int(state["seed"]),
 		"collected_caches": state["collected_caches"],
 		"ammo_collected": bool(state.get("ammo_collected", false)),
 		"outer_walls": _get_outer_wall_sides(coords),
+		"painted_obstacles": painted_obstacles,
 		"label": "SECTOR %d · %d" % [coords.x, coords.y],
 		"weapon_collected": bool(state.get("weapon_collected", false)),
 		"cache_collected_callable": _on_sector_cache_collected,

@@ -27,6 +27,18 @@ func build_navigation_mesh() -> void:
 		var blocker := node as StaticBody3D
 		if blocker != null:
 			blockers.append(blocker)
+	# Hand-painted map tiles never become nodes, so they have to be folded in
+	# separately or enemies path straight through them.
+	var painted := GridMapObstacles.collect_from_tree(
+		get_tree(),
+		Rect2(
+			global_position.x - navigation_half_extent,
+			global_position.z - navigation_half_extent,
+			navigation_half_extent * 2.0,
+			navigation_half_extent * 2.0
+		),
+		global_position
+	)
 
 	var navigation_mesh := NavigationMesh.new()
 	var vertices := PackedVector3Array()
@@ -49,7 +61,10 @@ func build_navigation_mesh() -> void:
 				0.0,
 				-navigation_half_extent + (z_index + 0.5) * navigation_cell_size
 			)
-			if _is_cell_blocked(cell_center, blockers):
+			if (
+				_is_cell_blocked(cell_center, blockers)
+				or _is_cell_blocked_by_painted(cell_center, painted)
+			):
 				continue
 			var bottom_left := z_index * row_size + x_index
 			var bottom_right := bottom_left + 1
@@ -59,6 +74,22 @@ func build_navigation_mesh() -> void:
 				PackedInt32Array([bottom_left, bottom_right, top_right, top_left])
 			)
 	self.navigation_mesh = navigation_mesh
+
+
+func _is_cell_blocked_by_painted(
+	cell_center: Vector3, painted: Array[Dictionary]
+) -> bool:
+	var cell_half_size := navigation_cell_size * 0.5
+	for obstacle in painted:
+		var center: Vector3 = obstacle["center"]
+		if (
+			absf(cell_center.x - center.x)
+			<= float(obstacle["half_x"]) + obstacle_clearance + cell_half_size
+			and absf(cell_center.z - center.z)
+			<= float(obstacle["half_z"]) + obstacle_clearance + cell_half_size
+		):
+			return true
+	return false
 
 
 func _is_cell_blocked(
