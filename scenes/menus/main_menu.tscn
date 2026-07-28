@@ -105,22 +105,21 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 64.0
-offset_top = 36.0
-offset_right = -64.0
+offset_left = 48.0
+offset_top = 28.0
+offset_right = -48.0
 offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Columns" type="HBoxContainer" parent="PageMargin"]
 layout_mode = 2
-theme_override_constants/separation = 56
+theme_override_constants/separation = 24
 
 [node name="BrandColumn" type="VBoxContainer" parent="PageMargin/Columns"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 12
 alignment = 1
 
@@ -133,7 +132,7 @@ text = "SURVIVAL PROTOCOL  //  01"
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 68
 text = "HORDE\nBREAKER"
 
 [node name="AccentLine" type="ColorRect" parent="PageMargin/Columns/BrandColumn"]
@@ -146,17 +145,17 @@ color = Color(0.906, 0.566, 0.239, 1)
 [node name="Subtitle" type="Label" parent="PageMargin/Columns/BrandColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.735, 0.765, 1)
-theme_override_font_sizes/font_size = 19
+theme_override_font_sizes/font_size = 20
 text = "Survive the horde. Level up your class. Break the siege."
 
 [node name="Spacer" type="Control" parent="PageMargin/Columns/BrandColumn"]
-custom_minimum_size = Vector2(0, 22)
+custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="StartButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(380, 56)
+custom_minimum_size = Vector2(420, 58)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"PrimaryButton"
@@ -164,30 +163,35 @@ text = "START RUN"
 
 [node name="SelectionButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(380, 50)
+custom_minimum_size = Vector2(420, 52)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "CHARACTERS & CLASSES"
 
 [node name="SettingsButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(380, 50)
+custom_minimum_size = Vector2(420, 52)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "SETTINGS"
 
 [node name="QuitButton" type="Button" parent="PageMargin/Columns/BrandColumn"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(380, 46)
+custom_minimum_size = Vector2(420, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"DangerButton"
 text = "QUIT"
 
+[node name="BalanceSpacer" type="Control" parent="PageMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
 [node name="SummaryColumn" type="VBoxContainer" parent="PageMargin/Columns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(410, 0)
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(460, 0)
+size_flags_horizontal = 8
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
@@ -202,11 +206,12 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"NumericLabel"
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 16
 text = "CREDITS  ·  0"
 horizontal_alignment = 1
 
 [node name="SummaryCard" type="PanelContainer" parent="PageMargin/Columns/SummaryColumn"]
+custom_minimum_size = Vector2(0, 176)
 layout_mode = 2
 theme_type_variation = &"MenuPanel"
 
@@ -217,14 +222,14 @@ mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 22
 
 [node name="Content" type="VBoxContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 11
 
 [node name="Eyebrow" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 layout_mode = 2
@@ -233,41 +238,53 @@ text = "ACTIVE OPERATIVE"
 
 [node name="SelectionRow" type="HBoxContainer" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 16
 
 [node name="EmblemHolder" type="Control" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow"]
-custom_minimum_size = Vector2(52, 52)
+custom_minimum_size = Vector2(92, 92)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="EmblemDiamond" type="ColorRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow/EmblemHolder"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 6.0
-offset_right = 46.0
-offset_bottom = 42.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = 74.0
+offset_bottom = 72.0
 rotation = 0.785398
-pivot_offset = Vector2(18, 18)
+pivot_offset = Vector2(28, 28)
 mouse_filter = 2
 color = Color(0.906, 0.566, 0.239, 1)
 
 [node name="EmblemCore" type="ColorRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow/EmblemHolder"]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 14.0
-offset_right = 38.0
-offset_bottom = 34.0
+offset_left = 30.0
+offset_top = 28.0
+offset_right = 62.0
+offset_bottom = 60.0
 rotation = 0.785398
-pivot_offset = Vector2(10, 10)
+pivot_offset = Vector2(16, 16)
 mouse_filter = 2
 color = Color(0.031, 0.047, 0.063, 1)
+
+[node name="OperativePortrait" type="TextureRect" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow/EmblemHolder"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="SelectionLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content/SelectionRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.97, 0.94, 0.875, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "Recruit\n[1] Assault Rifle   •   [2] Pistol"
 autowrap_mode = 2
 
@@ -275,20 +292,22 @@ autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 16
 text = "LEVEL 1  •  XP 0 / 100"
 
 [node name="NoticeLabel" type="Label" parent="PageMargin/Columns/SummaryColumn/SummaryCard/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
 text = "Automatic weapons specialist. Reloads weapons 30% faster."
 autowrap_mode = 2
 
 [node name="BuildBadge" type="Label" parent="PageMargin/Columns/SummaryColumn"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 14
 text = "URBAN ARENA  •  LOCAL PROFILE"
 horizontal_alignment = 2
 
@@ -303,5 +322,6 @@ offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 14
 text = "WASD  MOVE   •   MOUSE  CAMERA   •   ESC  PAUSE"
 horizontal_alignment = 1

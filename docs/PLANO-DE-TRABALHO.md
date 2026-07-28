@@ -10,7 +10,7 @@ erratas no topo).
 
 ---
 
-## 0. Onde estamos
+## 0. Onde estamos (2026-07-29)
 
 **Funciona e está validado por testes:** combate e hitscan, melee com auto-ataque,
 horda contínua com escalada temporal, 11 armas com evolução por abates, 2 classes,
@@ -28,7 +28,21 @@ a etapa 1 repõe.
 
 ---
 
-## Etapa 1 — Restaurar o acampamento ⬅ **começar por aqui**
+## Etapa 1 — Restaurar o acampamento ✅ **FEITO (2026-07-27)**
+
+`scenes/world/camp_sector.tscn` empacota núcleo, 3 estações de upgrade,
+3 pontos de fortificação e a grelha de construção. Colocado no setor **(-1,-1)**,
+não no centro: ao centro todas as runs têm a mesma forma e nenhum lado do mapa
+é mais perigoso que outro. A posição é uma constante em três ficheiros que têm
+de concordar (`world_streamer.CAMP_COORDS`, `place_camp.CAMP_COORDS`,
+`paint_world.CENTRE`).
+
+Apareceram pelo caminho: o `CampBuilder` apontava para nós inexistentes, o
+catálogo de construção e a sua `CanvasLayer` tinham desaparecido, e o jogador
+nascia na antiga origem. Tudo religado. `test_arena_wiring` cobre-o.
+
+<details>
+<summary>Detalhe original da etapa</summary>
 
 **Porquê primeiro:** sem base não há depósito de Scrap nem upgrades. O core loop
 ("explorar → combater → recolher → melhorar → extrair") está partido a meio, e
@@ -90,6 +104,10 @@ CampSector (Node3D)
 **Risco conhecido:** a zona de extração usa o grupo `camp_core`. Com o
 acampamento de volta, deixa de cair no fallback `Vector3.ZERO` — se o núcleo não
 ficar na origem, a extração muda de sítio sem aviso.
+
+---
+
+</details>
 
 ---
 
@@ -201,15 +219,24 @@ partir os outros.
 
 ---
 
-## Etapa 7 — UI (pedidos por esclarecer)
+## Etapa 7 — UI
 
-Três pedidos registados sem especificação. **Perguntar antes de começar:**
+**Feito (2026-07-29):**
 
-- **Menu principal** — é o aspeto, a estrutura, ou a sensação de arranque?
-- **Minimapa** — hoje existe o **mapa tático em ecrã cheio** (`Tab`,
-  `tactical_map.gd`), mas **não existe minimapa permanente no HUD**. O pedido
-  pode ser melhorar um ou criar o outro.
-- **Mapa** — sobrepõe-se à etapa 2.
+- **Minimapa no HUD** (`scripts/ui/minimap.gd`) — dial no canto, roda com o
+  jogador, base e extração agarradas à borda quando fora de alcance, teto de
+  40 inimigos desenhados.
+- **Mapa tático corrigido** — tinha cópias próprias das constantes do mundo e
+  desenhava ainda um mundo 4×4 de 256 m com a base na origem.
+- **Menu de pausa** — resumo da run (tempo, extração, abates, ameaça, nível,
+  Scrap) e **lista das cartas escolhidas**, que o `RunUpgrades` aplicava e
+  esquecia. Painel próprio à direita.
+- **Menu principal** — cartão do operativo alinhado à direita (faltava-lhe
+  `size_flags_horizontal`) e fim da faixa branca (o SubViewport do fundo estava
+  fixo em 1152×648 e não acompanhava a janela).
+
+**Falta:** "melhorar o menu principal" continua **sem alvo definido** — é o
+aspeto, a estrutura, ou a sensação de arranque? Perguntar antes de mexer.
 
 ---
 
@@ -240,7 +267,7 @@ mutators por run.
 <godot> --headless --path . --script res://tests/<teste>.gd           # TEST:/TEST FAIL:
 ```
 
-Os 10 testes em `tests/` correm em segundos e cobrem extração, armas, melee,
-skill tree, navegação do GridMap, solo do mundo, desempenho da horda e a
-ligação de nós da arena. **Correr todos antes de commitar** — foi assim que se
+Os 11 testes em ``tests/`` somam **329 verificações** e cobrem extração, armas,
+melee, skill tree, navegação do GridMap, solo do mundo, desempenho da horda,
+ligação de nós da arena, minimapa e o painel de pausa. **Correr todos antes de commitar** — foi assim que se
 apanharam o script perdido do `world_streamer` e o desalinhamento das peças.
