@@ -61,7 +61,7 @@ func _run() -> void:
 	_check("tree is paused", paused)
 
 	var summary := pause_menu.get_node_or_null(
-		"PausePanel/Margin/Content/RunSummary"
+		"RunCard/Body/Content/RunSummary"
 	) as Label
 	_check("summary label exists", summary != null)
 	if summary != null:
@@ -71,7 +71,7 @@ func _run() -> void:
 		_check("summary reports the run level", text.contains("RUN LEVEL"))
 
 	var list := pause_menu.get_node_or_null(
-		"PausePanel/Margin/Content/UpgradesList"
+		"RunCard/Body/Content/UpgradesList"
 	) as Label
 	_check("upgrades label exists", list != null)
 	if list != null:

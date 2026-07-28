@@ -74,18 +74,52 @@ func resume_game() -> void:
 
 
 func _build_run_summary() -> void:
-	# Built in code and inserted above the existing spacer, so the scene keeps
-	# its authored layout.
-	var content := panel_container.get_node("Margin/Content") as VBoxContainer
-	var spacer := content.get_node_or_null("Spacer")
-	var insert_at := spacer.get_index() if spacer != null else content.get_child_count()
+	# Its own panel on the right, mirroring the menu on the left. Stacking it
+	# above the buttons squeezed the whole screen into one column and left the
+	# other half empty.
+	var card := PanelContainer.new()
+	card.name = "RunCard"
+	card.theme_type_variation = &"MenuPanel"
+	card.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	card.anchor_left = 1.0
+	card.anchor_right = 1.0
+	card.anchor_top = 0.5
+	card.anchor_bottom = 0.5
+	card.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	card.grow_vertical = Control.GROW_DIRECTION_BOTH
+	card.offset_left = -400.0
+	card.offset_right = -64.0
+	card.offset_top = -220.0
+	card.offset_bottom = 220.0
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(card)
+
+	var margin := MarginContainer.new()
+	margin.name = "Body"
+	margin.add_theme_constant_override(&"margin_left", 24)
+	margin.add_theme_constant_override(&"margin_top", 22)
+	margin.add_theme_constant_override(&"margin_right", 24)
+	margin.add_theme_constant_override(&"margin_bottom", 22)
+	card.add_child(margin)
+	var content := VBoxContainer.new()
+	content.name = "Content"
+	content.add_theme_constant_override(&"separation", 10)
+	margin.add_child(content)
+
+	var heading := Label.new()
+	heading.theme_type_variation = &"EyebrowLabel"
+	heading.add_theme_color_override(&"font_color", ACCENT_COLOR)
+	heading.text = "CURRENT RUN"
+	content.add_child(heading)
 
 	_summary_label = Label.new()
 	_summary_label.name = "RunSummary"
 	_summary_label.theme_type_variation = &"MutedLabel"
-	_summary_label.add_theme_font_size_override(&"font_size", 14)
+	_summary_label.add_theme_font_size_override(&"font_size", 15)
 	content.add_child(_summary_label)
-	content.move_child(_summary_label, insert_at)
+
+	var divider := HSeparator.new()
+	content.add_child(divider)
 
 	_upgrades_title = Label.new()
 	_upgrades_title.name = "UpgradesTitle"
@@ -93,15 +127,13 @@ func _build_run_summary() -> void:
 	_upgrades_title.add_theme_color_override(&"font_color", ACCENT_COLOR)
 	_upgrades_title.text = "UPGRADES"
 	content.add_child(_upgrades_title)
-	content.move_child(_upgrades_title, insert_at + 1)
 
 	_upgrades_label = Label.new()
 	_upgrades_label.name = "UpgradesList"
 	_upgrades_label.theme_type_variation = &"MutedLabel"
-	_upgrades_label.add_theme_font_size_override(&"font_size", 13)
+	_upgrades_label.add_theme_font_size_override(&"font_size", 14)
 	_upgrades_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_upgrades_label)
-	content.move_child(_upgrades_label, insert_at + 2)
 
 
 func _refresh_run_summary() -> void:
