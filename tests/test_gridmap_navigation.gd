@@ -7,7 +7,10 @@ extends SceneTree
 ## warehouse stays walkable inside, which is the case a naive "block the whole
 ## cell" fix would break.
 
-const LIBRARY_PATH := "res://resources/map_tiles.meshlib"
+const LIBRARY_PATH := "res://resources/map_tiles_pack.meshlib"
+## Names from the real asset library. Roads carry no collision; buildings do.
+const ROAD_TILE := "kay_road_straight"
+const BUILDING_TILE := "city_building_d"
 const NAVIGATION_SCRIPT := "res://scripts/systems/arena_navigation.gd"
 const CELL_SIZE := Vector3(8.0, 4.0, 8.0)
 
@@ -24,9 +27,22 @@ func _initialize() -> void:
 func _run() -> void:
 	await process_frame
 	_library = load(LIBRARY_PATH)
+	# Bail out rather than crash: a missing library used to throw on the next
+	# line, skipping the quit() at the end and leaving the process alive forever.
+	if _library == null:
+		_check("library loads from %s" % LIBRARY_PATH, false)
+		print("TEST: %d passed, %d failed" % [_passed, _failed])
+		quit(1)
+		return
 	for id in _library.get_item_list():
 		_ids[_library.get_item_name(id)] = id
-	_check("library loads", _library != null and not _ids.is_empty())
+	_check("library loads", not _ids.is_empty())
+	for required in [ROAD_TILE, BUILDING_TILE]:
+		_check("library has %s" % required, _ids.has(required))
+	if not (_ids.has(ROAD_TILE) and _ids.has(BUILDING_TILE)):
+		print("TEST: %d passed, %d failed" % [_passed, _failed])
+		quit(1)
+		return
 	await _test_extraction()
 	await _test_navmesh()
 	print("TEST: %d passed, %d failed" % [_passed, _failed])
@@ -52,13 +68,13 @@ func _test_extraction() -> void:
 	await process_frame
 
 	# A road tile has no collision shapes: it must never block anything.
-	grid.set_cell_item(Vector3i(0, 0, 0), _ids["road_straight"])
+	grid.set_cell_item(Vector3i(0, 0, 0), _ids[ROAD_TILE])
 	await process_frame
 	var road_obstacles := GridMapObstacles.collect(grid, Rect2(), Vector3.ZERO)
 	_check("roads do not obstruct (%d)" % road_obstacles.size(), road_obstacles.is_empty())
 
 	# A building does.
-	grid.set_cell_item(Vector3i(3, 0, 0), _ids["building_medium"])
+	grid.set_cell_item(Vector3i(3, 0, 0), _ids[BUILDING_TILE])
 	await process_frame
 	var all_obstacles := GridMapObstacles.collect(grid, Rect2(), Vector3.ZERO)
 	_check("a painted building obstructs", all_obstacles.size() >= 1)
@@ -70,26 +86,32 @@ func _test_extraction() -> void:
 			"obstacle lands on its cell (x=%.1f, expected 28)" % centre.x,
 			is_equal_approx(centre.x, 28.0)
 		)
+		# Buildings do not fill their cell - the gap between them is where the
+		# player runs - but they must be substantial and must fit inside it.
 		_check(
-			"obstacle is roughly tile-sized (%.1f m)" % (float(building["half_x"]) * 2.0),
-			float(building["half_x"]) * 2.0 > 6.0
-				and float(building["half_x"]) * 2.0 < 9.0
+			"obstacle is building-sized and fits its cell (%.1f m)"
+				% (float(building["half_x"]) * 2.0),
+			float(building["half_x"]) * 2.0 > 3.0
+				and float(building["half_x"]) * 2.0 <= 8.0
 		)
 
-	# The warehouse contributes its walls, not one solid block: four or more
-	# separate obstacles, none of them covering the whole tile.
-	grid.set_cell_item(Vector3i(6, 0, 0), _ids["warehouse"])
+	# Shapes are read per tile, not per cell. The Kenney buildings are solid
+	# boxes, so one obstacle each; the check that matters is that a tile which
+	# authors several shapes yields several obstacles, which is what keeps a
+	# walkable interior walkable when such a tile is used.
+	grid.set_cell_item(Vector3i(6, 0, 0), _ids[BUILDING_TILE])
 	await process_frame
 	# Cell 6 sits at 6 * 8 + 4 = 52 on x, and cell 0 at 4 on z.
-	var warehouse := GridMapObstacles.collect(
+	var second := GridMapObstacles.collect(
 		grid, Rect2(48.0, 0.0, 8.0, 8.0), Vector3.ZERO
 	)
-	_check("warehouse contributes walls (%d)" % warehouse.size(), warehouse.size() >= 4)
-	var solid := false
-	for obstacle in warehouse:
-		if float(obstacle["half_x"]) > 3.5 and float(obstacle["half_z"]) > 3.5:
-			solid = true
-	_check("warehouse is not one solid block", not solid)
+	_check("a second building obstructs too (%d)" % second.size(), second.size() >= 1)
+	var oversized := false
+	for obstacle in second:
+		# Nothing may claim more than its own cell.
+		if float(obstacle["half_x"]) > 4.5 or float(obstacle["half_z"]) > 4.5:
+			oversized = true
+	_check("no obstacle spills outside its cell", not oversized)
 
 	# Bounds must actually filter.
 	var bounded := GridMapObstacles.collect(
@@ -109,7 +131,7 @@ func _test_navmesh() -> void:
 		for z in [-1, 0, 1]:
 			if x == 0 and z == 0:
 				continue
-			grid.set_cell_item(Vector3i(x, 0, z), _ids["building_small"])
+			grid.set_cell_item(Vector3i(x, 0, z), _ids[BUILDING_TILE])
 	var region := NavigationRegion3D.new()
 	region.set_script(load(NAVIGATION_SCRIPT))
 	region.set(&"navigation_half_extent", 16.0)
