@@ -50,16 +50,16 @@ unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 430.0
+offset_right = 448.0
 grow_vertical = 2
 theme_type_variation = &"MenuPanel"
 
 [node name="Margin" type="MarginContainer" parent="PausePanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 46
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_right = 46
-theme_override_constants/margin_bottom = 44
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 56
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 40
 
 [node name="Content" type="VBoxContainer" parent="PausePanel/Margin"]
 layout_mode = 2
@@ -74,7 +74,7 @@ text = "OPERATION ON HOLD"
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 theme_override_colors/font_color = Color(0.965, 0.949, 0.91, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 56
 text = "PAUSED"
 
 [node name="AccentLine" type="ColorRect" parent="PausePanel/Margin/Content"]
@@ -87,6 +87,7 @@ color = Color(0.906, 0.566, 0.239, 1)
 [node name="Hint" type="Label" parent="PausePanel/Margin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
 text = "The world is on hold.
 Press ESC to resume immediately."
 
@@ -94,29 +95,37 @@ Press ESC to resume immediately."
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+[node name="ActionsLabel" type="Label" parent="PausePanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "PAUSE OPTIONS"
+
+[node name="ActionsDivider" type="HSeparator" parent="PausePanel/Margin/Content"]
+layout_mode = 2
+
 
 [node name="ResumeButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 text = "RESUME"
 
 [node name="SettingsButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "SETTINGS"
 
 [node name="MainMenuButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "BACK TO MAIN MENU"
 
 [node name="QuitButton" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_type_variation = &"DangerButton"
 text = "QUIT GAME"
@@ -125,3 +134,4 @@ text = "QUIT GAME"
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "ESC  •  RESUME"
+theme_override_font_sizes/font_size = 14

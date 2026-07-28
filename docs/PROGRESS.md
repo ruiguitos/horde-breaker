@@ -712,3 +712,13 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Ataque melee, salto e movimento já controlam animações provisórias; recarga, dano e morte ainda não possuem animações próprias.
 - O mapa tático ainda não possui fog of war, nomes próprios para todos os POIs,
   filtros de marcadores, zoom ou navegação por cursor.
+
+## Facelift responsivo do menu principal e pausa
+
+- [x] Menu principal recomposto para 1152 x 648 e 1920 x 1080: identidade com maior presenca, botoes e tipografia responsivos, cartao do operativo mais legivel e retrato da classe ativa integrado.
+- [x] Backdrop do menu aproximado do acampamento com orbita mais lenta e enquadramento menos aereo, mantendo apenas os visuais leves existentes.
+- [x] Menu de pausa recomposto com hierarquia mais forte, grupo de acoes explicito e resumo da partida com maior contraste, espacamento e animacao de entrada.
+- [x] Escala responsiva aplicada aos dois ecras sem alterar navegacao, saves, controlos ou sistemas de gameplay.
+- Validacao Godot 4.7 Mono concluida: importacao headless sem erros, `main_menu.tscn` durante 60 frames e 17/17 testes do resumo de pausa aprovados.
+- Capturas OpenGL inspecionadas a 1152 x 648 e 1920 x 1080, sem texto cortado nem sobreposicoes.
+- Avisos pre-existentes de `owner` em anexos de `WeaponCrate` continuam a surgir ao carregar a arena; nao foram introduzidos por este trabalho de UI.

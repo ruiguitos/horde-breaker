@@ -3,6 +3,9 @@ extends Control
 signal pause_changed(is_paused: bool)
 
 const SETTINGS_SCENE := preload("res://scenes/menus/settings_menu.tscn")
+const REFERENCE_SIZE := Vector2(1152.0, 648.0)
+const MIN_UI_SCALE := 0.82
+const MAX_UI_SCALE := 1.9
 
 @onready var panel_container: PanelContainer = %PausePanel
 @onready var background: ColorRect = %Background
@@ -14,11 +17,18 @@ const SETTINGS_SCENE := preload("res://scenes/menus/settings_menu.tscn")
 
 const ACCENT_COLOR := Color(0.957, 0.694, 0.31, 1.0)
 const MUTED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
+const SUMMARY_COLOR := Color(0.79, 0.82, 0.84, 1.0)
 ## Beyond this the list is summarised, so the panel cannot outgrow the screen on
 ## a long run.
 const MAX_LISTED_UPGRADES := 8
 
 var _settings_overlay: Control
+var _run_card: PanelContainer
+var _run_margin: MarginContainer
+var _run_content: VBoxContainer
+var _run_heading: Label
+var _upgrades_divider: HSeparator
+
 var _summary_label: Label
 var _upgrades_title: Label
 var _upgrades_label: Label
@@ -29,6 +39,8 @@ func _ready() -> void:
 	hide()
 	_build_run_summary()
 	resume_button.pressed.connect(resume_game)
+	_apply_responsive_layout()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
 	settings_button.pressed.connect(_open_settings)
 	main_menu_button.pressed.connect(_open_main_menu)
 	quit_button.pressed.connect(GameManager.quit_game)
@@ -62,6 +74,7 @@ func pause_game() -> void:
 	UiAnimations.fade_in(depth_shade, 0.05, 0.22)
 	UiAnimations.pop_in(panel_container, 0.24)
 	pause_changed.emit(true)
+	UiAnimations.pop_in(_run_card, 0.28)
 
 
 func resume_game() -> void:
@@ -79,6 +92,7 @@ func _build_run_summary() -> void:
 	# other half empty.
 	var card := PanelContainer.new()
 	card.name = "RunCard"
+	_run_card = card
 	card.theme_type_variation = &"MenuPanel"
 	card.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
 	card.anchor_left = 1.0
@@ -96,6 +110,7 @@ func _build_run_summary() -> void:
 
 	var margin := MarginContainer.new()
 	margin.name = "Body"
+	_run_margin = margin
 	margin.add_theme_constant_override(&"margin_left", 24)
 	margin.add_theme_constant_override(&"margin_top", 22)
 	margin.add_theme_constant_override(&"margin_right", 24)
@@ -103,11 +118,13 @@ func _build_run_summary() -> void:
 	card.add_child(margin)
 	var content := VBoxContainer.new()
 	content.name = "Content"
+	_run_content = content
 	content.add_theme_constant_override(&"separation", 10)
 	margin.add_child(content)
 
 	var heading := Label.new()
 	heading.theme_type_variation = &"EyebrowLabel"
+	_run_heading = heading
 	heading.add_theme_color_override(&"font_color", ACCENT_COLOR)
 	heading.text = "CURRENT RUN"
 	content.add_child(heading)
@@ -117,10 +134,13 @@ func _build_run_summary() -> void:
 	_summary_label.theme_type_variation = &"MutedLabel"
 	_summary_label.add_theme_font_size_override(&"font_size", 15)
 	content.add_child(_summary_label)
+	_summary_label.add_theme_color_override(&"font_color", SUMMARY_COLOR)
+	_summary_label.add_theme_constant_override(&"line_spacing", 5)
 
 	var divider := HSeparator.new()
 	content.add_child(divider)
 
+	_upgrades_divider = divider
 	_upgrades_title = Label.new()
 	_upgrades_title.name = "UpgradesTitle"
 	_upgrades_title.theme_type_variation = &"EyebrowLabel"
@@ -134,6 +154,7 @@ func _build_run_summary() -> void:
 	_upgrades_label.add_theme_font_size_override(&"font_size", 14)
 	_upgrades_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_upgrades_label)
+	_upgrades_label.add_theme_color_override(&"font_color", SUMMARY_COLOR)
 
 
 func _refresh_run_summary() -> void:
@@ -145,9 +166,8 @@ func _refresh_run_summary() -> void:
 		else []
 	)
 	var has_upgrades := not taken.is_empty()
-	_upgrades_title.visible = has_upgrades
-	_upgrades_label.visible = has_upgrades
 	if not has_upgrades:
+		_upgrades_label.text = "NO UPGRADES ACQUIRED"
 		return
 	var lines: PackedStringArray = []
 	for index in mini(taken.size(), MAX_LISTED_UPGRADES):
@@ -164,6 +184,69 @@ func _refresh_run_summary() -> void:
 	_upgrades_label.text = "\n".join(lines)
 
 
+
+
+func _apply_responsive_layout() -> void:
+	var ui_scale := _get_ui_scale()
+	var panel_margin := $PausePanel/Margin as MarginContainer
+	var panel_content := $PausePanel/Margin/Content as VBoxContainer
+	var title := $PausePanel/Margin/Content/Title as Label
+	var hint := $PausePanel/Margin/Content/Hint as Label
+	var actions := $PausePanel/Margin/Content/ActionsLabel as Label
+	var footer := $PausePanel/Margin/Content/Footer as Label
+	var panel_width := 448.0 * ui_scale
+
+	panel_container.offset_right = panel_width
+	depth_shade.anchor_left = 0.0
+	depth_shade.offset_left = panel_width
+	_set_margin(panel_margin, 48.0, 56.0, 40.0, ui_scale)
+	panel_content.add_theme_constant_override(&"separation", roundi(12.0 * ui_scale))
+	title.add_theme_font_size_override(&"font_size", roundi(56.0 * ui_scale))
+	hint.add_theme_font_size_override(&"font_size", roundi(15.0 * ui_scale))
+	actions.add_theme_font_size_override(&"font_size", roundi(12.0 * ui_scale))
+	_set_button_height(resume_button, 58.0, ui_scale)
+	_set_button_height(settings_button, 52.0, ui_scale)
+	_set_button_height(main_menu_button, 52.0, ui_scale)
+	_set_button_height(quit_button, 48.0, ui_scale)
+	footer.add_theme_font_size_override(&"font_size", roundi(14.0 * ui_scale))
+	if _run_card == null:
+		return
+	_run_card.offset_left = -464.0 * ui_scale
+	_run_card.offset_right = -64.0 * ui_scale
+	_run_card.offset_top = -210.0 * ui_scale
+	_run_card.offset_bottom = 210.0 * ui_scale
+	_set_margin(_run_margin, 26.0, 24.0, 24.0, ui_scale)
+	_run_content.add_theme_constant_override(&"separation", roundi(11.0 * ui_scale))
+	_run_heading.add_theme_font_size_override(&"font_size", roundi(13.0 * ui_scale))
+	_summary_label.add_theme_font_size_override(&"font_size", roundi(17.0 * ui_scale))
+	_summary_label.add_theme_constant_override(&"line_spacing", roundi(6.0 * ui_scale))
+	_upgrades_title.add_theme_font_size_override(&"font_size", roundi(12.0 * ui_scale))
+	_upgrades_label.add_theme_font_size_override(&"font_size", roundi(15.0 * ui_scale))
+
+
+func _get_ui_scale() -> float:
+	var viewport_size := get_viewport_rect().size
+	var width_scale := viewport_size.x / REFERENCE_SIZE.x
+	var height_scale := viewport_size.y / REFERENCE_SIZE.y
+	return clampf(minf(width_scale, height_scale), MIN_UI_SCALE, MAX_UI_SCALE)
+
+
+func _set_button_height(button: Button, base_height: float, ui_scale: float) -> void:
+	button.custom_minimum_size.y = base_height * ui_scale
+	button.add_theme_font_size_override(&"font_size", roundi(17.0 * ui_scale))
+
+
+func _set_margin(
+	margin: MarginContainer,
+	horizontal: float,
+	top: float,
+	bottom: float,
+	ui_scale: float
+) -> void:
+	margin.add_theme_constant_override(&"margin_left", roundi(horizontal * ui_scale))
+	margin.add_theme_constant_override(&"margin_right", roundi(horizontal * ui_scale))
+	margin.add_theme_constant_override(&"margin_top", roundi(top * ui_scale))
+	margin.add_theme_constant_override(&"margin_bottom", roundi(bottom * ui_scale))
 func _build_summary_text() -> String:
 	var parts: PackedStringArray = []
 	var objective := get_tree().get_first_node_in_group(&"run_objective")

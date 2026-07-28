@@ -67,8 +67,8 @@ func _refresh() -> void:
 	_displayed_credits = credits
 	var primary_weapon_id := SaveManager.get_primary_weapon(character_id)
 	var secondary_weapon_id := SaveManager.get_secondary_weapon(character_id)
-	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
 	operative_portrait.texture = UiVisualCatalog.get_character_icon(character_id)
+	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
 		character_data.display_name,
 		_get_weapon_name(primary_weapon_id),
 		_get_weapon_name(secondary_weapon_id),
