@@ -3,7 +3,7 @@
 Ficheiro-mestre único e **ponto de entrada para qualquer sessão nova** (substitui
 o antigo HANDOFF): o que é o jogo, como está organizado, o que está feito e o que
 falta. Última atualização: 2026-07-26. Detalhe histórico em `PROGRESS.md`;
-plano por milestone em `ROADMAP.md`; o mapa novo em `MAP_DESIGN.md`.
+**o que falta fazer em `PLANO-DE-TRABALHO.md`**; o mapa em `MAP_DESIGN.md`.
 
 ---
 
