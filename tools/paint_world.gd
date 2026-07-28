@@ -17,8 +17,9 @@ const SECTOR_CELLS := 8
 const STREAMER_PATH := "res://scripts/systems/world_streamer.gd"
 var _grid_min := Vector2i(-3, -3)
 var _grid_max := Vector2i(4, 4)
-## The camp sector: kept open so the extraction zone stays readable.
-const CENTRE := Vector2i(0, 0)
+## The camp sector: left open so the extraction zone stays readable. Must match
+## world_streamer.CAMP_COORDS and place_camp.CAMP_COORDS.
+const CENTRE := Vector2i(-1, -1)
 ## Road lane inside every sector. Fixed, so streets run unbroken across borders.
 const ROAD_COLUMN := 3
 const ROAD_ROW := 3

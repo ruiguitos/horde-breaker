@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/camp_core.tscn" id="1_r2f32"]
+[ext_resource type="Script" path="res://scripts/systems/camp_core.gd" id="2_g3bc4"]
+[ext_resource type="PackedScene" path="res://scenes/world/camp_upgrade_station.tscn" id="3_78qes"]
+[ext_resource type="Script" path="res://scripts/systems/camp_upgrade_station.gd" id="4_3ugxn"]
+[ext_resource type="PackedScene" path="res://scenes/world/fortification_site.tscn" id="5_55i2k"]
+[ext_resource type="Script" path="res://scripts/systems/fortification_site.gd" id="6_twwne"]
+[ext_resource type="Script" path="res://scripts/systems/build_grid.gd" id="7_exmw1"]
+
+[node name="CampSector" type="Node3D" unique_id=129861092]
+
+[node name="CampCore" type="StaticBody3D" parent="." unique_id=579972674 groups=["camp_core"] instance=ExtResource("1_r2f32")]
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("2_g3bc4")
+
+[node name="UpgradeStations" type="Node3D" parent="." unique_id=69133366]
+
+[node name="ResupplyRate" type="Area3D" parent="UpgradeStations" unique_id=804738749 instance=ExtResource("3_78qes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -4)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("4_3ugxn")
+
+[node name="ResupplyRange" type="Area3D" parent="UpgradeStations" unique_id=855828594 instance=ExtResource("3_78qes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6.5)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("4_3ugxn")
+upgrade_id = &"resupply_range"
+
+[node name="Scavenging" type="Area3D" parent="UpgradeStations" unique_id=991922299 instance=ExtResource("3_78qes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -4)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("4_3ugxn")
+upgrade_id = &"scavenging"
+
+[node name="Fortifications" type="Node3D" parent="." unique_id=789915160]
+
+[node name="FortificationNorth" type="StaticBody3D" parent="Fortifications" unique_id=1640622 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("5_55i2k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("6_twwne")
+
+[node name="FortificationWest" type="StaticBody3D" parent="Fortifications" unique_id=24705324 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("5_55i2k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 4)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("6_twwne")
+
+[node name="FortificationEast" type="StaticBody3D" parent="Fortifications" unique_id=621545933 groups=["fortification_site", "navigation_blocker"] instance=ExtResource("5_55i2k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 4)
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("6_twwne")
+
+[node name="CampConstruction" type="Node3D" parent="." unique_id=1283250648]
+
+[node name="BuildGrid" type="Node3D" parent="CampConstruction" unique_id=1786044507]
+script = ExtResource("7_exmw1")
+
+[node name="GhostContainer" type="Node3D" parent="CampConstruction" unique_id=1162172895]
+
+[node name="BuiltStructures" type="Node3D" parent="CampConstruction" unique_id=595191800]
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=988911675]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 6)
