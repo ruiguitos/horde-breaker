@@ -29,8 +29,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 stretch = true
+mouse_filter = 2
 
 [node name="BackdropViewport" type="SubViewport" parent="BackdropContainer"]
 handle_input_locally = false
@@ -187,6 +187,7 @@ text = "QUIT"
 [node name="SummaryColumn" type="VBoxContainer" parent="PageMargin/Columns"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(410, 0)
+size_flags_horizontal = 3
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
