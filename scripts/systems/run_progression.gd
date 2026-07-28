@@ -21,6 +21,10 @@ var xp_multiplier: float = 1.0
 var pickup_radius_multiplier: float = 1.0
 
 var _rng := RandomNumberGenerator.new()
+# Which cards were taken, and how many times. RunUpgrades applies an upgrade and
+# forgets it, so by level 15 the player had no way to see what they were
+# carrying — which is exactly what they need to pick the next card well.
+var _taken_upgrades: Dictionary[StringName, int] = {}
 
 
 func _ready() -> void:
@@ -53,3 +57,34 @@ func add_run_xp(amount: int) -> int:
 
 func apply_upgrade(upgrade_id: StringName) -> void:
 	RunUpgrades.apply(upgrade_id, get_tree())
+	_taken_upgrades[upgrade_id] = int(_taken_upgrades.get(upgrade_id, 0)) + 1
+
+
+## The run's upgrades, most-taken first, as
+## `[{"id", "name", "description", "count"}]`.
+func get_taken_upgrades() -> Array[Dictionary]:
+	var taken: Array[Dictionary] = []
+	for upgrade_id in _taken_upgrades:
+		var upgrade := RunUpgrades.get_upgrade(upgrade_id)
+		if upgrade.is_empty():
+			continue
+		taken.append({
+			"id": upgrade_id,
+			"name": String(upgrade.get("name", String(upgrade_id))),
+			"description": String(upgrade.get("description", "")),
+			"count": int(_taken_upgrades[upgrade_id]),
+		})
+	taken.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			if int(a["count"]) != int(b["count"]):
+				return int(a["count"]) > int(b["count"])
+			return String(a["name"]) < String(b["name"])
+	)
+	return taken
+
+
+func get_taken_upgrade_count() -> int:
+	var total := 0
+	for count in _taken_upgrades.values():
+		total += int(count)
+	return total
