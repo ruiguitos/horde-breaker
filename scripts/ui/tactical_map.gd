@@ -5,14 +5,42 @@ const CAMP_GROUP := &"camp_core"
 const ENEMY_GROUP := &"enemy"
 const POI_GROUP := &"point_of_interest"
 const WORLD_STREAMER_GROUP := &"world_streamer"
-const SECTOR_SIZE := 64.0
-const SECTOR_HALF_SIZE := SECTOR_SIZE * 0.5
-const GRID_MIN := Vector2i(-1, -1)
-const GRID_MAX := Vector2i(2, 2)
-const CAMP_COORDS := Vector2i.ZERO
-const EAST_COORDS := Vector2i(1, 0)
-const WORLD_MIN := Vector2(-96.0, -96.0)
-const WORLD_MAX := Vector2(160.0, 160.0)
+## World bounds are read from the streamer at runtime, not preloaded: it
+## references the SaveManager autoload, and a preload of it from a --script tool
+## compiles before the autoloads exist, which leaves the script broken for
+## everyone who loads it afterwards.
+##
+## These were hard-coded copies before, and went stale the moment the world grew
+## to 8x8 and the camp moved: the map was still drawing a 4x4, 256 m world with
+## its base at the origin.
+const STREAMER_PATH := "res://scripts/systems/world_streamer.gd"
+
+var SECTOR_SIZE: float = 64.0
+var SECTOR_HALF_SIZE: float = 32.0
+var GRID_MIN := Vector2i(-3, -3)
+var GRID_MAX := Vector2i(4, 4)
+var CAMP_COORDS := Vector2i(-1, -1)
+var WORLD_MIN := Vector2(-224.0, -224.0)
+var WORLD_MAX := Vector2(288.0, 288.0)
+
+
+func _read_world_bounds() -> void:
+	var streamer: GDScript = load(STREAMER_PATH)
+	if streamer == null:
+		return
+	SECTOR_SIZE = float(streamer.get(&"SECTOR_SIZE"))
+	SECTOR_HALF_SIZE = SECTOR_SIZE * 0.5
+	GRID_MIN = streamer.get(&"GRID_MIN")
+	GRID_MAX = streamer.get(&"GRID_MAX")
+	CAMP_COORDS = streamer.get(&"CAMP_COORDS")
+	WORLD_MIN = Vector2(
+		float(GRID_MIN.x) * SECTOR_SIZE - SECTOR_HALF_SIZE,
+		float(GRID_MIN.y) * SECTOR_SIZE - SECTOR_HALF_SIZE
+	)
+	WORLD_MAX = Vector2(
+		float(GRID_MAX.x) * SECTOR_SIZE + SECTOR_HALF_SIZE,
+		float(GRID_MAX.y) * SECTOR_SIZE + SECTOR_HALF_SIZE
+	)
 const PANEL_COLOR := Color(0.025, 0.039, 0.055, 0.96)
 const MAP_COLOR := Color(0.045, 0.067, 0.086, 1.0)
 const SECTOR_COLOR := Color(0.075, 0.11, 0.135, 1.0)
@@ -47,6 +75,7 @@ var _open_tween: Tween
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_read_world_bounds()
 	# Visited sectors persist per profile, so the map keeps its knowledge
 	# across runs.
 	for coords in SaveManager.get_visited_sector_coords():
@@ -454,12 +483,10 @@ func _is_sector_loaded(coords: Vector2i) -> bool:
 		or not _world_streamer.has_method(&"is_sector_loaded")
 	):
 		return false
-	var sector_id := (
-		StringName("east")
-		if coords == EAST_COORDS
-		else StringName("sector_%d_%d" % [coords.x, coords.y])
-	)
-	return bool(_world_streamer.call(&"is_sector_loaded", sector_id))
+	# The hand-made east sector is gone; every chunk is generated now.
+	return bool(_world_streamer.call(
+		&"is_sector_loaded", StringName("sector_%d_%d" % [coords.x, coords.y])
+	))
 
 
 func _world_to_map(world_position: Vector3) -> Vector2:

@@ -7,6 +7,12 @@ const WAVE_MANAGER_GROUP := &"wave_manager"
 const RUN_PROGRESSION_GROUP := &"run_progression"
 const RUN_OBJECTIVE_GROUP := &"run_objective"
 const EXTRACTION_WARNING_SECONDS := 60.0
+const MINIMAP_SCRIPT := preload("res://scripts/ui/minimap.gd")
+## Top-right, below the Scrap readout. Kept clear of the crosshair and of the
+## ammo counter bottom-right.
+const MINIMAP_SIZE := 168.0
+const MINIMAP_MARGIN := Vector2(30.0, 74.0)
+
 const HEALTH_GOOD_COLOR := Color(0.74, 0.91, 0.79, 1.0)
 const HEALTH_WARNING_COLOR := Color(0.957, 0.694, 0.31, 1.0)
 const HEALTH_DANGER_COLOR := Color(0.91, 0.4, 0.36, 1.0)
@@ -59,6 +65,7 @@ var _bar_fill_styles: Dictionary[Color, StyleBoxFlat] = {}
 
 func _ready() -> void:
 	set_process(false)
+	_build_minimap()
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP)
 	var camp_economy := get_tree().get_first_node_in_group(CAMP_ECONOMY_GROUP)
 	_weapon_controller = get_tree().get_first_node_in_group(WEAPON_CONTROLLER_GROUP)
@@ -97,6 +104,23 @@ func _ready() -> void:
 	_update_wave(int(wave_manager.get("current_wave")))
 	_update_enemy_count(int(wave_manager.get("alive_enemy_count")))
 
+
+func _build_minimap() -> void:
+	if get_node_or_null("Minimap") != null:
+		return
+	var minimap := Control.new()
+	minimap.name = "Minimap"
+	minimap.set_script(MINIMAP_SCRIPT)
+	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	minimap.anchor_left = 1.0
+	minimap.anchor_right = 1.0
+	minimap.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	minimap.offset_left = -MINIMAP_SIZE - MINIMAP_MARGIN.x
+	minimap.offset_right = -MINIMAP_MARGIN.x
+	minimap.offset_top = MINIMAP_MARGIN.y
+	minimap.offset_bottom = MINIMAP_MARGIN.y + MINIMAP_SIZE
+	minimap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(minimap)
 
 func _process(delta: float) -> void:
 	var interpolation_weight := 1.0 - exp(-HEALTH_INTERPOLATION_SPEED * delta)
