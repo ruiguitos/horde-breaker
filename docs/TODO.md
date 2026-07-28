@@ -145,6 +145,43 @@
   e das variantes, e a curva do diretor de horda (intervalo, lotes, limite) —
   precisa de sessão de jogo real; não é implementável às cegas.
 
+## Do plano de implementação (2026-07-27)
+
+Triados a partir de `IMPLEMENTATION-PLAN.md`. As erratas estão no cabeçalho
+desse ficheiro; abaixo ficam só os itens verificados contra o código.
+
+### Críticos
+
+- [ ] **Restaurar a base no mundo 8×8.** Sem ela não há depósito de Scrap nem
+  upgrades, e o core loop fica truncado. Abordagem: cena `camp_sector.tscn` com
+  `CampCore`, `BuildGrid`, estações de upgrade e pontos de fortificação,
+  carregada no setor (0,0). Nota: `camp_builder.gd` existe mas o nó foi removido
+  da arena — voltará a precisar de ser ligado. Confirmar também se
+  `SaveManager.get_base_layout()` é definição ou chamada órfã.
+- [ ] **Catalogar as inconsistências do mapa** notadas no playtest. Suspeitos
+  segundo o plano: colisões contra o terreno, navegação em células pintadas,
+  loot/spawns dentro de paredes, continuidade entre setores.
+
+### Importantes
+
+- [ ] **Medir** por que ficou lento o arranque da arena em headless com 8×8.
+  ⚠️ **Não** baixar `load_distance` para 48 como o plano sugere: os centros dos
+  setores estão a 64 m, e 72 m existe precisamente para os apanhar. 48 abriria
+  buracos à frente do jogador.
+- [ ] **`SectorData.tres` por setor** com posições à mão para spawns, loot e
+  POIs, mantendo a geração procedural como fallback. Cobre o pedido dos spawns
+  em `Marker3D`.
+- [ ] **Efeitos Forward+** nos presets de atmosfera (SSAO, SSIL, nevoeiro
+  volumétrico). ⚠️ Editar os `.tres` à mão perde-se ao correr
+  `tools/apply_skyboxes.gd` — a alteração tem de ser feita nessa ferramenta.
+- [ ] **Afinar os 64 setores**: densidade de loot, inimigos, POIs, coberturas.
+- [ ] **Balanceamento de combate** com as **2** classes atuais (o plano diz 3).
+
+### Opcionais registados
+
+- [ ] Som e música; partículas (sangue, fogo, poeira); feedback de UI
+  (direção do dano, aviso de munição baixa); suporte a gamepad; localização.
+
 ## Pedidos por detalhar (2026-07-27)
 
 Registados pelo utilizador como "todo", sem especificação. Antes de arrancar,

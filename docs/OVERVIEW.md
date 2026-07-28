@@ -44,9 +44,8 @@ depósito de Scrap** até a base voltar como estruturas pintadas.
 
 ### Backlog pedido e ainda não feito
 
-1. **`ESC` no menu de definições** (já funciona na seleção, armory e skill tree).
-2. **Base funcional de volta** — reabastecimento, depósito de Scrap, upgrades,
-   agora como estruturas pintadas.
+1. **Base funcional de volta** — reabastecimento, depósito de Scrap, upgrades.
+   É o item mais importante: sem ela o core loop fica truncado.
 3. **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
    disponíveis e continuam por configurar.
 4. **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
