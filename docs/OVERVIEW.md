@@ -2,54 +2,72 @@
 
 Ficheiro-mestre único e **ponto de entrada para qualquer sessão nova** (substitui
 o antigo HANDOFF): o que é o jogo, como está organizado, o que está feito e o que
-falta. Última atualização: 2026-07-26. Detalhe histórico em `PROGRESS.md`;
+falta. Última atualização: 2026-07-29. Detalhe histórico em `PROGRESS.md`;
 **o que falta fazer em `PLANO-DE-TRABALHO.md`**; o mapa em `MAP_DESIGN.md`.
 
 ---
 
-## 0. ESTADO ATUAL (2026-07-26) — LER PRIMEIRO
+## 0. ESTADO ATUAL (2026-07-29) — LER PRIMEIRO
 
-Árvore limpa, nada por commitar.
+Árvore limpa em `cd75774`. Suite: **11 ficheiros em `tests/`, 329 verificações,
+todas a passar**. Correr sempre antes de commitar.
 
-### O que mudou de fundo
+### Mudanças de fundo desta fase
 
 | Área | Antes | Agora |
 |---|---|---|
 | **Renderer** | GL Compatibility | **Forward+** — 140 inimigos: 16,5 → **143,9 FPS** |
-| **Mundo** | 4×4 setores (256 m), chão por setor | **8×8 setores (512 m)** sobre **solo único** |
-| **Mapa** | gerado por código | **pintado à mão** em 3 camadas de GridMap |
-| **Gerador de setor** | 894 linhas, construía geometria | **339 linhas**, só conteúdo |
-| **Assets** | Quaternius + Downtown | **+448 modelos CC0** (Kenney, KayKit, Quaternius) |
-| **Classes** | 3 | **2** (Medic parqueado, recuperável) |
-| **Skill tree** | 3 colunas × 5 nós | **3 árvores com bifurcação, 36 nós** |
+| **Mundo** | 4×4 (256 m), chão por setor | **8×8 (512 m)** sobre **solo único** |
+| **Mapa** | gerado por código | **pintado à mão**, 3 camadas GridMap (célula 8×4×8 m) |
+| **Gerador de setor** | 894 linhas, construía geometria | **339 linhas**, só loot e spawns |
+| **Assets** | Quaternius + Downtown | **+448 modelos CC0** (Kenney ×6, KayKit, Quaternius) |
+| **Classes** | 3 | **2** (Medic parqueado via `is_selectable`) |
+| **Skill tree** | 3 colunas × 5 nós | **3 árvores bifurcadas, 36 nós** |
+| **Acampamento** | ao centro (0,0) | **descentrado em (-1,-1)** |
 
-### Removido a pedido do utilizador
+### ⚠️ O QUE FALTA — por ordem
 
-O **acampamento** (núcleo, construção, fortificações), o **beacon** e o setor
-este feito à mão, os **grayboxes** (paredes, obstáculos, POIs) e o `CampBuilder`.
+Detalhe completo, com passos e código, em **`PLANO-DE-TRABALHO.md`**.
 
-Consequência a ter presente: a **zona de extração passou a ser a origem (0,0,0)**,
-porque `run_objective` procura o núcleo do campo e, não o encontrando, usa o
-centro. As 5 fases continuam a funcionar, mas **não há reabastecimento nem
-depósito de Scrap** até a base voltar como estruturas pintadas.
+1. **Catalogar as inconsistências do mapa** vistas em playtest, nunca escritas.
+   *Causa provável já identificada:* `sector_generator._find_free_position` só
+   evita as áreas que ele próprio reservou e **não vê o GridMap**, daí loot
+   dentro de paredes. Os obstáculos pintados já são recolhidos para a navegação
+   (`config["painted_obstacles"]`) — basta usá-los também como `blocked_areas`.
+2. **Medir o arranque lento em headless** com 8×8.
+   ⚠️ **Não** baixar `load_distance` para 48: os setores estão a 64 m de
+   distância e os 72 m existem para os apanhar a tempo.
+3. **Repor os POIs** — saíram com o graybox; passam a ser pintados com peças
+   reais. Devolvem os 50 de Scrap e o encontro por ciclo que se perderam.
+4. **Atmosfera Forward+** (volumétrico, SSAO, SSIL).
+   ⚠️ Editar os `.tres` à mão **perde-se**: `tools/apply_skyboxes.gd` reescreve-os.
+5. **`SectorData.tres` por setor** para spawns e loot à mão.
+6. **Afinar os 64 setores** e **balanceamento** — precisam de jogo, não de código.
 
-### ⚠️ Por confirmar
+**Por esclarecer com o utilizador:** "melhorar o menu principal" — é o aspeto,
+a estrutura, ou a sensação de arranque? Sem alvo, não começar.
 
-- **A suite completa não correu até ao fim** desde o mundo passar a 8×8.
-  Confirmados: `test_arena_wiring` 9/9, `test_world_ground` 9/9, arena sem erros.
-- **Arranque da arena em headless ficou lento** com 8×8 — fez a validação
-  exceder o tempo. Pode ser só volume de células, pode ser algo que não fecha.
-- **Inconsistências no mapa** notadas em playtest, ainda por catalogar
-  (`MAP_DESIGN.md` secção 8).
+### Armadilhas conhecidas (custaram tempo)
 
-### Backlog pedido e ainda não feito
+- **`preload` de scripts que usam autoloads** (`world_streamer`, `tactical_map`)
+  a partir de uma ferramenta `--script` compila antes de os autoloads existirem
+  e deixa o script partido para quem o carregar a seguir. Usar `load()` em
+  runtime. Mordeu três vezes.
+- **Ferramentas que reempacotam a arena** já perderam o script do
+  `world_streamer` uma vez. `tests/test_arena_wiring.gd` existe para apanhar
+  nós presentes mas sem script — correr sempre depois de mexer na cena.
+- **A posição do acampamento vive em três ficheiros** que têm de concordar:
+  `world_streamer.CAMP_COORDS`, `tools/place_camp.CAMP_COORDS`,
+  `tools/paint_world.CENTRE`.
+- **Escrever `.tscn`/`.tres` com PowerShell** exige UTF-8 **sem BOM**, senão o
+  Godot recusa o ficheiro.
 
-1. **Base funcional de volta** — reabastecimento, depósito de Scrap, upgrades.
-   É o item mais importante: sem ela o core loop fica truncado.
-3. **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
-   disponíveis e continuam por configurar.
-4. **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
-5. **Afinar os 64 setores** e resolver as inconsistências do playtest.
+### Repositório (ação do utilizador)
+
+`.git` está em **108 MB**; o histórico já foi reescrito mas só encolhe (~23 MB)
+depois de `git push --force-with-lease origin master`, seguido de
+`git remote prune origin && git reflog expire --expire=now --all && git gc --prune=now`.
+A pasta `.godot/` é cache regenerável.
 
 ---
 
@@ -60,10 +78,11 @@ Horde shooter 3D em **terceira pessoa**, single-player, Windows, feito em
 
 O jogador explora um **mundo aberto** (grelha 8×8 de setores, 512×512 m, sobre um
 solo contínuo) enquanto uma **horda contínua** nasce à volta e escala com o tempo.
-O centro do mapa é a zona de extração. Texto do jogo em **inglês**; documentação
+O acampamento é o porto seguro e a zona de extração. Texto do jogo em **inglês**; documentação
 em **português**.
 
-> O acampamento foi removido em 2026-07-26; volta como estruturas pintadas.
+> O acampamento está no setor (-1,-1), descentrado de propósito: ao centro todas
+> as runs teriam a mesma forma. A zona de extração é o núcleo do campo.
 
 **Direção atual:** *survivors-like no combate* (inspiração Yet Another Zombie
 Survivors) sobre um mundo aberto — cartas de upgrade por nível de run, orbes de
