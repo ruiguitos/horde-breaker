@@ -129,3 +129,8 @@ mundo aberto, POIs e base como diferenciador.
 - [ ] Salvamento de partida a meio (continuar uma run).
 - [ ] Persistência opcional de loot entre partidas (se o playtest o pedir).
 - [ ] Mixamo (parqueado): só se for precisa uma animação que o Quaternius não tem.
+- [ ] Investigar o pipeline de arte final para personagens e mapa, comparando:
+  geração procedural com Three.js e exportação para glTF/GLB; modelos existentes
+  compatíveis com Godot; e criação/ajuste num modelador 3D. Avaliar licença,
+  rig/animações, escala, materiais, colisões, tamanho e desempenho antes de
+  autorizar qualquer download ou importação.

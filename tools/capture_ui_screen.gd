@@ -73,6 +73,22 @@ func _capture() -> void:
 	quit(0)
 
 
+## A believable mid-run loadout: several cards at different levels, one of them
+## maxed, spread across the rarities so the colours are visible in the capture.
+func _grant_sample_upgrades() -> void:
+	var progression := get_first_node_in_group(&"run_progression")
+	if progression == null:
+		return
+	var sample := {
+		&"magazine": 5, &"damage": 3, &"ammo_reserve": 2, &"pickup_radius": 2,
+		&"move_speed": 1, &"max_health": 1, &"reload": 1, &"xp_gain": 1,
+		&"regeneration": 1, &"lifesteal": 1,
+	}
+	for upgrade_id: StringName in sample:
+		for level in int(sample[upgrade_id]):
+			progression.call(&"apply_upgrade", upgrade_id)
+
+
 func _prepare_arena_target(target: String) -> bool:
 	if current_scene == null:
 		return false
@@ -91,7 +107,19 @@ func _prepare_arena_target(target: String) -> bool:
 		if pause_menu == null:
 			push_error("UI capture could not find PauseMenu.")
 			return false
+		# A pause screen with no upgrades shows none of what the panel is for.
+		_grant_sample_upgrades()
 		pause_menu.call(&"pause_game")
+		return true
+	if target == "upgrades":
+		var progression := get_first_node_in_group(&"run_progression")
+		if progression == null:
+			push_error("UI capture could not find the run progression.")
+			return false
+		_grant_sample_upgrades()
+		progression.emit_signal(
+			&"run_level_gained", 7, progression.call(&"draw_choices")
+		)
 		return true
 	if target == "defeat":
 		var defeat := current_scene.find_child("GameOverPanel", true, false)

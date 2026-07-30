@@ -89,7 +89,10 @@ const POI_TILES := {
 	},
 	"military_outpost": {
 		"back": ["city_building_d", "kay_building_a", "city_building_d"],
-		"side": ["fac_hopper_high_square", "fac_hopper_square"],
+		# fac_hopper_high_square is out: its collision box is 4.5 m wide but the
+		# model is only 2 m across at head height, so it read as an invisible
+		# wall next to a narrow silo.
+		"side": ["fac_hopper_square", "city_building_d"],
 		"props": ["env_container_green", "car_truck"],
 	},
 	"fuel_station": {

@@ -26,6 +26,7 @@ func _run() -> void:
 	_test_machine_gun()
 	_test_reserve_capacity()
 	_test_xp_curve()
+	_test_opening_pace()
 	print("TEST: %d passed, %d failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -199,6 +200,52 @@ func _test_xp_curve() -> void:
 	)
 	_check("xp: total to level 50 grew a lot (%d)" % total, total > 40000)
 	progression.queue_free()
+
+
+## The opening was too fast to find a weapon, a street or the camp before the
+## horde arrived. It is slower now, but only the opening: the extra time decays
+## away and from threat level 5 the run is at exactly the old pace, so this is a
+## change to the first two minutes and not to how long a run lasts.
+func _test_opening_pace() -> void:
+	var director: Node = load("res://scripts/systems/wave_manager.gd").new()
+
+	var first := float(director.call(&"get_level_duration", 1))
+	var settled := float(director.call(&"get_level_duration", 5))
+	var late := float(director.call(&"get_level_duration", 12))
+	_check("threat level 1 runs long (%.0f s)" % first, first > settled)
+	var target := float(director.get(&"level_up_interval"))
+	_check(
+		"the pace has settled by level 5 (%.0f s)" % settled,
+		is_equal_approx(settled, target)
+	)
+	_check(
+		"nothing past level 5 is slower than it was (%.0f s)" % late,
+		is_equal_approx(late, target)
+	)
+
+	# The first surge and the starting horde both give ground at the beginning
+	# and take it back as the threat level climbs.
+	_check(
+		"the first surge holds off (%.0f s)" % director.get(&"first_surge_delay"),
+		float(director.get(&"first_surge_delay")) >= 40.0
+	)
+	director.set(&"current_wave", 1)
+	var opening_alive := int(director.call(&"get_maximum_alive_enemies"))
+	director.set(&"current_wave", 5)
+	var settled_alive := int(director.call(&"get_maximum_alive_enemies"))
+	_check("the opening horde is small (%d alive)" % opening_alive, opening_alive <= 30)
+	_check(
+		"the horde is back to full size by level 5 (%d alive)" % settled_alive,
+		settled_alive >= 75
+	)
+	# Spawn interval starts longer and decays to where it always was.
+	director.set(&"current_wave", 5)
+	_check(
+		"spawns are back to the old rhythm by level 5 (%.2f s)"
+			% director.call(&"get_current_spawn_interval"),
+		absf(float(director.call(&"get_current_spawn_interval")) - 2.75) < 0.1
+	)
+	director.free()
 
 
 func _check(label: String, condition: bool) -> void:

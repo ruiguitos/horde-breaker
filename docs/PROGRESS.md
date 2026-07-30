@@ -737,3 +737,14 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Validacao Godot 4.7 Mono concluida: importacao headless sem erros, `main_menu.tscn` durante 60 frames e 17/17 testes do resumo de pausa aprovados.
 - Capturas OpenGL inspecionadas a 1152 x 648 e 1920 x 1080, sem texto cortado nem sobreposicoes.
 - Avisos de `owner` em anexos de `WeaponCrate`: corrigidos a 2026-07-30 (ver a seccao do mapa consistente).
+
+## Nota de investigação de arte (2026-07-30)
+
+- [ ] Verificar se Three.js é adequado para gerar personagens e elementos do
+  mapa com exportação para glTF/GLB, ou se deve ficar apenas como ferramenta de
+  prototipagem/visualização.
+- [ ] Procurar modelos existentes para personagens e mapa que possam ser
+  importados no Godot, confirmando licença, rig e animações, escala, materiais,
+  colisões, tamanho e custo de renderização.
+- Os modelos Quaternius das personagens e os kits CC0 atuais do mapa mantêm-se
+  como referência funcional. Esta nota não autoriza downloads nem importações.

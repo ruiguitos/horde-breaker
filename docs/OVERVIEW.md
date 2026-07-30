@@ -24,6 +24,8 @@ sempre antes de commitar.
 | **POIs** | graybox de caixas | **compostos pintados** + gatilho, 6 no mundo |
 | **Atmosfera** | só nevoeiro de profundidade | **SSAO + nevoeiro volumétrico** que engrossa com a ameaça |
 | **Conteúdo do setor** | sempre disperso | disperso **ou autorado** (`SectorData.tres`) |
+| **Field upgrades** | 10 cartas planas | **11 com raridade e níveis**, painel com 10 s |
+| **Arranque** | horda completa aos 20 s | **primeira vaga aos 45 s**, ritmo normal ao nível 5 |
 | **Assets** | Quaternius + Downtown | **+448 modelos CC0** (Kenney ×6, KayKit, Quaternius) |
 | **Classes** | 3 | **2** (Medic parqueado via `is_selectable`) |
 | **Skill tree** | 3 colunas × 5 nós | **3 árvores bifurcadas, 36 nós** |
@@ -259,10 +261,26 @@ lê de `paint_world` onde ficaram os pátios):
 - Munição do chão **escala com o nível de ameaça**.
 
 ### Survivors-like (M26 Fase 1)
-- **Cartas de upgrade** por nível de run (3 de 10, só duram a run) com painel próprio.
+- **Cartas de upgrade** por nível de run (3 de 11, só duram a run) com painel próprio.
+- **Raridade e níveis** (2026-07-30): cada carta tem uma raridade fixa —
+  BRONZE / SILVER / GOLD / EPIC / LEGENDARY — que decide quanto aparece e quanto
+  vale um nível. Apanhar a mesma carta sobe-lhe o nível até ao máximo (5, ou 3
+  nas mais fortes); ao máximo deixa de ser oferecida, para o baralho continuar a
+  rodar. A raridade tem cor própria e lê-se igual no painel e na pausa.
+- **VAMPIRIC ROUNDS** (legendary, máx. 3): cada abate devolve 2% da vida máxima
+  por nível. É a única carta que muda como se joga em vez de quanto os números
+  sobem — com ela, entrar na horda cura.
+- **10 segundos e escolhe sozinho**: o painel tem barra e contagem; ao fim do
+  tempo escolhe uma das três ao acaso. Uma subida de nível é uma decisão sob
+  pressão, e uma run não pode ficar parada porque o jogador se levantou.
 - **Orbes de XP** largadas por todos os inimigos, com íman até ao jogador.
 - **Barra de XP + `LV n`** no HUD; auto-fire alargado e câmara recuada; auto-reload
   assim que o carregador esvazia.
+- **Arranque mais lento** (2026-07-30): primeira vaga aos 45 s (era 20), nível 1
+  dura 110 s e a duração desce até aos 75 s habituais ao nível 5, horda inicial
+  de 20 em vez de 32, spawns de 6 s a descer para os mesmos 2,75 s ao nível 5.
+  **Só o início muda** — do nível 5 em diante o ritmo é exatamente o anterior, e
+  a munição do chão acompanha por já escalar com o nível de ameaça.
 
 ### Mundo aberto — ver `MAP_DESIGN.md`
 - **8×8 setores (512 m)** sobre um **solo único**, streaming em worker threads.
@@ -301,6 +319,9 @@ origem do mundo.
 ### UI / UX (facelift completo — Tier 1/2/3)
 - Menu principal com fundo 3D, seleção de classes com modelo 3D + mastery + variante,
   ARMORY, skill tree (ligações/cores), pausa/derrota com blur, HUD polido.
+- **Upgrades da pausa em colunas** (2026-07-30): duas colunas de seis mostram o
+  loadout inteiro com nível e cor da raridade. A lista única tinha de ser cortada
+  com um "+N more" que escondia exatamente o que se abre a pausa para ver.
 - Tipografia **Rajdhani**, ícones gerados dos modelos, som de UI, animações/juice.
 - **Definições em separadores** Display/Controls/Audio com **keybindings rebindable**
   (captura, swap de conflito, reset, persistência no save).

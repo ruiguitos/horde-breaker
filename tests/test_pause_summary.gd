@@ -44,10 +44,13 @@ func _run() -> void:
 	_check("three cards counted", int(progression.call(&"get_taken_upgrade_count")) == 3)
 	if taken.size() == 2:
 		var first: Dictionary = taken[0]
-		# Sorted by count, so the repeated one leads.
-		_check("most-taken first (%s ×%d)" % [first["name"], first["count"]],
-			int(first["count"]) == 2)
+		# Sorted by level, so the one taken twice leads.
+		_check("highest level first (%s LV %d)" % [first["name"], first["level"]],
+			int(first["level"]) == 2)
 		_check("carries a readable name", not String(first["name"]).is_empty())
+		_check("carries its rarity", not String(first["rarity"]).is_empty())
+		_check("carries its ceiling (%d)" % int(first["max_level"]),
+			int(first["max_level"]) >= int(first["level"]))
 
 	# The panel has to survive being opened with a run in progress.
 	var pause_menu := current_scene.find_child("PauseMenu", true, false)
@@ -70,13 +73,26 @@ func _run() -> void:
 		_check("summary reports kills", text.contains("KILLS"))
 		_check("summary reports the run level", text.contains("RUN LEVEL"))
 
-	var list := pause_menu.get_node_or_null(
-		"RunCard/Body/Content/UpgradesList"
-	) as Label
-	_check("upgrades label exists", list != null)
-	if list != null:
-		_check("upgrades are listed when taken", list.visible and not list.text.is_empty())
-		_check("a repeated card shows its count", list.text.contains("×2"))
+	# Laid out in columns rather than one list: a single column had to be cut off
+	# with "+N more", which hid exactly what the player opened the menu to check.
+	var columns := pause_menu.get_node_or_null(
+		"RunCard/Body/Content/UpgradesColumns"
+	) as HBoxContainer
+	_check("upgrades are laid out in columns", columns != null)
+	if columns != null:
+		var entries: Array[String] = []
+		for column in columns.get_children():
+			for child in column.get_children():
+				var label := child as Label
+				if label != null:
+					entries.append(label.text)
+		_check("every upgrade taken is listed (%d)" % entries.size(),
+			entries.size() == taken.size())
+		var shows_level := false
+		for entry in entries:
+			if entry.contains("LV 2"):
+				shows_level = true
+		_check("a stacked card shows its level", shows_level)
 
 	pause_menu.call(&"resume_game")
 	await process_frame

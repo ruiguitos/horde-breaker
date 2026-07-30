@@ -39,17 +39,32 @@ const SURGE_BATCH_BONUS := 6
 # stopped appearing. Anything left this far behind is moved back into the fight.
 const RECYCLE_DISTANCE := 78.0
 const RECYCLE_INTERVAL := 1.0
+# The opening used to hand the player a full horde inside twenty seconds, with
+# no room to find a weapon, a street or the camp first. The first threat levels
+# now run longer and the extra time decays away: level 1 lasts 110 s, level 5
+# lasts the standard 75 s, and nothing past level 5 is any slower than before.
+const EARLY_LEVEL_BONUS := 35.0
+const EARLY_LEVEL_COUNT := 5
+# Paired with base_spawn_interval: the opening interval is longer, so it has to
+# fall faster to arrive at the same place. 6.0 - 5 * 0.65 = 2.75, which is what
+# 4.5 - 5 * 0.35 used to give at threat level 5.
+const SPAWN_INTERVAL_DECAY := 0.65
 
 @export var normal_zombie_scene: PackedScene
 @export var runner_zombie_scene: PackedScene
 @export var brute_zombie_scene: PackedScene
 @export var spitter_zombie_scene: PackedScene
 @export var boss_scene: PackedScene
-@export_range(1.0, 120.0, 0.5) var first_surge_delay: float = 20.0
+@export_range(1.0, 120.0, 0.5) var first_surge_delay: float = 45.0
+## The pace the run settles into. The opening is slower than this and converges
+## on it — see EARLY_LEVEL_BONUS.
 @export_range(10.0, 300.0, 1.0) var level_up_interval: float = 75.0
-@export_range(0.5, 30.0, 0.5) var base_spawn_interval: float = 4.5
-@export_range(1, 200, 1) var base_max_alive: int = 20
-@export_range(0, 40, 1) var max_alive_per_level: int = 12
+@export_range(0.5, 30.0, 0.5) var base_spawn_interval: float = 6.0
+## Base and per-level are read together: threat level 1 allows 20 enemies where
+## it used to allow 32, and level 5 lands on the same 80 as before. The opening
+## is thinner; the run it grows into is not.
+@export_range(1, 200, 1) var base_max_alive: int = 5
+@export_range(0, 40, 1) var max_alive_per_level: int = 15
 @export_range(2, 20, 1) var boss_every_levels: int = 5
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
@@ -97,8 +112,23 @@ func get_maximum_alive_enemies() -> int:
 
 
 func get_current_spawn_interval() -> float:
-	var interval := maxf(base_spawn_interval - float(current_wave) * 0.35, 1.2)
+	var interval := maxf(
+		base_spawn_interval - float(current_wave) * SPAWN_INTERVAL_DECAY, 1.2
+	)
 	return interval * SURGE_INTERVAL_SCALE if _surge_active else interval
+
+
+## How long the level the player is on lasts. The first few run long and the
+## duration walks down to `level_up_interval` by EARLY_LEVEL_COUNT, so the
+## opening minutes have room to breathe without the whole run being slower: from
+## threat level 5 onwards this is exactly the old pace.
+func get_level_duration(level: int) -> float:
+	# Spread over the levels between the first and EARLY_LEVEL_COUNT, so the bonus
+	# is fully paid out *at* that level rather than one past it.
+	var eased := clampf(
+		1.0 - float(level - 1) / float(maxi(EARLY_LEVEL_COUNT - 1, 1)), 0.0, 1.0
+	)
+	return level_up_interval + EARLY_LEVEL_BONUS * eased
 
 
 func set_surge_active(active: bool) -> void:
@@ -134,7 +164,7 @@ func spawn_exploration_enemies(
 
 func _start_first_threat_level() -> void:
 	current_wave = 1
-	_level_time_remaining = level_up_interval
+	_level_time_remaining = get_level_duration(current_wave)
 	_spawn_cooldown = first_surge_delay
 	_spawning_enabled = true
 	wave_started.emit(current_wave)
@@ -152,9 +182,9 @@ func _advance_level_timer(delta: float) -> void:
 	if current_wave % LEVELS_PER_CYCLE == 0:
 		cycle_completed.emit(current_wave / LEVELS_PER_CYCLE)
 	current_wave += 1
-	_level_time_remaining = level_up_interval
+	_level_time_remaining = get_level_duration(current_wave)
 	wave_started.emit(current_wave)
-	intermission_started.emit(current_wave, level_up_interval)
+	intermission_started.emit(current_wave, _level_time_remaining)
 	if boss_scene != null and current_wave % boss_every_levels == 0:
 		_spawn_boss()
 

@@ -26,6 +26,13 @@ const OVERLAP_TOLERANCE := 0.3
 ## Matches build_poi_scenes.TRIGGER_SIZE. The yard has to stay clear across it.
 const TRIGGER_HALF := Vector2(6.0, 6.0)
 const REWARD_SCRAP := 50
+## Roughly how tall the player is: geometry above this cannot be walked into, so
+## it is not what decides whether a collision box feels fair.
+const PLAYER_HEIGHT := 2.5
+## How much of its collision box a tile has to actually fill at that height. A
+## water tower is legs and a tank and still passes; a 4.5 m box around a 2 m
+## silo does not.
+const SOLID_RATIO_FLOOR := 0.55
 
 var _passed := 0
 var _failed := 0
@@ -48,8 +55,68 @@ func _run() -> void:
 	var obstacles := _collect_painted_obstacles()
 	_check("the world is painted (%d obstacles)" % obstacles.size(), obstacles.size() > 200)
 	_test_no_overlaps(obstacles)
+	_test_no_invisible_walls()
 	_test_points_of_interest(obstacles)
 	_report()
+
+
+## Collision comes from a box around the whole model, so a piece that is narrow
+## where the player walks blocks ground it does not appear to occupy — an
+## invisible wall. Every painted tile has to be roughly as solid as it looks.
+func _test_no_invisible_walls() -> void:
+	var offenders: Array[String] = []
+	var checked := 0
+	for value in get_nodes_in_group(GRIDMAP_GROUP):
+		var grid := value as GridMap
+		if grid == null or grid.mesh_library == null:
+			continue
+		var library := grid.mesh_library
+		var seen: Dictionary = {}
+		for cell in grid.get_used_cells():
+			var item := grid.get_cell_item(cell)
+			if item == GridMap.INVALID_CELL_ITEM or seen.has(item):
+				continue
+			seen[item] = true
+			var shapes := library.get_item_shapes(item)
+			if shapes.is_empty():
+				continue
+			var box := shapes[0] as BoxShape3D
+			var mesh := library.get_item_mesh(item)
+			if box == null or mesh == null:
+				continue
+			checked += 1
+			var blocked := box.size.x * box.size.z
+			if blocked <= 0.0:
+				continue
+			var solid := _get_footprint_at_player_height(mesh)
+			if solid / blocked < SOLID_RATIO_FLOOR:
+				offenders.append("%s (%.0f%%)" % [
+					library.get_item_name(item), solid / blocked * 100.0
+				])
+	_check("painted tiles were measured (%d)" % checked, checked > 0)
+	_check(
+		"no tile blocks more ground than it fills: %s" % (
+			"none" if offenders.is_empty() else ", ".join(offenders)
+		),
+		offenders.is_empty()
+	)
+
+
+## Ground area covered by the parts of a mesh the player can walk into.
+func _get_footprint_at_player_height(mesh: Mesh) -> float:
+	var bounds := AABB()
+	var started := false
+	for surface in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(surface)
+		for vertex: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
+			if vertex.y > PLAYER_HEIGHT:
+				continue
+			if started:
+				bounds = bounds.expand(vertex)
+			else:
+				bounds = AABB(vertex, Vector3.ZERO)
+				started = true
+	return bounds.size.x * bounds.size.z
 
 
 func _collect_painted_obstacles() -> Array[Dictionary]:
