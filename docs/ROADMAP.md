@@ -79,6 +79,10 @@ entre setores; não investir mais em polish do gerador atual. O plano técnico v
   mesmo grafo, evitando edifícios sobre passadeiras e caminhos interrompidos.
 - [ ] Refazer a composição visual da cidade e dos POIs depois da nova malha de
   circulação estar validada em jogo.
+- [ ] Melhorar o mapa tático e avaliar a criação de um minimapa dedicado.
+  Estudar referências de outros jogos antes de decidir escala, orientação,
+  fog of war, marcadores, filtros, zoom, objetivos e relação entre minimapa,
+  bússola e mapa completo.
 
 ## Milestone 25 — Construção livre da base (implementado; requer playtest)
 
@@ -102,6 +106,10 @@ mundo aberto, POIs e base como diferenciador.
   inimigos (com íman) e feel survivors (câmara recuada + auto-fire alargado).
 - [x] **Fase 2 — estrutura de run:** sobreviver 10 min até à extração, com
   relógio no HUD, avisos e recompensa de 300 Credits.
+- [ ] Refazer o fim da run: quando o tempo terminar, entrar numa fase finita de
+  limpeza dos zombies ativos; só depois de não restarem inimigos deve ficar
+  disponível um ponto de extração numa localização específica do mapa. A run
+  termina apenas quando o jogador chegar a esse ponto.
 - [x] **Fase 3 — hordas massivas:** teto 30 → 140 com LOD de simulação (navmesh
   perto, steering direto ao médio, frames saltados ao longe) e LOD de animação
   (>42 m desliga o AnimationPlayer). 120 inimigos = 58 fps a 1152×648.
@@ -129,6 +137,13 @@ mundo aberto, POIs e base como diferenciador.
 - [ ] Salvamento de partida a meio (continuar uma run).
 - [ ] Persistência opcional de loot entre partidas (se o playtest o pedir).
 - [ ] Mixamo (parqueado): só se for precisa uma animação que o Quaternius não tem.
+- [ ] Adicionar mais classes de personagens, armas e skills, definindo primeiro
+  papéis distintos, compatibilidades de loadout e impacto na progressão.
+- [ ] Decidir se as armas melee devem ser removidas. Antes de avançar, preparar
+  a substituição dos loadouts do Renegade e Medic e rever variantes, ARMORY,
+  evolução de armas, animações e compatibilidade com saves existentes.
+- [ ] Melhorar as animações e o encaixe das mãos nas armas: avaliar grips por
+  arma, `BoneAttachment3D`, poses de mira, disparo e recarga compatíveis com o rig.
 - [ ] Investigar o pipeline de arte final para personagens e mapa, comparando:
   geração procedural com Three.js e exportação para glTF/GLB; modelos existentes
   compatíveis com Godot; e criação/ajuste num modelador 3D. Avaliar licença,

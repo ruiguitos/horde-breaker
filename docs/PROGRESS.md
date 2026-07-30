@@ -697,6 +697,27 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Suite: 13 ficheiros, **383 verificacoes**, todas a passar em ~20 s. Novos: `test_sector_content.gd` (14), `test_painted_map.gd` (28), mais 12 verificacoes de atmosfera em `test_arena_wiring.gd`. Ambos os testes novos foram vistos a falhar contra o codigo antigo antes de se dar a correcao por boa.
 - Nao apagado, mas morto: `scenes/world/exploration_pois.tscn` e `scenes/world/poi_facades/` sao o graybox anterior e ja nao sao usados por nada.
 
+## Field upgrades com raridade e niveis, arranque mais lento (2026-07-30)
+
+- [x] **Field upgrades ganharam raridade e niveis.** Cada carta tem uma raridade fixa (BRONZE / SILVER / GOLD / EPIC / LEGENDARY) que decide com que frequencia e oferecida e quanto vale um nivel. Apanhar a mesma carta sobe-lhe o nivel ate ao maximo (5, ou 3 nas mais fortes); ao maximo deixa de ser oferecida, para o baralho continuar a rodar em vez de um upgrade absorver todas as escolhas de uma run longa.
+- [x] **VAMPIRIC ROUNDS**, legendary, maximo 3 niveis: cada abate devolve 2% da vida maxima por nivel. Liga-se ao sinal `enemy_defeated` do diretor de horda, que ja disparava tanto para abates da horda como de exploracao. E a unica carta que muda como se joga em vez de quanto os numeros sobem.
+- [x] **O painel de nivel tem 10 segundos.** Barra e contagem regressiva no rodape, que fica vermelha nos ultimos 3 s; ao fim do tempo escolhe uma das tres ao acaso e a run continua. As cartas mostram agora a raridade, o nome, `LVL n -> n+1` e o efeito, tintadas com a cor da raridade (incluindo os estados de foco e hover, senao a carta selecionada voltava a cor do tema).
+- [x] **Upgrades da pausa em colunas.** Duas colunas de seis mostram o loadout inteiro com nivel e cor da raridade, e uma carta no maximo aparece como `MAX`. A lista unica tinha de ser cortada com um "+N more" que escondia exatamente o que se abre a pausa para ver. O cartao da run alargou de 400 para 470 px para as colunas nao partirem os nomes ao meio.
+- [x] **Arranque mais lento, so no arranque.** Primeira vaga aos 45 s (era 20), nivel 1 dura 110 s e a duracao desce ate aos 75 s habituais ao nivel 5, horda inicial de 20 em vez de 32, intervalo de spawn de 6 s a descer para os mesmos 2,75 s ao nivel 5. Do nivel 5 em diante o ritmo e exatamente o anterior. A municao do chao acompanha sem alteracao propria, por ja escalar com o nivel de ameaca.
+- [x] **A parede invisivel investigada.** Medidas as 28 pecas do mapa comparando a caixa de colisao com a geometria existente a altura a que o jogador anda: em 27 a colisao coincide com o que se ve. A excecao era `fac_hopper_high_square` (caixa de 4,5 m a volta de um silo de 2 m), acrescentada nesse mesmo dia ao posto militar e ja substituida. A causa provavel do que foi visto em playtest sao os edificios escondidos uns dentro dos outros do build anterior (16 sobreposicoes francas, agora 0) - **falta confirmar em jogo**. O tema do mapa fica como esta ate essa confirmacao: as pecas industriais Kenney sao as maiores e descentradas, por isso um mapa so industrial com o codigo antigo teria piorado o problema.
+- [x] `tests/test_painted_map.gd` passou a medir se cada peca pintada preenche pelo menos 55% da sua caixa de colisao a altura do jogador, para nenhuma escolha futura de pecas reintroduzir paredes invisiveis.
+- [x] `tools/capture_ui_screen.gd` ganhou o alvo `upgrades` e concede um loadout de exemplo antes de capturar a pausa - uma pausa sem upgrades nao mostra nada do que o painel serve para mostrar.
+- Suite: 14 ficheiros, **425 verificacoes**, todas a passar. Novo `test_run_upgrades.gd` (31) cobre o catalogo, a ponderacao do sorteio, o teto dos niveis, o lifesteal e a escolha automatica; `test_balance_and_weapons.gd` ganhou a curva do arranque; `test_pause_summary.gd` foi atualizado para as colunas.
+
+## O limite do mundo passou a ver-se (2026-07-30)
+
+- [x] **A parede invisivel era o limite do mundo.** A investigacao anterior culpou as pecas do mapa e estava errada: mediu os azulejos em vez de perguntar ao motor de fisica onde o jogador e travado. Uma varredura com consultas de forma sobre o mundo real encontrou `OuterWallEast` — um `StaticBody3D` de 65 m com **zero MeshInstance3D**, criado por `sector_generator._add_outer_walls` nos setores da borda da grelha. Era literalmente uma parede invisivel em terreno aberto, e ja estava listada nos problemas conhecidos deste ficheiro como "limite de seguranca temporario".
+- [x] **O perimetro passou a ser um anel de edificios**, uma celula de fundo, pintado antes de qualquer estrutura aleatoria para nada lhe abrir um buraco. Usa so `kay_building_a` e `kay_building_b`: sao as unicas pecas da biblioteca que medem exatamente 8 x 8 m, portanto o anel nao tem juntas. As torres mais altas ficaram de fora de proposito — `city_building_m` mede 7,4 m e deixaria uma fenda de 0,6 m entre cada par, e quem se enfiasse por la aterrava outra vez no colisor invisivel. O colisor fica como rede de seguranca, 8 m atras do que se ve.
+- [x] O anel escreve por cima dos azulejos de estrada: uma rua que corre para o fim do mapa tem de acabar em algum lado, e acabar numa parede de edificios le-se melhor do que acabar em nada.
+- [x] **Corrigido pelo caminho:** os destrocos de carro eram colocados na coluna da estrada sem verificacao nenhuma, por isso no limite passaram a nascer dentro do anel (4 sobreposicoes). Passou a existir um conjunto `_built` separado do `_occupied` — um carro pode estar numa rua, nunca dentro de uma parede.
+- [x] `tests/test_world_edge.gd` (10 verificacoes) leva o jogador aos quatro limites, varre para fora com uma consulta de forma e exige que a primeira coisa em que bate tenha uma malha. **Confirmado a falhar contra o mapa sem o anel**: os quatro limites paravam o jogador contra `OuterWall*` a 32 m.
+- Suite: 15 ficheiros, **435 verificacoes**, todas a passar. Arena limpa em 400 frames.
+
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
@@ -707,7 +728,7 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Os modelos CC0 atuais são provisórios; Mixamo e a escolha de arte final continuam pendentes para o Milestone 12.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
-- As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
+- ~~As colisões das paredes permanecem invisíveis como limite de segurança temporário~~ — resolvido a 2026-07-30: o perímetro do mundo é um anel de edifícios pintados e o colisor ficou como rede de segurança por trás.
 - O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
 - As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
 - As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
@@ -748,3 +769,21 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   colisões, tamanho e custo de renderização.
 - Os modelos Quaternius das personagens e os kits CC0 atuais do mapa mantêm-se
   como referência funcional. Esta nota não autoriza downloads nem importações.
+
+## Notas de design e conteúdo (2026-07-31)
+
+- [ ] Alterar o fim da run para uma sequência em duas etapas: primeiro eliminar
+  todos os zombies ativos; depois deslocar-se até um ponto de extração específico
+  do mapa. O relógio, por si só, deixa de concluir a run.
+- [ ] Definir como o diretor de horda transita para uma fase final finita, para
+  ser possível limpar os inimigos sem nascerem novos zombies indefinidamente.
+- [ ] Adicionar mais classes de personagens, armas e skills depois de definir
+  papéis e combinações de loadout que não repitam as classes atuais.
+- [ ] Avaliar a remoção das armas melee. A decisão afeta Renegade, Medic,
+  variantes, ARMORY, evoluções, animações e migração de saves; nenhuma arma foi
+  removida nesta etapa.
+- [ ] Melhorar a forma como as personagens seguram as armas e as animações de
+  mira, disparo e recarga, incluindo a hipótese de grips por arma e
+  `BoneAttachment3D`.
+- [ ] Melhorar o mapa tático e estudar minimapas de outros jogos antes de
+  decidir orientação, zoom, fog of war, marcadores, filtros e objetivos.

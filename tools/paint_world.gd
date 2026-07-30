@@ -52,6 +52,23 @@ const SUBURB_BUILDINGS: Array[String] = [
 const INDUSTRIAL: Array[String] = [
 	"ind_building_a", "ind_building_b", "ind_building_c", "ind_building_e",
 ]
+## The edge of the world. Until now the limit was a bare StaticBody3D built by
+## sector_generator._add_outer_walls: 65 m of collision with no mesh on it, so
+## the player walked into nothing in the middle of open ground and could not get
+## past. A playtest reported it as "an invisible wall where there are no
+## buildings", which is exactly what it was.
+##
+## The perimeter is now a solid ring of buildings, one cell deep, painted before
+## anything else so nothing can leave a gap in it. The collider stays as a
+## backstop; it is simply never the first thing anyone touches.
+##
+## These two tiles are the only ones in the library that measure a full 8 x 8 m,
+## and that is why the ring is built from nothing else. Taller blocks would have
+## given the perimeter a better skyline, but city_building_m is 7.4 m wide and
+## would leave a 0.6 m slot between every pair — and someone squeezing through a
+## slot lands straight back on the invisible collider this is here to hide.
+const EDGE_TILES: Array[String] = ["kay_building_a", "kay_building_b"]
+
 const CARS: Array[String] = ["car_sedan", "car_van", "car_taxi", "car_truck", "car_police"]
 const CLUTTER: Array[String] = [
 	"env_barrel", "env_container_green", "env_container_red", "env_cinder_block",
@@ -109,6 +126,10 @@ var _library: MeshLibrary
 ## rather than per sector so a wide building on a border cannot land on top of
 ## its neighbour across the seam.
 var _occupied: Dictionary[Vector2i, bool] = {}
+## Cells that carry a building. A subset of `_occupied`, which also holds the
+## streets: wrecks are allowed on a street and never inside a wall, and telling
+## those apart needs both sets.
+var _built: Dictionary[Vector2i, bool] = {}
 ## How many cells each tile covers, worked out from its mesh once per tile.
 var _footprints: Dictionary[String, Vector2i] = {}
 
@@ -141,12 +162,19 @@ func _run() -> void:
 	structures.clear()
 	props.clear()
 	_occupied.clear()
+	_built.clear()
 
 	# Roads first, for the whole world: they decide where nothing may be built,
 	# and a building is only safe to place once every street is known.
 	for sx in range(_grid_min.x, _grid_max.x + 1):
 		for sy in range(_grid_min.y, _grid_max.y + 1):
 			_paint_roads(roads, Vector2i(sx, sy))
+	# The perimeter goes down before any random structure, so nothing can take a
+	# cell the boundary needs and leave a hole in the edge of the world.
+	var edge_cells := 0
+	for sx in range(_grid_min.x, _grid_max.x + 1):
+		for sy in range(_grid_min.y, _grid_max.y + 1):
+			edge_cells += _paint_world_edge(structures, Vector2i(sx, sy))
 	var poi_count := 0
 	for sx in range(_grid_min.x, _grid_max.x + 1):
 		for sy in range(_grid_min.y, _grid_max.y + 1):
@@ -163,12 +191,13 @@ func _run() -> void:
 		arena.free()
 		quit(1)
 		return
-	print("PAINTED: roads=%d structures=%d props=%d over %d sectors (%d POIs)" % [
+	print("PAINTED: roads=%d structures=%d props=%d over %d sectors (%d POIs, %d edge)" % [
 		roads.get_used_cells().size(),
 		structures.get_used_cells().size(),
 		props.get_used_cells().size(),
 		(_grid_max.x - _grid_min.x + 1) * (_grid_max.y - _grid_min.y + 1),
 		poi_count,
+		edge_cells,
 	])
 	# Freeing the arena keeps the tool from ending on a wall of leaked-RID errors,
 	# which is noise in exactly the logs used to spot real ones.
@@ -216,6 +245,44 @@ func _paint_roads(roads: GridMap, coords: Vector2i) -> void:
 				or (absi(x - ROAD_COLUMN) <= 1 and absi(z - ROAD_ROW) <= 1)
 			):
 				_occupied[Vector2i(cell.x, cell.z)] = true
+
+
+## Builds the ring of buildings that closes the world, along whichever sides of
+## this sector sit on the grid boundary. Returns how many cells it painted.
+##
+## It writes over the road tiles rather than avoiding them: a street that runs
+## into the edge of the map has to end somewhere, and ending in a wall of
+## buildings reads better than ending in nothing. The cells are claimed
+## afterwards so the rest of the pass leaves them alone.
+func _paint_world_edge(structures: GridMap, coords: Vector2i) -> int:
+	var origin := _get_sector_origin(coords)
+	var last := SECTOR_CELLS - 1
+	var locals: Dictionary[Vector2i, bool] = {}
+	if coords.x == _grid_min.x:
+		for z in SECTOR_CELLS:
+			locals[Vector2i(0, z)] = true
+	if coords.x == _grid_max.x:
+		for z in SECTOR_CELLS:
+			locals[Vector2i(last, z)] = true
+	if coords.y == _grid_min.y:
+		for x in SECTOR_CELLS:
+			locals[Vector2i(x, 0)] = true
+	if coords.y == _grid_max.y:
+		for x in SECTOR_CELLS:
+			locals[Vector2i(x, last)] = true
+
+	for local in locals:
+		var cell := Vector2i(origin.x + local.x, origin.y + local.y)
+		# Chosen from the cell itself, not from the sector's RNG: the perimeter
+		# has to come out the same whatever order the sectors are painted in.
+		var index := absi(cell.x) + absi(cell.y)
+		_place(
+			structures, Vector3i(cell.x, 0, cell.y),
+			EDGE_TILES[index % EDGE_TILES.size()]
+		)
+		_occupied[cell] = true
+		_built[cell] = true
+	return locals.size()
 
 
 ## Paints one sector's structures and props. Returns true if it holds a POI.
@@ -281,19 +348,19 @@ func _paint_poi(
 	var side: Array = tiles["side"]
 	var poi_props: Array = tiles["props"]
 	for index in range(POI_CELL_MIN, POI_CELL_MAX + 1):
+		var back_cell := Vector2i(origin.x + index, origin.y + POI_CELL_MAX)
 		_place(
-			structures,
-			Vector3i(origin.x + index, 0, origin.y + POI_CELL_MAX),
-			String(back[(index - POI_CELL_MIN) % back.size()]),
-			ROT_180
+			structures, Vector3i(back_cell.x, 0, back_cell.y),
+			String(back[(index - POI_CELL_MIN) % back.size()]), ROT_180
 		)
+		_built[back_cell] = true
 	for index in range(POI_CELL_MIN, POI_CELL_MAX):
+		var side_cell := Vector2i(origin.x + POI_CELL_MAX, origin.y + index)
 		_place(
-			structures,
-			Vector3i(origin.x + POI_CELL_MAX, 0, origin.y + index),
-			String(side[(index - POI_CELL_MIN) % side.size()]),
-			ROT_270
+			structures, Vector3i(side_cell.x, 0, side_cell.y),
+			String(side[(index - POI_CELL_MIN) % side.size()]), ROT_270
 		)
+		_built[side_cell] = true
 	# One piece halfway along each open side: enough to read as a compound, with
 	# the corner nearest the crossroads left as the way in.
 	_place(
@@ -325,13 +392,16 @@ func _paint_camp(props: GridMap, origin: Vector2i) -> void:
 
 func _scatter_props(props: GridMap, origin: Vector2i, ring: int) -> void:
 	# Wrecks go on the roads, where they split the horde and give cover. They are
-	# the one thing allowed on the street: a car is cover, not a wall.
+	# the one thing allowed on the street: a car is cover, not a wall. They still
+	# have to keep out of buildings, though — where a street runs into the edge of
+	# the world it now ends in one, and a wreck there sits inside the wall.
 	for index in (2 if ring == 1 else 3):
 		var along := _rng.randi_range(0, SECTOR_CELLS - 1)
-		if along == ROAD_ROW:
+		var road_cell := Vector2i(origin.x + ROAD_COLUMN, origin.y + along)
+		if along == ROAD_ROW or _built.has(road_cell):
 			continue
 		_place(
-			props, Vector3i(origin.x + ROAD_COLUMN, 0, origin.y + along),
+			props, Vector3i(road_cell.x, 0, road_cell.y),
 			CARS[_rng.randi_range(0, CARS.size() - 1)], _random_rotation()
 		)
 	for index in 3:
@@ -361,6 +431,7 @@ func _try_place_structure(
 	for x in range(cell.x - reach.x, cell.x + reach.x + 1):
 		for z in range(cell.y - reach.y, cell.y + reach.y + 1):
 			_occupied[Vector2i(x, z)] = true
+			_built[Vector2i(x, z)] = true
 	return true
 
 

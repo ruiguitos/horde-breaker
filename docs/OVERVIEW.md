@@ -9,7 +9,7 @@ falta. Última atualização: 2026-07-30. Detalhe histórico em `PROGRESS.md`;
 
 ## 0. ESTADO ATUAL (2026-07-30) — LER PRIMEIRO
 
-Suite: **13 ficheiros em `tests/`, 383 verificações, todas a passar** (~20 s).
+Suite: **15 ficheiros em `tests/`, 435 verificações, todas a passar** (~40 s).
 A arena corre 400 frames em headless **sem um único erro ou aviso**. Correr
 sempre antes de commitar.
 
@@ -50,6 +50,12 @@ a estrutura, ou a sensação de arranque? Sem alvo, não começar.
 
 ### Armadilhas conhecidas (custaram tempo)
 
+- **Medir os *assets* não é medir o *jogo*.** A "parede invisível" vista em
+  playtest foi investigada uma vez medindo as peças do mapa — colisão contra
+  malha, peça a peça — e a conclusão foi errada. A causa era um `StaticBody3D`
+  sem malha nenhuma no limite do mundo, e só apareceu ao **varrer o mundo real
+  com consultas de física** e perguntar onde é que o jogador é de facto travado.
+  Quando o sintoma é "em jogo acontece X", a medição tem de ser feita em jogo.
 - **`class_name` novo não existe até reimportar.** Um `SectorData` acabado de
   criar faz `world_streamer.gd` falhar a compilar com *"Could not find type"*,
   e o jogo arranca com metade dos sistemas mortos. Correr
@@ -194,7 +200,7 @@ tools/            generate_ui_icons.gd     regenera ícones/retratos
                   new_sector_data.gd       cria um SectorData para um setor
                   apply_skyboxes.gd        céus + SSAO + nevoeiro volumétrico nos presets
                   capture_ui_screen.gd     capturas
-tests/            13 scripts headless (extends SceneTree, prints TEST:/TEST FAIL:)
+tests/            15 scripts headless (extends SceneTree, prints TEST:/TEST FAIL:)
                   + bench_horde.gd e bench_arena_startup.gd (medição, não passa/falha)
 docs/             este overview + GDD, ARCHITECTURE, ROADMAP, PROGRESS, TODO, INSPIRATIONS
 prompts/          prompts para agentes
@@ -292,6 +298,11 @@ lê de `paint_world` onde ficaram os pátios):
   for, e reserva as células que cada peça realmente ocupa — medidas pelo alcance
   a partir da origem da malha, não pela largura. 1034 estruturas, **0
   sobreposições** (eram 16 francas e muitas parciais).
+- **O limite do mundo vê-se** (2026-07-30): o perímetro é um anel de edifícios
+  pintado antes de tudo o resto, só com as duas peças que medem exatamente
+  8×8 m para não ter juntas. Era aqui que estava a "parede invisível" —
+  `_add_outer_walls` criava 65 m de colisão sem uma única malha. O colisor fica
+  como rede de segurança, 8 m atrás do que se vê.
 - **Navegação lê as peças pintadas** (`gridmap_obstacles.gd`), pelas formas de
   cada peça — o armazém continua praticável por dentro.
 - Gerador de setor reduzido a **conteúdo**: caches, munições, arma, spawns —
