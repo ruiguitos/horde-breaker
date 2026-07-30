@@ -18,9 +18,12 @@ const MAX_UI_SCALE := 1.9
 const ACCENT_COLOR := Color(0.957, 0.694, 0.31, 1.0)
 const MUTED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 const SUMMARY_COLOR := Color(0.79, 0.82, 0.84, 1.0)
-## Beyond this the list is summarised, so the panel cannot outgrow the screen on
-## a long run.
-const MAX_LISTED_UPGRADES := 8
+## Upgrades are laid out in columns rather than one list. A single column ran off
+## the panel and had to be cut with a "+3 more", which hid exactly the thing the
+## player opened the pause menu to check. Columns fit the whole loadout.
+## Two columns of six hold the entire catalogue, so the list is never cut.
+const UPGRADES_PER_COLUMN := 6
+const MAX_UPGRADE_COLUMNS := 2
 
 var _settings_overlay: Control
 var _run_card: PanelContainer
@@ -31,7 +34,8 @@ var _upgrades_divider: HSeparator
 
 var _summary_label: Label
 var _upgrades_title: Label
-var _upgrades_label: Label
+var _upgrades_columns: HBoxContainer
+var _upgrade_font_size := 14
 
 
 func _ready() -> void:
@@ -148,13 +152,10 @@ func _build_run_summary() -> void:
 	_upgrades_title.text = "UPGRADES"
 	content.add_child(_upgrades_title)
 
-	_upgrades_label = Label.new()
-	_upgrades_label.name = "UpgradesList"
-	_upgrades_label.theme_type_variation = &"MutedLabel"
-	_upgrades_label.add_theme_font_size_override(&"font_size", 14)
-	_upgrades_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_upgrades_label)
-	_upgrades_label.add_theme_color_override(&"font_color", SUMMARY_COLOR)
+	_upgrades_columns = HBoxContainer.new()
+	_upgrades_columns.name = "UpgradesColumns"
+	_upgrades_columns.add_theme_constant_override(&"separation", 22)
+	content.add_child(_upgrades_columns)
 
 
 func _refresh_run_summary() -> void:
@@ -165,23 +166,42 @@ func _refresh_run_summary() -> void:
 		if progression != null and progression.has_method(&"get_taken_upgrades")
 		else []
 	)
-	var has_upgrades := not taken.is_empty()
-	if not has_upgrades:
-		_upgrades_label.text = "NO UPGRADES ACQUIRED"
+	for child in _upgrades_columns.get_children():
+		child.queue_free()
+	if taken.is_empty():
+		_upgrades_columns.add_child(_build_upgrade_label("NO UPGRADES ACQUIRED", MUTED_COLOR))
 		return
-	var lines: PackedStringArray = []
-	for index in mini(taken.size(), MAX_LISTED_UPGRADES):
+
+	# Fill each column before starting the next, so the list still reads top to
+	# bottom rather than snaking across the panel.
+	var per_column := maxi(
+		UPGRADES_PER_COLUMN, ceili(float(taken.size()) / float(MAX_UPGRADE_COLUMNS))
+	)
+	var column: VBoxContainer = null
+	for index in taken.size():
+		if index % per_column == 0:
+			column = VBoxContainer.new()
+			column.add_theme_constant_override(&"separation", 4)
+			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_upgrades_columns.add_child(column)
 		var upgrade: Dictionary = taken[index]
-		var count := int(upgrade["count"])
-		lines.append(
-			"%s%s" % [
-				String(upgrade["name"]),
-				"  ×%d" % count if count > 1 else "",
-			]
-		)
-	if taken.size() > MAX_LISTED_UPGRADES:
-		lines.append("+%d more" % (taken.size() - MAX_LISTED_UPGRADES))
-	_upgrades_label.text = "\n".join(lines)
+		var level := int(upgrade["level"])
+		var maximum := int(upgrade["max_level"])
+		# The level is what the player is really checking, and a maxed card is
+		# worth calling out because it will never be offered again.
+		var suffix := "MAX" if level >= maximum else "LV %d" % level
+		column.add_child(_build_upgrade_label(
+			"%s  ·  %s" % [String(upgrade["name"]), suffix], upgrade["colour"]
+		))
+
+
+func _build_upgrade_label(text: String, colour: Color) -> Label:
+	var label := Label.new()
+	label.theme_type_variation = &"MutedLabel"
+	label.add_theme_font_size_override(&"font_size", _upgrade_font_size)
+	label.add_theme_color_override(&"font_color", colour)
+	label.text = text
+	return label
 
 
 
@@ -211,7 +231,9 @@ func _apply_responsive_layout() -> void:
 	footer.add_theme_font_size_override(&"font_size", roundi(14.0 * ui_scale))
 	if _run_card == null:
 		return
-	_run_card.offset_left = -464.0 * ui_scale
+	# Wider than the 400 it used to be: the upgrades sit in two columns now, and
+	# a column narrower than "MAGNETIC FIELD  ·  LV 3" wraps mid-name.
+	_run_card.offset_left = -534.0 * ui_scale
 	_run_card.offset_right = -64.0 * ui_scale
 	_run_card.offset_top = -210.0 * ui_scale
 	_run_card.offset_bottom = 210.0 * ui_scale
@@ -221,7 +243,22 @@ func _apply_responsive_layout() -> void:
 	_summary_label.add_theme_font_size_override(&"font_size", roundi(17.0 * ui_scale))
 	_summary_label.add_theme_constant_override(&"line_spacing", roundi(6.0 * ui_scale))
 	_upgrades_title.add_theme_font_size_override(&"font_size", roundi(12.0 * ui_scale))
-	_upgrades_label.add_theme_font_size_override(&"font_size", roundi(15.0 * ui_scale))
+	_upgrade_font_size = roundi(14.0 * ui_scale)
+	_apply_upgrade_font_size()
+
+
+## The upgrade labels are rebuilt every time the menu opens, so the scaled size
+## is kept here and re-applied rather than being read back off a node.
+func _apply_upgrade_font_size() -> void:
+	for column in _upgrades_columns.get_children():
+		var label := column as Label
+		if label != null:
+			label.add_theme_font_size_override(&"font_size", _upgrade_font_size)
+			continue
+		for child in column.get_children():
+			var entry := child as Label
+			if entry != null:
+				entry.add_theme_font_size_override(&"font_size", _upgrade_font_size)
 
 
 func _get_ui_scale() -> float:

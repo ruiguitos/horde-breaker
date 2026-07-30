@@ -71,7 +71,17 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 14
 
+[node name="TimerBar" type="ProgressBar" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+value = 1.0
+show_percentage = false
+
 [node name="Footer" type="Label" parent="CenterContainer/PanelContainer/Margin/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Choose one upgrade. It lasts for this run only."
