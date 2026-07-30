@@ -32,6 +32,14 @@ const WEAPON_POOL: Array[Dictionary] = [
 ]
 const SECTOR_HALF_SIZE := 32.0
 const SPAWN_MARKER_COUNT := 3
+## Footprint every piece of scattered content reserves for itself.
+const CONTENT_SIZE := Vector3(2.0, 1.0, 2.0)
+## Ring used when a sector is too built up for the random attempts to land.
+const SPAWN_FALLBACK_POSITIONS: Array[Vector2] = [
+	Vector2(-24.0, -24.0), Vector2(24.0, -24.0), Vector2(24.0, 24.0),
+	Vector2(-24.0, 24.0), Vector2(0.0, -28.0), Vector2(28.0, 0.0),
+	Vector2(0.0, 28.0), Vector2(-28.0, 0.0),
+]
 
 
 static func begin_sector(config: Dictionary) -> Dictionary:
@@ -49,7 +57,12 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 		"config": config,
 		"rng": rng,
 		"sector": sector,
-		"blocked_areas": [] as Array[Rect2],
+		# Seeded with the hand-painted map, not empty: content placement has to
+		# start out knowing where the buildings are, or it drops caches inside
+		# walls. The same list already feeds the navigation bake.
+		"blocked_areas": _get_painted_blocked_areas(
+			config.get("painted_obstacles", [])
+		),
 	}
 
 
@@ -66,7 +79,7 @@ static func add_content_stage(context: Dictionary) -> void:
 	_add_caches(sector, rng, config, blocked_areas)
 	_add_ammo_box(sector, rng, config, blocked_areas)
 	_add_weapon_crate(sector, rng, config, blocked_areas)
-	_add_spawn_markers(sector, rng, blocked_areas)
+	_add_spawn_markers(sector, rng, config, blocked_areas)
 
 
 static func finish_sector(context: Dictionary) -> void:
@@ -93,12 +106,13 @@ static func _add_caches(
 	caches_root.name = "ScrapCaches"
 	sector.add_child(caches_root)
 	var cache_count := 2 + rng.randi_range(0, 1)
-	for cache_index in cache_count:
-		# Positions are always drawn so the layout stays deterministic even
-		# when previously collected caches are skipped.
-		var placement := _find_free_position(
-			rng, Vector3(2.0, 1.0, 2.0), blocked_areas
-		)
+	# Positions are always resolved so the layout stays deterministic even when
+	# previously collected caches are skipped.
+	var placements := _get_placements(
+		_get_authored(config, &"scrap_caches"), cache_count, rng, blocked_areas
+	)
+	for cache_index in placements.size():
+		var placement := placements[cache_index]
 		if placement == Vector2.INF or cache_index in collected_caches:
 			continue
 		var cache := SCRAP_PICKUP_SCENE.instantiate() as Area3D
@@ -118,9 +132,10 @@ static func _add_ammo_box(
 	config: Dictionary,
 	blocked_areas: Array[Rect2]
 ) -> void:
-	var placement := _find_free_position(
-		rng, Vector3(2.0, 1.0, 2.0), blocked_areas
+	var placements := _get_placements(
+		_get_authored(config, &"ammunition_boxes"), 1, rng, blocked_areas
 	)
+	var placement: Vector2 = placements[0] if not placements.is_empty() else Vector2.INF
 	if placement == Vector2.INF or bool(config.get("ammo_collected", false)):
 		return
 	var ammo_callable: Callable = config.get("ammo_collected_callable", Callable())
@@ -156,10 +171,11 @@ static func _add_weapon_crate(
 	# Roughly one in three sectors offers a weapon to find while exploring.
 	# The choice is seeded so the same sector always holds the same weapon.
 	var weapon_choice := _pick_weapon(rng)
-	var offers_weapon := rng.randf() < 0.34
-	var placement := _find_free_position(
-		rng, Vector3(2.0, 1.0, 2.0), blocked_areas
-	)
+	var authored := _get_authored(config, &"weapon_crates")
+	# An authored crate is a decision, not a roll: it is always there.
+	var offers_weapon := rng.randf() < 0.34 or not authored.is_empty()
+	var placements := _get_placements(authored, 1, rng, blocked_areas)
+	var placement: Vector2 = placements[0] if not placements.is_empty() else Vector2.INF
 	if (
 		not offers_weapon
 		or placement == Vector2.INF
@@ -180,19 +196,21 @@ static func _add_weapon_crate(
 
 
 static func _add_spawn_markers(
-	sector: Node3D, rng: RandomNumberGenerator, blocked_areas: Array[Rect2]
+	sector: Node3D,
+	rng: RandomNumberGenerator,
+	config: Dictionary,
+	blocked_areas: Array[Rect2]
 ) -> void:
 	var spawns_root := Node3D.new()
 	spawns_root.name = "SpawnPoints"
 	sector.add_child(spawns_root)
-	for spawn_index in SPAWN_MARKER_COUNT:
-		var placement := _find_free_position(
-			rng, Vector3(2.0, 1.0, 2.0), blocked_areas
-		)
+	var placements := _get_placements(
+		_get_authored(config, &"enemy_spawns"), SPAWN_MARKER_COUNT, rng, blocked_areas
+	)
+	for spawn_index in placements.size():
+		var placement := placements[spawn_index]
 		if placement == Vector2.INF:
-			placement = Vector2(
-				-24.0 + 24.0 * spawn_index, -24.0 if spawn_index % 2 == 0 else 24.0
-			)
+			placement = _find_fallback_spawn(spawn_index, blocked_areas)
 		var marker := Marker3D.new()
 		marker.name = "Spawn%d" % spawn_index
 		marker.add_to_group(&"enemy_spawn_point")
@@ -346,6 +364,55 @@ static func _add_navigation(sector: Node3D, painted_obstacles: Array) -> void:
 	sector.add_child(navigation_region)
 
 
+## The hand-placed positions for one kind of content, or an empty list when this
+## sector has no file (see SectorData and world_streamer._load_authored_content).
+static func _get_authored(config: Dictionary, list_name: StringName) -> Array:
+	var authored: Dictionary = config.get("authored", {})
+	return authored.get(list_name, [])
+
+
+## Where a batch of content goes: the authored positions if this sector has any,
+## otherwise `count` positions drawn from the free space.
+##
+## Each list falls back on its own, so a sector can be authored a piece at a
+## time. Authoring one list does shift the random draws for the ones after it —
+## a sector half designed is a sector whose remaining loot moves once.
+static func _get_placements(
+	authored: Array,
+	count: int,
+	rng: RandomNumberGenerator,
+	blocked_areas: Array[Rect2]
+) -> Array[Vector2]:
+	var placements: Array[Vector2] = []
+	if not authored.is_empty():
+		for position: Vector2 in authored:
+			# Reserved so anything still being scattered keeps away from it.
+			blocked_areas.append(Rect2(position - Vector2.ONE, Vector2(2.0, 2.0)))
+			placements.append(position)
+		return placements
+	for index in count:
+		placements.append(
+			_find_free_position(rng, CONTENT_SIZE, blocked_areas)
+		)
+	return placements
+
+
+## Turns the painted GridMap cells the streamer collected into the flat rectangle
+## list content placement uses. Obstacle centres already arrive relative to the
+## sector origin, which is the same space `_find_free_position` works in.
+static func _get_painted_blocked_areas(painted_obstacles: Array) -> Array[Rect2]:
+	var areas: Array[Rect2] = []
+	for obstacle in painted_obstacles:
+		var centre: Vector3 = obstacle["center"]
+		var half_x := float(obstacle["half_x"])
+		var half_z := float(obstacle["half_z"])
+		areas.append(Rect2(
+			Vector2(centre.x - half_x, centre.z - half_z),
+			Vector2(half_x * 2.0, half_z * 2.0)
+		))
+	return areas
+
+
 static func _find_free_position(
 	rng: RandomNumberGenerator,
 	size: Vector3,
@@ -358,15 +425,36 @@ static func _find_free_position(
 		# Keep the sector centre clear so there is always a way through.
 		if absf(candidate.x) < 6.0 and absf(candidate.y) < 6.0:
 			continue
-		var candidate_area := Rect2(
-			candidate - Vector2(size.x, size.z) * 0.5 - Vector2(2.0, 2.0),
-			Vector2(size.x, size.z) + Vector2(4.0, 4.0)
+		var footprint := Rect2(
+			candidate - Vector2(size.x, size.z) * 0.5, Vector2(size.x, size.z)
 		)
-		var overlaps := false
-		for blocked_area in blocked_areas:
-			if candidate_area.intersects(blocked_area):
-				overlaps = true
-				break
-		if not overlaps:
+		if _is_area_free(footprint.grow(2.0), blocked_areas):
+			# Reserve what was just taken. Without this, everything placed in a
+			# sector was tested against the map but never against the rest of the
+			# loot, so two caches could share a spot.
+			blocked_areas.append(footprint)
 			return candidate
 	return Vector2.INF
+
+
+## Last resort for a sector so dense that the random attempts all landed on
+## painted geometry. Walking the ring beats the old fixed offsets, which were
+## chosen before the map existed and could sit inside a building.
+static func _find_fallback_spawn(
+	spawn_index: int, blocked_areas: Array[Rect2]
+) -> Vector2:
+	var count := SPAWN_FALLBACK_POSITIONS.size()
+	for offset in count:
+		var candidate := SPAWN_FALLBACK_POSITIONS[(spawn_index + offset) % count]
+		var footprint := Rect2(candidate - Vector2(1.0, 1.0), Vector2(2.0, 2.0))
+		if _is_area_free(footprint.grow(2.0), blocked_areas):
+			blocked_areas.append(footprint)
+			return candidate
+	return SPAWN_FALLBACK_POSITIONS[spawn_index % count]
+
+
+static func _is_area_free(area: Rect2, blocked_areas: Array[Rect2]) -> bool:
+	for blocked_area in blocked_areas:
+		if area.intersects(blocked_area):
+			return false
+	return true

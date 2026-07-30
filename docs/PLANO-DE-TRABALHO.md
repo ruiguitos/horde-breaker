@@ -10,6 +10,11 @@ erratas no topo).
 
 ---
 
+> **2026-07-30 — as etapas 1 a 7 estão fechadas.** O que resta neste ficheiro
+> (etapa 8 e o backlog) precisa de sessões de jogo, não de código. Cada etapa
+> abaixo diz o que se descobriu ao fazê-la, incluindo as duas que se revelaram
+> ser outra coisa.
+
 ## 0. Onde estamos (2026-07-29)
 
 **Funciona e está validado por testes:** combate e hitscan, melee com auto-ataque,
@@ -111,111 +116,127 @@ ficar na origem, a extração muda de sítio sem aviso.
 
 ---
 
-## Etapa 2 — Catalogar as inconsistências do mapa
+## Etapa 2 — Catalogar as inconsistências do mapa ✅ **FEITO (2026-07-30)**
 
-**Porquê agora:** foram vistas em playtest e nunca escritas. Corrigir sem lista é
-adivinhar, e o mapa tem 64 setores.
+Eram duas, e a segunda não estava na lista de suspeitos com a forma certa.
 
-**Método:** uma passagem de jogo com um ficheiro aberto ao lado, a registar
-*sítio + sintoma*. Suspeitos, por ordem de probabilidade:
+**Inconsistência 1 — loot e spawns dentro de paredes.** Confirmada e corrigida
+como previsto: `begin_sector` semeia agora `blocked_areas` com os obstáculos
+pintados que o config já transportava para a navegação. Medido antes e depois,
+com 40 seeds sobre um setor de blocos e ruas: **105 de 266 colocações ficavam
+dentro de edifícios; agora 0**. Pelo caminho apareceram mais duas:
 
-| Suspeita | Como confirmar |
-|---|---|
-| Edifícios sobrepostos entre si | vista de topo ortogonal; procurar geometria a interpenetrar |
-| Loot ou spawns dentro de paredes | `_find_free_position` não conhece as células pintadas |
-| Navegação a atravessar peças | `GridMapObstacles` ignora formas < 0,5 m (`MINIMUM_BLOCKING_HEIGHT`) |
-| Costuras entre setores | as estradas alinham, mas os props nas bordas podem colidir |
+- nada reservava o que acabara de ser colocado, por isso duas caches podiam
+  partilhar o mesmo sítio — `_find_free_position` reserva agora o que devolve;
+- quando as 20 tentativas falhavam todas, os spawns caíam em posições fixas
+  escolhidas antes de o mapa existir, e essas podiam ser paredes — há agora um
+  anel de recurso, verificado contra o mapa (`SPAWN_FALLBACK_POSITIONS`).
 
-**Provável correção estrutural:** o gerador de conteúdo coloca loot com
-`_find_free_position`, que só evita as áreas que ele próprio reservou — **não vê
-o GridMap**. Passar-lhe os obstáculos pintados resolve a família toda:
+**Inconsistência 2 — edifícios a atravessarem-se.** A suspeita estava certa, a
+causa não. Medidas as 20 peças que o pintor usa: **6 são maiores que a célula de
+8 m** (`ind_building_a/b` 12,5 m, `ind_building_c` 11,3 × 12,6 m,
+`ind_building_e` 10,1 m, `city_building_j` 12,5 m, `city_building_e` 9,8 m) e o
+pintor colocava-as em células vizinhas. Mas medir só a largura **não chegava**:
+as malhas industriais da Kenney não estão centradas na origem — `ind_building_h`
+mede 7,9 m e estende-se **5,6 m para um dos lados**, por isso "cabe na célula"
+era falso. O tamanho tem de vir do alcance a partir da origem
+(`AABB.position`), não de `AABB.size`.
 
-```gdscript
-# sector_generator.gd — o config já transporta painted_obstacles para a navegação;
-# usá-los também como blocked_areas ao colocar conteúdo.
-for obstacle in config.get("painted_obstacles", []):
-    var centre: Vector3 = obstacle["center"]
-    blocked_areas.append(Rect2(
-        Vector2(centre.x - obstacle["half_x"], centre.z - obstacle["half_z"]),
-        Vector2(obstacle["half_x"] * 2.0, obstacle["half_z"] * 2.0)
-    ))
-```
+Correção: o pintor mantém um **mapa de ocupação do mundo inteiro**, semeado com
+as ruas e passeios antes de qualquer estrutura (por isso as costuras entre
+setores também fecham), e reserva as células que cada peça ocupa mesmo. De 16
+sobreposições francas para **0**, verificado sobre a arena real em
+`tests/test_painted_map.gd`.
 
----
-
-## Etapa 3 — Medir o arranque lento em headless
-
-**Sintoma:** com 8×8, abrir a arena em headless passou a demorar tanto que fez
-uma validação exceder 600 s. Com 4×4 era imediato.
-
-⚠️ **Não** baixar `load_distance` para 48 (sugestão do `IMPLEMENTATION-PLAN.md`):
-os centros dos setores estão a 64 m e os 72 m existem para os apanhar a tempo.
-48 abriria buracos à frente do jogador.
-
-**Medir primeiro.** Hipóteses, por ordem:
-
-1. `paint_world` escreve 4096 células por camada; o `.tscn` cresceu e o *parse*
-   da cena é que ficou caro. Medir com `Time.get_ticks_msec()` à volta do
-   `change_scene_to_file`.
-2. O bake de navegação corre por setor carregado — com mais setores dentro do
-   raio, é mais bake no arranque.
-3. Um teste que nunca sai (o `--quit-after` não dispara). Confirmar com um
-   `print` no `_ready` da arena.
-
-Só depois de saber qual é, mexer.
+⚠️ Efeito secundário: a rejeição cortava um terço das estruturas. As densidades
+subiram de 0,3 / 0,5 / 0,4 para **0,4 / 0,65 / 0,55** para repor o número
+(1262 peças sobrepostas → 1034 limpas). **Isto precisa de olhos.**
 
 ---
 
-## Etapa 4 — Repor os POIs
+## Etapa 3 — Medir o arranque lento em headless ✅ **FEITO (2026-07-30)**
 
-Saíram com o graybox. `scenes/world/exploration_pois.tscn` e os três scripts de
-encontro (`warehouse_`, `military_outpost_`, `fuel_station_encounter.gd`)
-continuam no repositório.
+**Não existe.** `tests/bench_arena_startup.gd` mede-o por fases e dá **1,42 s até
+jogável** com 8×8: 486 ms de arranque do motor, 588 ms de *parse* do `.tscn`
+(a hipótese 1 estava certa quanto a ser o item dominante, mas são 0,6 s, não
+minutos), 8 ms a instanciar, 53 ms de `_ready` e 289 ms até o streaming assentar
+em 4 setores. O bake de navegação corre em worker threads, ~50 ms por setor,
+fora do frame.
 
-**Abordagem:** os POIs passam a ser **pintados** com peças reais em vez de
-grayboxes — `ind_building_*` (armazém), `grav_crypt_*` (cripta), `fac_*`
-(industrial). A cena de encontros liga-se por `Area3D` colocada sobre a peça
-pintada, em vez de construir as paredes ela própria.
+Era a **hipótese 3**: um teste que não saía. O `test_gridmap_navigation.gd` tinha
+exatamente esse defeito (uma exceção saltava por cima do `quit()`) e já fora
+corrigido — a suite inteira corre hoje em ~20 s, o teste mais lento em 2,6 s.
 
-Cada POI devolve o que o gerador perdeu ao deixar de os criar: uma cache de
-recompensa (eram 50 de Scrap) e um encontro por ciclo.
-
----
-
-## Etapa 5 — Atmosfera Forward+
-
-Passou a ser possível com a mudança de renderer e continua por fazer.
-
-⚠️ **Editar os `.tres` à mão perde-se**: `tools/apply_skyboxes.gd` reescreve os
-quatro presets. A alteração tem de ser feita *nessa ferramenta*.
-
-```gdscript
-# tools/apply_skyboxes.gd — dentro do ciclo, antes de gravar:
-environment.ssao_enabled = true
-environment.ssao_intensity = 1.5
-environment.ssil_enabled = true          # caro; medir antes de manter
-environment.volumetric_fog_enabled = true
-environment.volumetric_fog_density = 0.02
-environment.volumetric_fog_albedo = Color(0.75, 0.78, 0.8)
-```
-
-Subir a densidade do nevoeiro com o nível de ameaça é o que faz o mapa fechar-se
-à volta do jogador à medida que a run aperta.
-
-**Medir com `tests/bench_horde.gd` depois de ativar** — SSIL e nevoeiro
-volumétrico são dos efeitos mais caros que há, e há 143 FPS de margem para gastar.
+`load_distance` fica em 72. Apareceu ao medir, e foi corrigido, um ruído
+antigo: cada peça de um `WeaponCrate` reanexada pelo streamer disparava um aviso
+de `owner` inconsistente. A arena corre agora 400 frames sem um único aviso.
 
 ---
 
-## Etapa 6 — Spawns e loot colocados à mão
+## Etapa 4 — Repor os POIs ✅ **FEITO (2026-07-30)**
 
-Hoje o gerador espalha tudo aleatoriamente. Para design de níveis a sério, as
-posições têm de ser autoráveis.
+São **6**: dois armazéns, dois postos militares, dois depósitos de combustível,
+espalhados por `paint_world.POINTS_OF_INTEREST` de modo que nenhuma saída do
+acampamento os apanhe todos.
 
-**Abordagem:** um `SectorData.tres` por setor com listas de posições
-(spawns, loot, POI), lido em `add_content_stage()`; setores sem ficheiro mantêm
-a geração procedural como fallback. Assim pode-se autorar setor a setor sem
-partir os outros.
+Cada um é um **composto pintado**: fila de trás e uma lateral construídas com
+peças reais, as duas faces viradas para o cruzamento abertas, e um **pátio de
+24 m** ao meio. A cena (`scenes/world/poi_*.tscn`) não tem geometria nenhuma —
+só o gatilho `Area3D` de 12 m, os marcadores de spawn e loot, o `AccessPoint`, a
+etiqueta e uma **cache de 50 Scrap**. Os três scripts de encontro que estavam no
+repositório entraram sem alterações.
+
+⚠️ A ideia original de usar `ind_building_*` para o armazém **não sobreviveu à
+medição**: são as peças descentradas da etapa 2 e punham as paredes do próprio
+composto umas dentro das outras. O composto usa peças que cabem mesmo na célula
+(`kay_building_*`, `city_building_*`, `ind_chimney_large`, `ind_detail_tank`,
+`fac_hopper_*`).
+
+Reconstruir: `build_poi_scenes.gd` (as cenas) e `place_pois.gd` (pô-las na
+arena), sempre **depois** de `paint_world.gd` — o `place_pois` lê de lá onde
+ficaram os pátios, para o gatilho e os edifícios não discordarem.
+
+---
+
+## Etapa 5 — Atmosfera Forward+ ✅ **FEITO (2026-07-30)**
+
+Feito em `tools/apply_skyboxes.gd`, que passou a escrever os presets inteiros e
+não só o céu. SSAO ligado nos quatro, nevoeiro volumétrico com a densidade a
+subir **0,008 → 0,016 → 0,028 → 0,042** com o nível de ameaça, alcance de 80 m
+(um setor mede 64) e dispersão para a frente para o sol continuar a ler-se como
+uma direção.
+
+**SSIL foi medido e ficou desligado.** `bench_horde.gd` com 140 inimigos, três
+corridas de cada: **127 / 127 / 134 FPS sem**, **107 / 105 / 108 com** — cerca de
+1,6 ms por frame, um sexto da taxa de frames, por luz indirecta que este nevoeiro
+esconde. A flag `ENABLE_SSIL` fica para quem quiser voltar a medir. Nevoeiro e
+SSAO juntos não custam nada que se veja acima da variação entre corridas.
+
+`tests/test_arena_wiring.gd` verifica agora que os quatro presets têm SSAO e
+nevoeiro e que a densidade cresce — é o que apanha um `.tres` editado à mão e
+depois reescrito pela ferramenta.
+
+---
+
+## Etapa 6 — Spawns e loot colocados à mão ✅ **FEITO (2026-07-30)**
+
+`SectorData` (`scripts/data/sector_data.gd`) com quatro listas de posições XZ
+relativas ao centro do setor: `enemy_spawns`, `scrap_caches`,
+`ammunition_boxes`, `weapon_crates`. O streamer procura
+`res://data/sectors/sector_<x>_<y>.tres`, valida os limites do setor e entrega ao
+worker **listas simples**, não o Resource — o worker constrói uma subárvore
+desligada e não tem que tocar em recursos que o resto do jogo está a usar.
+
+O fallback é **lista a lista**: autorar só os spawns deixa o loot disperso, por
+isso um setor pode ser tomado aos poucos. Uma caixa de arma autorada aparece
+sempre, em vez de depender do sorteio de 1 em 3.
+
+Criar um: `<godot> --headless --path . --script res://tools/new_sector_data.gd -- <x> <y>`.
+Escreve um layout de partida e **recusa-se a reescrever** um ficheiro existente.
+
+⚠️ Depois de criar `scripts/data/sector_data.gd` foi preciso
+`--headless --path . --import`: sem isso o `class_name` não existe e o
+`world_streamer.gd` não compila. Está registado nas armadilhas do OVERVIEW.
 
 ---
 
@@ -240,14 +261,20 @@ aspeto, a estrutura, ou a sensação de arranque? Perguntar antes de mexer.
 
 ---
 
-## Etapa 8 — Balanceamento
+## Etapa 8 — Balanceamento ← **é aqui que a próxima sessão começa**
 
 Só faz sentido **depois da etapa 1**: sem base, a economia de Scrap não fecha.
+A base voltou a 2026-07-27, portanto está desbloqueada.
 
 Precisa de sessões de jogo, não de código. Valores a rever:
 `WeaponData` (dano, cadência, carregador, recarga) · `CharacterData` (vida,
 regeneração) · `wave_manager` (`base_max_alive`, `max_alive_per_level`,
 `level_up_interval`, `HARD_ENEMY_CAP` — que já não é o constrangimento que era).
+
+**A juntar-lhe, do mesmo playtest:** o mapa mudou por baixo. As densidades novas
+(0,4 / 0,65 / 0,55 em `paint_world.gd`) foram escolhidas para repor o número de
+edifícios de antes da correção das sobreposições, não porque alguém as jogou. E
+os 6 POIs nunca foram vistos em jogo — só verificados por teste.
 
 ---
 
@@ -267,7 +294,18 @@ mutators por run.
 <godot> --headless --path . --script res://tests/<teste>.gd           # TEST:/TEST FAIL:
 ```
 
-Os 11 testes em ``tests/`` somam **329 verificações** e cobrem extração, armas,
+Os 13 testes em ``tests/`` somam **383 verificações** e cobrem extração, armas,
 melee, skill tree, navegação do GridMap, solo do mundo, desempenho da horda,
-ligação de nós da arena, minimapa e o painel de pausa. **Correr todos antes de commitar** — foi assim que se
-apanharam o script perdido do `world_streamer` e o desalinhamento das peças.
+ligação de nós da arena, atmosfera, minimapa, painel de pausa, o mapa pintado
+(sobreposições e POIs) e o conteúdo dos setores (loot em paredes, autoria).
+**Correr todos antes de commitar** — foi assim que se apanharam o script perdido
+do `world_streamer` e o desalinhamento das peças.
+
+Todo o script `--script` tem de chamar `quit()` em **todos** os caminhos: um que
+saia por uma exceção fica vivo para sempre, e foi isso que passou anos a parecer
+"a arena arranca devagar". As duas medições que não passam/falham correm à parte:
+
+```bash
+<godot> --headless --path . --script res://tests/bench_arena_startup.gd   # arranque por fases
+<godot> --path . --script res://tests/bench_horde.gd -- 140               # FPS (precisa de janela)
+```

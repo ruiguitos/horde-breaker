@@ -2,22 +2,35 @@
 
 [ext_resource type="Texture2D" path="res://assets/models/kenney_skyboxes/skybox-night.png" id="1_euuqe"]
 
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_n4un8"]
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_euuqe"]
 panorama = ExtResource("1_euuqe")
 energy_multiplier = 0.35
 
-[sub_resource type="Sky" id="Sky_y5fn6"]
-sky_material = SubResource("PanoramaSkyMaterial_n4un8")
+[sub_resource type="Sky" id="Sky_n4un8"]
+sky_material = SubResource("PanoramaSkyMaterial_euuqe")
 
 [resource]
 background_mode = 2
-sky = SubResource("Sky_y5fn6")
+sky = SubResource("Sky_n4un8")
 ambient_light_source = 3
 ambient_light_color = Color(0.7, 0.38, 0.2, 1)
 ambient_light_sky_contribution = 0.6
 ambient_light_energy = 0.48
 tonemap_exposure = 0.86
+ssao_enabled = true
+ssao_radius = 1.6
+ssao_intensity = 1.7
+ssao_power = 1.4
+ssao_light_affect = 0.15
+ssil_radius = 3.0
 fog_enabled = true
 fog_light_color = Color(0.68, 0.37, 0.19, 1)
-fog_density = 0.0055
+fog_density = 0.0038
 fog_sky_affect = 0.18
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.028
+volumetric_fog_albedo = Color(0.7, 0.6, 0.54, 1)
+volumetric_fog_anisotropy = 0.3
+volumetric_fog_length = 80.0
+volumetric_fog_ambient_inject = 0.6
+volumetric_fog_sky_affect = 0.35

@@ -9,6 +9,14 @@ extends SceneTree
 ## by calling into them the way the rest of the game does.
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
+## In the order the threat level walks through them. The fog has to thicken along
+## the way: that is what closes the map in as a run wears on.
+const ATMOSPHERE_PRESETS: Array[String] = [
+	"res://resources/atmosphere_presets/calm.tres",
+	"res://resources/atmosphere_presets/threat_5.tres",
+	"res://resources/atmosphere_presets/threat_10.tres",
+	"res://resources/atmosphere_presets/nightmare.tres",
+]
 
 ## group -> a method the rest of the game calls on that node.
 const REQUIRED: Array[Dictionary] = [
@@ -65,7 +73,30 @@ func _run() -> void:
 			with_library += 1
 	_check("map layers are painted (%d of %d)" % [with_library, painted.size()],
 		with_library >= 2)
+	_test_atmosphere()
 	_report()
+
+
+## The Forward+ effects live in .tres files that tools/apply_skyboxes.gd
+## overwrites wholesale, so an edit made in the inspector disappears silently on
+## the next run of that tool. This is what notices.
+func _test_atmosphere() -> void:
+	var previous_density := -1.0
+	for preset_path in ATMOSPHERE_PRESETS:
+		var environment: Environment = load(preset_path)
+		var name := preset_path.get_file()
+		if environment == null:
+			_check("%s loads" % name, false)
+			continue
+		_check("%s occludes ambient light" % name, environment.ssao_enabled)
+		_check("%s has volumetric fog" % name, environment.volumetric_fog_enabled)
+		_check(
+			"%s fog is thicker than the preset before it (%.3f)" % [
+				name, environment.volumetric_fog_density
+			],
+			environment.volumetric_fog_density > previous_density
+		)
+		previous_density = environment.volumetric_fog_density
 
 
 func _report() -> void:

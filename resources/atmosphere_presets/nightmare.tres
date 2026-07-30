@@ -2,22 +2,35 @@
 
 [ext_resource type="Texture2D" path="res://assets/models/kenney_skyboxes/skybox-alien.png" id="1_bhlml"]
 
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_nbsqj"]
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_bhlml"]
 panorama = ExtResource("1_bhlml")
 energy_multiplier = 0.35
 
-[sub_resource type="Sky" id="Sky_p1l8l"]
-sky_material = SubResource("PanoramaSkyMaterial_nbsqj")
+[sub_resource type="Sky" id="Sky_nbsqj"]
+sky_material = SubResource("PanoramaSkyMaterial_bhlml")
 
 [resource]
 background_mode = 2
-sky = SubResource("Sky_p1l8l")
+sky = SubResource("Sky_nbsqj")
 ambient_light_source = 3
 ambient_light_color = Color(0.35, 0.07, 0.045, 1)
 ambient_light_sky_contribution = 0.6
 ambient_light_energy = 0.38
 tonemap_exposure = 0.72
+ssao_enabled = true
+ssao_radius = 1.6
+ssao_intensity = 1.9
+ssao_power = 1.4
+ssao_light_affect = 0.15
+ssil_radius = 3.0
 fog_enabled = true
 fog_light_color = Color(0.31, 0.015, 0.012, 1)
-fog_density = 0.009
+fog_density = 0.0052
 fog_sky_affect = 0.18
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.042
+volumetric_fog_albedo = Color(0.66, 0.5, 0.46, 1)
+volumetric_fog_anisotropy = 0.3
+volumetric_fog_length = 80.0
+volumetric_fog_ambient_inject = 0.6
+volumetric_fog_sky_affect = 0.35

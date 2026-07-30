@@ -681,6 +681,22 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - alcance final do disparo automático entre 2 e 3 metros e permanência do controlo manual.
 - aprovação da expansão do protótipo de dois setores para 16 setores e 256 × 256 metros.
 
+## Mapa consistente, POIs de volta e atmosfera Forward+ (2026-07-30)
+
+- [x] **Loot e spawns deixaram de nascer dentro de paredes.** `begin_sector` semeia `blocked_areas` com os obstaculos pintados que o config ja transportava para a navegacao. Medido com 40 seeds sobre um setor de blocos e ruas: 105 de 266 colocacoes ficavam dentro de edificios, agora 0.
+- [x] Duas faltas menores da mesma familia: nada reservava o que acabara de ser colocado (duas caches podiam partilhar o sitio) e, quando as 20 tentativas falhavam, os spawns caiam em posicoes fixas escolhidas antes de o mapa existir. Ha agora reserva por peca e um anel de recurso verificado contra o mapa.
+- [x] **Edificios deixaram de se atravessar.** Medidas as 20 pecas do pintor: 6 sao maiores que a celula de 8 m, e as malhas industriais Kenney nao estao centradas na origem (ind_building_h mede 7,9 m e estende-se 5,6 m para um lado). O pintor mantem um mapa de ocupacao do mundo inteiro, semeado com ruas e passeios antes de qualquer estrutura, e mede cada peca pelo alcance a partir da origem da malha. De 16 sobreposicoes francas para 0.
+- [x] Densidades subidas de 0,3 / 0,5 / 0,4 para 0,4 / 0,65 / 0,55 para repor o numero de edificios que a rejeicao cortava (1262 sobrepostos -> 1034 limpos). **Precisa de playtest.**
+- [x] **6 pontos de interesse repostos**, agora pintados: dois armazens, dois postos militares, dois depositos de combustivel, cada um um composto de pecas reais a volta de um patio aberto de 24 m. As cenas `scenes/world/poi_*.tscn` nao tem geometria nenhuma, so o gatilho de 12 m, os marcadores, a etiqueta e uma cache de 50 Scrap. Os tres scripts de encontro que estavam no repositorio entraram sem alteracoes. Aparecem no mapa tatico.
+- [x] A ideia de usar `ind_building_*` para o armazem nao sobreviveu a medicao: sao as pecas descentradas e punham as paredes do proprio composto umas dentro das outras.
+- [x] **Atmosfera Forward+**: SSAO nos quatro presets e nevoeiro volumetrico com densidade a subir 0,008 -> 0,042 com o nivel de ameaca, alcance de 80 m. Escrito em `tools/apply_skyboxes.gd`, que agora escreve o preset inteiro e nao so o ceu.
+- [x] **SSIL medido e deixado desligado**: 127 / 127 / 134 FPS sem, 107 / 105 / 108 com, tres corridas de cada com 140 inimigos. Cerca de 1,6 ms por frame por luz indirecta que o nevoeiro esconde. Flag `ENABLE_SSIL` para quem quiser voltar a medir.
+- [x] **`SectorData` por setor** (`data/sectors/sector_<x>_<y>.tres`) com spawns, caches, municoes e caixas de arma a mao. Fallback lista a lista, por isso um setor pode ser tomado aos poucos. O streamer valida os limites e entrega listas simples ao worker, nao o Resource. Criar com `tools/new_sector_data.gd -- <x> <y>`, que se recusa a reescrever.
+- [x] **O arranque lento da arena em headless nao existe**: `tests/bench_arena_startup.gd` mede 1,42 s ate jogavel com 8x8 (588 ms de parse do .tscn dominam; o bake de navegacao corre em worker threads, ~50 ms por setor). Os 600 s de uma validacao antiga eram um teste que nao saia. `load_distance` fica em 72.
+- [x] Corrigidos os avisos de `owner` inconsistente nos anexos de `WeaponCrate` que este ficheiro listava como pre-existentes: o streamer limpa o owner das pecas antes de as reanexar. A arena corre 400 frames sem um unico aviso.
+- Suite: 13 ficheiros, **383 verificacoes**, todas a passar em ~20 s. Novos: `test_sector_content.gd` (14), `test_painted_map.gd` (28), mais 12 verificacoes de atmosfera em `test_arena_wiring.gd`. Ambos os testes novos foram vistos a falhar contra o codigo antigo antes de se dar a correcao por boa.
+- Nao apagado, mas morto: `scenes/world/exploration_pois.tscn` e `scenes/world/poi_facades/` sao o graybox anterior e ja nao sao usados por nada.
+
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
@@ -692,7 +708,6 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - A postura agachada usa uma pose fixa retirada da animação `Duck`; necessita de afinação ou de uma animação final adequada.
 - A reserva de munições ainda usa um pickup genérico; o do armazém reaparece por ciclo, mas tipos de munição e regras próprias por arma ainda não existem.
 - As colisões das paredes permanecem invisíveis como limite de segurança temporário; devem ser substituídas por limites naturais totalmente legíveis depois do playtest do mapa.
-- Os quatro POIs têm interiores próprios, mas continuam a usar geometria graybox e loot fixo.
 - O medkit do hospital aplica cura imediata fixa até 40 pontos; ainda não existem inventário, transporte de consumíveis ou tipos diferentes de medicamentos.
 - As duas caixas do posto militar usam o pickup genérico de munições; ainda não existem tipos separados por arma nem loot aleatório.
 - As duas caches da estação usam o pickup genérico de Scrap; ainda não existem recursos de combustível nem uma tabela de loot própria.
@@ -721,4 +736,4 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - [x] Escala responsiva aplicada aos dois ecras sem alterar navegacao, saves, controlos ou sistemas de gameplay.
 - Validacao Godot 4.7 Mono concluida: importacao headless sem erros, `main_menu.tscn` durante 60 frames e 17/17 testes do resumo de pausa aprovados.
 - Capturas OpenGL inspecionadas a 1152 x 648 e 1920 x 1080, sem texto cortado nem sobreposicoes.
-- Avisos pre-existentes de `owner` em anexos de `WeaponCrate` continuam a surgir ao carregar a arena; nao foram introduzidos por este trabalho de UI.
+- Avisos de `owner` em anexos de `WeaponCrate`: corrigidos a 2026-07-30 (ver a seccao do mapa consistente).

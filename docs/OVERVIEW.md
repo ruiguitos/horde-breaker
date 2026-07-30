@@ -2,24 +2,28 @@
 
 Ficheiro-mestre único e **ponto de entrada para qualquer sessão nova** (substitui
 o antigo HANDOFF): o que é o jogo, como está organizado, o que está feito e o que
-falta. Última atualização: 2026-07-29. Detalhe histórico em `PROGRESS.md`;
+falta. Última atualização: 2026-07-30. Detalhe histórico em `PROGRESS.md`;
 **o que falta fazer em `PLANO-DE-TRABALHO.md`**; o mapa em `MAP_DESIGN.md`.
 
 ---
 
-## 0. ESTADO ATUAL (2026-07-29) — LER PRIMEIRO
+## 0. ESTADO ATUAL (2026-07-30) — LER PRIMEIRO
 
-Árvore limpa em `cd75774`. Suite: **11 ficheiros em `tests/`, 329 verificações,
-todas a passar**. Correr sempre antes de commitar.
+Suite: **13 ficheiros em `tests/`, 383 verificações, todas a passar** (~20 s).
+A arena corre 400 frames em headless **sem um único erro ou aviso**. Correr
+sempre antes de commitar.
 
 ### Mudanças de fundo desta fase
 
 | Área | Antes | Agora |
 |---|---|---|
-| **Renderer** | GL Compatibility | **Forward+** — 140 inimigos: 16,5 → **143,9 FPS** |
+| **Renderer** | GL Compatibility | **Forward+** — 140 inimigos a **127–134 FPS** |
 | **Mundo** | 4×4 (256 m), chão por setor | **8×8 (512 m)** sobre **solo único** |
 | **Mapa** | gerado por código | **pintado à mão**, 3 camadas GridMap (célula 8×4×8 m) |
-| **Gerador de setor** | 894 linhas, construía geometria | **339 linhas**, só loot e spawns |
+| **Colocação de peças** | célula a célula, às cegas | **mapa de ocupação global** — 0 sobreposições |
+| **POIs** | graybox de caixas | **compostos pintados** + gatilho, 6 no mundo |
+| **Atmosfera** | só nevoeiro de profundidade | **SSAO + nevoeiro volumétrico** que engrossa com a ameaça |
+| **Conteúdo do setor** | sempre disperso | disperso **ou autorado** (`SectorData.tres`) |
 | **Assets** | Quaternius + Downtown | **+448 modelos CC0** (Kenney ×6, KayKit, Quaternius) |
 | **Classes** | 3 | **2** (Medic parqueado via `is_selectable`) |
 | **Skill tree** | 3 colunas × 5 nós | **3 árvores bifurcadas, 36 nós** |
@@ -27,28 +31,33 @@ todas a passar**. Correr sempre antes de commitar.
 
 ### ⚠️ O QUE FALTA — por ordem
 
-Detalhe completo, com passos e código, em **`PLANO-DE-TRABALHO.md`**.
+As etapas de código do `PLANO-DE-TRABALHO.md` estão **todas fechadas**. O que
+sobra precisa de *jogo*, não de mais código:
 
-1. **Catalogar as inconsistências do mapa** vistas em playtest, nunca escritas.
-   *Causa provável já identificada:* `sector_generator._find_free_position` só
-   evita as áreas que ele próprio reservou e **não vê o GridMap**, daí loot
-   dentro de paredes. Os obstáculos pintados já são recolhidos para a navegação
-   (`config["painted_obstacles"]`) — basta usá-los também como `blocked_areas`.
-2. **Medir o arranque lento em headless** com 8×8.
-   ⚠️ **Não** baixar `load_distance` para 48: os setores estão a 64 m de
-   distância e os 72 m existem para os apanhar a tempo.
-3. **Repor os POIs** — saíram com o graybox; passam a ser pintados com peças
-   reais. Devolvem os 50 de Scrap e o encontro por ciclo que se perderam.
-4. **Atmosfera Forward+** (volumétrico, SSAO, SSIL).
-   ⚠️ Editar os `.tres` à mão **perde-se**: `tools/apply_skyboxes.gd` reescreve-os.
-5. **`SectorData.tres` por setor** para spawns e loot à mão.
-6. **Afinar os 64 setores** e **balanceamento** — precisam de jogo, não de código.
+1. **Playtest do mapa novo.** A densidade foi reposta em números novos
+   (0,4 / 0,65 / 0,55) porque a correção das sobreposições cortava um terço dos
+   edifícios. São 1034 peças, nenhuma dentro de outra — mas ninguém as viu.
+2. **Balanceamento** (M22): dano/cadência/regen das 2 classes e das variantes,
+   curva do diretor de horda. `HARD_ENEMY_CAP` = 140 já não é o constrangimento.
+3. **Afinar os 64 setores à mão** no editor, e autorar os que valerem a pena com
+   `tools/new_sector_data.gd` (ver secção 4).
+4. **M25 — base de volta** como estruturas pintadas (feature grande, pedida).
 
 **Por esclarecer com o utilizador:** "melhorar o menu principal" — é o aspeto,
 a estrutura, ou a sensação de arranque? Sem alvo, não começar.
 
 ### Armadilhas conhecidas (custaram tempo)
 
+- **`class_name` novo não existe até reimportar.** Um `SectorData` acabado de
+  criar faz `world_streamer.gd` falhar a compilar com *"Could not find type"*,
+  e o jogo arranca com metade dos sistemas mortos. Correr
+  `--headless --path . --import` depois de criar qualquer `class_name`.
+- **Um teste sem guarda de saída pendura-se para sempre.** Foi isto — e não o
+  mundo 8×8 — que fez uma validação exceder os 600 s. Todo o script `--script`
+  precisa de `quit()` em **todos** os caminhos, incluindo os de erro.
+- **As malhas Kenney não estão centradas na origem.** `ind_building_h` mede
+  7,9 m e estende-se 5,6 m para um dos lados de uma célula de 8 m. Medir pelo
+  *alcance a partir da origem* (`AABB.position`), nunca só pelo tamanho.
 - **`preload` de scripts que usam autoloads** (`world_streamer`, `tactical_map`)
   a partir de uma ferramenta `--script` compila antes de os autoloads existirem
   e deixa o script partido para quem o carregar a seguir. Usar `load()` em
@@ -60,7 +69,8 @@ a estrutura, ou a sensação de arranque? Sem alvo, não começar.
   `world_streamer.CAMP_COORDS`, `tools/place_camp.CAMP_COORDS`,
   `tools/paint_world.CENTRE`.
 - **Escrever `.tscn`/`.tres` com PowerShell** exige UTF-8 **sem BOM**, senão o
-  Godot recusa o ficheiro.
+  Godot recusa o ficheiro. As ferramentas em `tools/` escrevem-nos por código
+  precisamente para não passar por aí.
 
 ### Repositório (ação do utilizador)
 
@@ -107,12 +117,21 @@ Executável Godot:
 
 Validação headless (padrão do projeto):
 ```
-<godot> --headless --path . --import                          # parsing
+<godot> --headless --path . --import                          # parsing + regista class_name novos
 <godot> --headless --path . <cena.tscn> --quit-after N        # procurar SCRIPT ERROR
 <godot> --headless --path . --script res://teste.gd           # extends SceneTree, prints TEST:/TEST FAIL:
+<godot> --path . --script res://tests/bench_horde.gd -- 140    # FPS com horda (precisa de janela)
+<godot> --headless --path . --script res://tests/bench_arena_startup.gd
 <godot> --path . --rendering-driver opengl3 --script ...      # capturas OpenGL (get_viewport().get_texture())
 ```
 Nota: autoloads só entram na árvore após o 1º `process_frame` num script `--script`.
+
+**Arranque medido (2026-07-30, 8×8):** 1,42 s até jogável — 486 ms de arranque do
+motor, **588 ms a fazer parse do `.tscn` da arena** (o item dominante), 8 ms a
+instanciar, 53 ms de `_ready`, 289 ms até o streaming assentar em 4 setores. O
+bake de navegação corre em worker threads, ~50 ms por setor, fora do frame.
+**Não** baixar `load_distance` para 48: os setores estão a 64 m e os 72 m
+existem para os apanhar a tempo.
 
 Save: `user://horde_breaker_save.cfg` (export) / `horde_breaker_test.cfg` (editor).
 Definições: `user://horde_breaker_settings.cfg`. No Windows: `%APPDATA%/Godot/app_userdata/Horde Breaker/`.
@@ -127,6 +146,8 @@ data/
   characters/     recruit/renegade/medic .tres (CharacterData)
   weapons/        assault_rifle, pistol, shotgun, smg, worn_sword, spear, fire_axe (WeaponData)
   waves/          WaveData legado (não usado pelo diretor contínuo)
+  sectors/        SectorData por setor, à mão — criado por tools/new_sector_data.gd
+                  (não existe até se autorar o primeiro; sem ficheiro = disperso)
 scenes/
   characters/     player, renegade, medic + mixamo_recruit (parqueado)
   enemies/        normal/runner/brute/spitter/boss + spit_projectile
@@ -135,6 +156,8 @@ scenes/
   ui/             hud, tactical_map, damage_number, painéis
   weapons/        cenas das 7 armas (lógica + malhas invisíveis; visual = embutido no rig)
   world/          test_arena (o mapa vive nas 3 camadas de GridMap desta cena)
+                  camp_sector, poi_warehouse/military_outpost/fuel_station
+                  exploration_pois.tscn = graybox antigo, já não usado
 scripts/
   characters/     player, third_person_camera, imported_model_animation
   enemies/        normal_zombie (base), boss_breaker, damage_hitbox, spit_projectile
@@ -142,7 +165,7 @@ scripts/
   systems/        (ver secção 4 — o coração do jogo)
   ui/             ecrãs e helpers (armory, selection, hud, mapa, animações)
   pickups/        scrap/ammo/health/weapon
-  data/           CharacterData, WeaponData, WaveData (Resources tipados)
+  data/           CharacterData, WeaponData, WaveData, SectorData (Resources tipados)
   dev/            ferramentas de desenvolvimento
 assets/
   fonts/          Rajdhani (OFL) — tipografia da UI
@@ -162,15 +185,28 @@ assets/
   shaders/, themes/  tema partilhado da UI e shaders procedurais
 tools/            generate_ui_icons.gd     regenera ícones/retratos
                   build_tile_library.gd    packs -> map_tiles_pack.meshlib (+ mede módulos)
-                  paint_world.gd           pinta todos os setores
-                  apply_skyboxes.gd        liga os céus aos presets de atmosfera
+                  paint_world.gd           pinta todos os setores (roads -> estruturas -> props)
+                  place_camp.gd            põe o acampamento na arena
+                  build_poi_scenes.gd      reconstrói as 3 cenas de POI
+                  place_pois.gd            põe os POIs na arena, nos pátios pintados
+                  new_sector_data.gd       cria um SectorData para um setor
+                  apply_skyboxes.gd        céus + SSAO + nevoeiro volumétrico nos presets
                   capture_ui_screen.gd     capturas
-tests/            10 scripts headless (extends SceneTree, prints TEST:/TEST FAIL:)
+tests/            13 scripts headless (extends SceneTree, prints TEST:/TEST FAIL:)
+                  + bench_horde.gd e bench_arena_startup.gd (medição, não passa/falha)
 docs/             este overview + GDD, ARCHITECTURE, ROADMAP, PROGRESS, TODO, INSPIRATIONS
 prompts/          prompts para agentes
 ```
 
-Números atuais: 78 scripts `.gd`, 65 cenas `.tscn`, 26 `.tres` de dados, 10 testes.
+Números atuais: 80 scripts `.gd`, 64 cenas `.tscn`, 30 `.tres` de dados, 13 testes.
+
+**Ordem de reconstrução do mundo** (correr sempre por esta ordem — o `place_pois`
+lê de `paint_world` onde ficaram os pátios):
+```
+<godot> --headless --path . --script res://tools/paint_world.gd
+<godot> --headless --path . --script res://tools/build_poi_scenes.gd
+<godot> --headless --path . --script res://tools/place_pois.gd
+```
 
 ---
 
@@ -180,7 +216,7 @@ Números atuais: 78 scripts `.gd`, 65 cenas `.tscn`, 26 `.tres` de dados, 10 tes
 |---|---|
 | `wave_manager.gd` | **Diretor de horda contínuo**: threat level sobe **por tempo** (75 s/nível), spawns em lotes nos 6 pontos mais próximos (≥12 m), pesos por tipo, boss a cada 5 níveis, `cycle_completed` a cada 3. |
 | `world_streamer.gd` | Grelha 8×8 (512 m); setores gerados em **worker threads**; carga 72 m / descarga 96 m; estado por setor; seed e setores visitados persistidos no save. |
-| `sector_generator.gd` | **Só conteúdo, nunca geometria**: caches, munições, caixa de arma (~⅓), marcadores de spawn, paredes de limite e o bake de navegação. O mapa é pintado à mão. |
+| `sector_generator.gd` | **Só conteúdo, nunca geometria**: caches, munições, caixa de arma (~⅓), marcadores de spawn, paredes de limite e o bake de navegação. Coloca **sobre** o mapa pintado — recebe os obstáculos do GridMap e nunca larga loot dentro de paredes. Um `SectorData.tres` substitui a dispersão, lista a lista. |
 | `gridmap_obstacles.gd` | Converte células pintadas do GridMap na lista de obstáculos que a navegação usa; lê as **formas por peça**, por isso o armazém fica praticável por dentro. |
 | `arena_navigation.gd` | Grelha de navegação em runtime que exclui `navigation_blocker`. Decisão: navmesh de editor não se aplica (setores gerados em runtime). |
 | `camp_economy.gd` | Scrap transportado/armazenado, multiplicadores, **melhorias da base** (Resupply Rate/Range, Scavenging), progresso de mastery de Scrap. |
@@ -233,17 +269,34 @@ Números atuais: 78 scripts `.gd`, 65 cenas `.tscn`, 26 `.tres` de dados, 10 tes
 - **Mapa autorado à mão** em 3 camadas de GridMap (`MapRoads`, `MapStructures`,
   `MapProps`), célula 8×4×8 m, a partir de **448 peças CC0** medidas e escaladas
   (os packs Kenney/KayKit vêm em miniatura e são ampliados ×1,8 a ×6).
+- **Peças nunca se atravessam** (2026-07-30): o pintor mantém um mapa de ocupação
+  do mundo inteiro, semeado com as ruas e passeios antes de construir seja o que
+  for, e reserva as células que cada peça realmente ocupa — medidas pelo alcance
+  a partir da origem da malha, não pela largura. 1034 estruturas, **0
+  sobreposições** (eram 16 francas e muitas parciais).
 - **Navegação lê as peças pintadas** (`gridmap_obstacles.gd`), pelas formas de
   cada peça — o armazém continua praticável por dentro.
-- Gerador de setor reduzido a **conteúdo**: caches, munições, arma, spawns.
+- Gerador de setor reduzido a **conteúdo**: caches, munições, arma, spawns —
+  colocados **fora** das paredes pintadas e nunca uns por cima dos outros.
+- **Conteúdo autorável por setor**: `data/sectors/sector_<x>_<y>.tres`
+  (`SectorData`) substitui a dispersão, **lista a lista** — autorar só os spawns
+  deixa o loot disperso. Criar com `tools/new_sector_data.gd -- <x> <y>`.
+- **6 pontos de interesse** pintados como compostos à volta de um pátio aberto de
+  24 m (2 armazéns, 2 postos militares, 2 depósitos de combustível). A cena de
+  cada um leva só o gatilho `Area3D`, os marcadores e uma **cache de 50 Scrap**;
+  as paredes são peças pintadas. Aparecem no mapa tático.
+- **Atmosfera Forward+**: SSAO e nevoeiro volumétrico nos 4 presets, com a
+  densidade a subir 0,008 → 0,042 com o nível de ameaça — o mapa fecha-se à volta
+  do jogador à medida que a run aperta.
 - Seed **fixo por perfil**, setores visitados persistidos no save.
 - **Céu por nível de ameaça** (5 panoramas Kenney nos presets de atmosfera).
 
-### Acampamento — REMOVIDO (2026-07-26)
-O núcleo, as estações de upgrade e as fortificações foram apagados a pedido.
-O código (`camp_core.gd`, `camp_economy.gd`, `camp_upgrade_station.gd`,
-`fortification_site.gd`) continua no repositório e pode voltar como estruturas
-pintadas. **A extração passou a ser na origem (0,0,0).**
+### Acampamento — de volta em (-1,-1), desde 2026-07-27
+Foi removido a 2026-07-26 com o graybox e reposto no dia seguinte, empacotado em
+`scenes/world/camp_sector.tscn`: núcleo, 3 estações de upgrade, 3 pontos de
+fortificação e a grelha de construção. Fica **descentrado de propósito** — ao
+centro todas as runs teriam a mesma forma. A extração é o núcleo do campo, não a
+origem do mundo.
 
 ### UI / UX (facelift completo — Tier 1/2/3)
 - Menu principal com fundo 3D, seleção de classes com modelo 3D + mastery + variante,
@@ -260,16 +313,24 @@ pintadas. **A extração passou a ser na origem (0,0,0).**
 
 ## 6. O QUE FALTA ❌ (por milestone)
 
-### M27 — Mapa autorado (em curso)
-- [ ] **Catalogar as inconsistências** vistas no playtest de 2026-07-26.
-- [ ] Afinar densidade e composição dos 64 setores à mão no editor.
-- [ ] **Atmosfera Forward+**: nevoeiro volumétrico, SSAO, SSIL (agora possíveis).
-- [ ] **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
-- [ ] POIs pintados (a peça `ind_building_*` é a indicada) a repor as recompensas
-      que saíram com o POI procedural.
+### M27 — Mapa autorado (código fechado a 2026-07-30)
+- [x] **Catalogar as inconsistências** vistas no playtest de 2026-07-26 — eram
+      duas: loot e spawns dentro de paredes (o gerador não via o GridMap) e
+      edifícios a atravessarem-se (6 peças maiores que a célula, e as malhas
+      industriais Kenney descentradas por cima disso). Ambas corrigidas e cobertas
+      por `test_sector_content.gd` e `test_painted_map.gd`.
+- [x] **Atmosfera Forward+**: SSAO e nevoeiro volumétrico ligados nos 4 presets.
+      **SSIL medido e deixado desligado** — custava ~1,6 ms por frame (127/127/134
+      FPS sem, 107/105/108 com) por luz indirecta que o nevoeiro esconde.
+- [x] **Spawns colocados à mão**: `SectorData.tres` por setor, com fallback
+      procedural lista a lista.
+- [x] POIs pintados a repor os 50 de Scrap e o encontro por ciclo.
+- [x] Investigar o **arranque lento da arena em headless** — não existe. São
+      1,42 s até jogável; os 600 s eram um teste que não saía.
+- [ ] **Afinar densidade e composição dos 64 setores** à mão no editor
+      (precisa de jogo, não de código).
 - [ ] Coerência visual: Kenney e Quaternius têm estilos diferentes — usar por
       zona, não intercalar.
-- [ ] Investigar o **arranque lento da arena em headless** com 8×8.
 
 ### M22 — Balanceamento (precisa de PLAYTEST teu)
 - [ ] Rever dano/cadência/regen das 2 classes **e das variantes** após jogar.
@@ -313,7 +374,17 @@ pintadas. **A extração passou a ser na origem (0,0,0).**
    Não voltar a pôr geometria procedural — colide com o que está pintado.
 7. **Renderer Forward+**: a mudança deu 8,7× de desempenho. Reverter para GL
    Compatibility traz de volta o problema de FPS com hordas grandes.
-6. Não descarregar assets externos sem autorização; comunicação em PT-PT, código em inglês.
+8. **O pintor decide onde cabe uma peça, não a grelha**: `tools/paint_world.gd`
+   mede cada peça pelo alcance a partir da origem da malha e reserva as células
+   que ela ocupa mesmo. Colocar às cegas célula a célula foi o que pôs edifícios
+   dentro uns dos outros durante toda a fase anterior.
+9. **POIs são pintados, não construídos**: as cenas em `scenes/world/poi_*.tscn`
+   não têm geometria nenhuma — só gatilho, marcadores e recompensa. O graybox
+   antigo (`exploration_pois.tscn`) fica no repositório mas está morto.
+10. **SSIL fica desligado** até alguém voltar a medir (`ENABLE_SSIL` em
+    `tools/apply_skyboxes.gd`). Não voltar a ligá-lo "porque agora dá".
+11. Não descarregar assets externos sem autorização; comunicação em PT-PT, código
+    em inglês.
 
 ---
 
