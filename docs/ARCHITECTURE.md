@@ -43,6 +43,14 @@ Forward+), GDScript tipado, sem C#.
   margem inferior do fundo marinho até 8 m acima da água, deixando costa/espuma
   livres sem permitir passar por baixo. A curva original continua a gerar uma
   faixa de espuma animada com uma superfície e um draw call.
+- `shipwreck_rocks_prototype.gd` — vertical slice isolado do arquipélago. Monta
+  uma região Terrain3D persistente de 256 × 256 m com margem de partida e uma
+  micro-ilha, compõe dois cais e dressing CC0 já existente, e mantém o protótipo
+  fora da arena, do save e do diretor de horda.
+- `automatic_ferry.gd` / `ferry_terminal.gd` — transporte finito entre dois
+  pontos. Durante 4,5 s, o passageiro acompanha um ferry low-poly gerado em
+  runtime; input e colisão do jogador são repostos no ponto seguro de desembarque.
+  Não existe ainda navegação livre nem física naval.
 - `sector_generator.gd` — não constrói geometria visível: coloca caches, caixa
   de munições, caixa de arma (~1/3), spawn markers e navegação sobre a altura
   determinística do Terrain3D. Na ilha, rejeita colocações submersas, não gera

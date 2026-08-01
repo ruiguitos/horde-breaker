@@ -1,0 +1,171 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/shipwreck_rocks_prototype.gd" id="1_prototype"]
+[ext_resource type="Environment" path="res://resources/atmosphere_presets/calm.tres" id="2_environment"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="3_player"]
+[ext_resource type="Script" path="res://scripts/systems/terrain3d_persistent_mount.gd" id="4_mount"]
+[ext_resource type="Terrain3DAssets" path="res://data/terrain3d_prototype/assets/terrain_assets.tres" id="5_assets"]
+[ext_resource type="Shader" path="res://assets/materials/terrain3d_water.gdshader" id="6_water_shader"]
+[ext_resource type="Script" path="res://scripts/systems/automatic_ferry.gd" id="7_ferry"]
+[ext_resource type="Script" path="res://scripts/systems/ferry_terminal.gd" id="8_terminal"]
+[ext_resource type="Script" path="res://scripts/systems/shipwreck_salvage.gd" id="9_salvage"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+render_priority = -1
+shader = ExtResource("6_water_shader")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_water"]
+material = SubResource("ShaderMaterial_water")
+size = Vector2(256, 256)
+
+[sub_resource type="SphereShape3D" id="Shape_terminal"]
+radius = 2.4
+
+[sub_resource type="SphereShape3D" id="Shape_salvage"]
+radius = 2.2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.025, 0.035, 0.04, 0.91)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.87, 0.45, 0.08, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ShipwreckRocksPrototype" type="Node3D"]
+script = ExtResource("1_prototype")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -36, 0)
+light_color = Color(1, 0.9, 0.72, 1)
+light_energy = 1.25
+shadow_enabled = true
+directional_shadow_max_distance = 210.0
+
+[node name="TerrainMount" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_mount")
+data_directory = "res://data/shipwreck_rocks/regions"
+terrain_assets = ExtResource("5_assets")
+select_in_editor = false
+
+[node name="WaterPlane" type="MeshInstance3D" parent="." groups=["terrain3d_water"]]
+position = Vector3(128, -3, 128)
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_water")
+
+[node name="Docks" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Props" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Transport" type="Node3D" parent="."]
+
+[node name="AutomaticFerry" type="AnimatableBody3D" parent="Transport"]
+unique_name_in_owner = true
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("7_ferry")
+
+[node name="HomeTerminal" type="Area3D" parent="Transport"]
+unique_name_in_owner = true
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("8_terminal")
+destination_index = 1
+destination_name = "SHIPWRECK ROCKS"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Transport/HomeTerminal"]
+shape = SubResource("Shape_terminal")
+
+[node name="InfoLabel" type="Label3D" parent="Transport/HomeTerminal"]
+visible = false
+position = Vector3(0, 2.5, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+font_size = 22
+outline_size = 7
+outline_modulate = Color(0.02, 0.025, 0.02, 0.95)
+modulate = Color(1, 0.68, 0.22, 1)
+text = "AUTOMATIC FERRY\n[F] TRAVEL TO SHIPWRECK ROCKS"
+
+[node name="IslandTerminal" type="Area3D" parent="Transport"]
+unique_name_in_owner = true
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("8_terminal")
+destination_index = 0
+destination_name = "HOME SHORE"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Transport/IslandTerminal"]
+shape = SubResource("Shape_terminal")
+
+[node name="InfoLabel" type="Label3D" parent="Transport/IslandTerminal"]
+visible = false
+position = Vector3(0, 2.5, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+font_size = 22
+outline_size = 7
+outline_modulate = Color(0.02, 0.025, 0.02, 0.95)
+modulate = Color(1, 0.68, 0.22, 1)
+text = "AUTOMATIC FERRY\nFERRY AT OTHER DOCK"
+
+[node name="ExclusiveSalvage" type="Area3D" parent="."]
+unique_name_in_owner = true
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("9_salvage")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ExclusiveSalvage"]
+shape = SubResource("Shape_salvage")
+
+[node name="InfoLabel" type="Label3D" parent="ExclusiveSalvage"]
+visible = false
+position = Vector3(0, 2.8, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+font_size = 22
+outline_size = 7
+outline_modulate = Color(0.02, 0.025, 0.02, 0.95)
+modulate = Color(1, 0.48, 0.12, 1)
+text = "EXCLUSIVE SALVAGE\n[F] RECOVER"
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+unique_name_in_owner = true
+position = Vector3(59, 20, 128)
+
+[node name="PrototypeUI" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="Panel" type="PanelContainer" parent="PrototypeUI"]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 650.0
+offset_bottom = 102.0
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Margin" type="MarginContainer" parent="PrototypeUI/Panel"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 11
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 11
+
+[node name="StatusLabel" type="Label" parent="PrototypeUI/Panel/Margin"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.94, 0.95, 0.91, 1)
+theme_override_colors/font_outline_color = Color(0.01, 0.015, 0.02, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "Preparing Shipwreck Rocks..."

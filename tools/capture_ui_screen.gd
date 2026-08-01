@@ -8,6 +8,7 @@ const MENU_SCENES := {
 	"settings": "res://scenes/menus/settings_menu.tscn",
 }
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
+const SHIPWRECK_SCENE := "res://scenes/world/shipwreck_rocks_prototype.tscn"
 
 
 func _initialize() -> void:
@@ -38,7 +39,11 @@ func _capture() -> void:
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_size(capture_size)
-	var scene_path := String(MENU_SCENES.get(target, ARENA_SCENE))
+	var scene_path := (
+		SHIPWRECK_SCENE
+		if target == "shipwreck_rocks"
+		else String(MENU_SCENES.get(target, ARENA_SCENE))
+	)
 	var scene_error := change_scene_to_file(scene_path)
 	if scene_error != OK:
 		push_error("UI capture could not load %s." % scene_path)
@@ -48,8 +53,12 @@ func _capture() -> void:
 	var fps_overlay := root.get_node_or_null("FpsOverlay") as CanvasLayer
 	if fps_overlay != null:
 		fps_overlay.visible = false
-	await _wait_frames(35 if MENU_SCENES.has(target) else 100)
-	if not MENU_SCENES.has(target):
+	await _wait_frames(35 if MENU_SCENES.has(target) else 120)
+	if target == "shipwreck_rocks":
+		if not _prepare_shipwreck_rocks():
+			quit(1)
+			return
+	elif not MENU_SCENES.has(target):
 		if not _prepare_arena_target(target):
 			quit(1)
 			return
@@ -195,6 +204,24 @@ func _prepare_arena_target(target: String) -> bool:
 		return true
 	push_error("Unknown UI capture target: %s" % target)
 	return false
+
+
+func _prepare_shipwreck_rocks() -> bool:
+	if current_scene == null or not bool(current_scene.get(&"is_ready")):
+		push_error("Shipwreck Rocks capture requires its persistent terrain data.")
+		return false
+	var player := get_first_node_in_group(&"player") as Node3D
+	if player != null:
+		player.visible = false
+	var overview_camera := Camera3D.new()
+	overview_camera.name = "ShipwreckOverviewCamera"
+	overview_camera.far = 400.0
+	overview_camera.fov = 62.0
+	overview_camera.position = Vector3(128.0, 58.0, 218.0)
+	current_scene.add_child(overview_camera)
+	overview_camera.look_at(Vector3(128.0, -0.5, 128.0), Vector3.UP)
+	overview_camera.current = true
+	return true
 
 
 func _wait_frames(frame_count: int) -> void:

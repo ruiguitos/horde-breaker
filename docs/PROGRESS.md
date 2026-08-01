@@ -1266,3 +1266,28 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   transporte automático entre dois cais, antes de implementar barco controlável.
   Mantêm-se os avisos conhecidos de depreciação do Terrain3D, sincronização das
   margens da navegação e leaks de encerramento do runner headless.
+
+## Shipwreck Rocks e ferry automático (2026-08-01)
+
+- [x] Criada a cena isolada `shipwreck_rocks_prototype.tscn`: uma única região
+  Terrain3D persistente de 256 × 256 m contém uma margem larga de partida e
+  Shipwreck Rocks, uma ilha menor, assimétrica e separada por água real.
+- [x] O gerador `build_shipwreck_rocks_data.gd` grava a região em
+  `data/shipwreck_rocks/regions`. A origem foi alinhada à grelha de 256 m do
+  Terrain3D para evitar perder quadrantes do heightmap.
+- [x] Dois cais reutilizam o Mini Forest Bridge. Um ferry low-poly, gerado sem
+  novos assets, faz automaticamente a viagem de 4,5 s; bloqueia input/colisão
+  durante a travessia e deixa o jogador num ponto seguro em cada margem.
+- [x] A ilha reutiliza 16 instâncias leves de rochas, destroços, caixas e peças
+  dos kits CC0 já presentes. Uma cache exclusiva de demonstração só pode ser
+  recolhida uma vez durante a sessão. As etiquetas 3D só aparecem por proximidade.
+- [x] `test_shipwreck_rocks` passou **31 verificações, zero falhas**: região,
+  água entre as massas de terra, aterragem física, interação por proximidade,
+  composição, ida, desembarque, recolha única, regresso e ficheiro persistente.
+  A captura real confirmou Forward+ na
+  RX 590 a 1280 × 720 e a leitura visual das duas ilhas.
+- Limitações: o protótipo não está ligado ao menu, arena, mapa tático, save nem
+  diretor de horda; não cria `IslandData`; não tem zombies, navegação livre do
+  barco, física naval, espuma ou barreira marítima própria. Água profunda devolve
+  o jogador ao cais mais próximo. Mantém-se o aviso conhecido de depreciação
+  `instance_reset_physics_interpolation()` do Terrain3D 1.0.2.

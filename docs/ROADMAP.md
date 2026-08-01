@@ -120,7 +120,7 @@ mundo aberto, POIs e base como diferenciador.
 - [x] Evolução de armas por abates (4 evoluções desbloqueadas no ARMORY).
 - [ ] Esquadrão de 3 personagens (controlas 1, IA segue) — o mais caro.
 
-## Milestone 27 — Arquipélago modular (conceito aprovado; não implementado)
+## Milestone 27 — Arquipélago modular (em curso)
 
 Objetivo: transformar a ilha atual no ponto de partida de uma rede navegável de
 ilhas com escalas, formas, biomas, encontros e recompensas próprias, reutilizando
@@ -129,8 +129,12 @@ os modelos CC0 que já existem no projeto.
 - [x] Definir estratégia híbrida: 2–4 ilhas próximas por zona marítima e zonas
   distantes carregadas separadamente; apenas a ilha/zona ativa mantém IA,
   colisão e conteúdo completos.
-- [ ] Criar `IslandData` e uma ilha piloto pequena sem alterar o save principal.
-- [ ] Implementar transporte de barco simples antes de considerar física naval.
+- [x] Criar Shipwreck Rocks como ilha piloto pequena sem alterar a arena nem o
+  save principal: uma região Terrain3D persistente, dois cais, destroços e cache
+  exclusiva de demonstração.
+- [x] Implementar transporte automático entre os dois cais com um ferry low-poly,
+  antes de considerar controlo livre ou física naval.
+- [ ] Criar `IslandData` antes de integrar uma segunda ilha ou persistir descoberta.
 - [ ] Adaptar mapa tático, persistência de descoberta e diretor de horda à ilha ativa.
 - [ ] Reintroduzir um único kit visual na ilha piloto e medir FPS/draw calls.
 

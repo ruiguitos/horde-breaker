@@ -96,11 +96,14 @@ a animação de morte e o cadáver desaparece pouco depois.
 - Setores **visitados persistem no save** (memória do mapa tático).
 - Os POIs antigos (hospital, armazém, posto militar, combustível e variantes)
   estão temporariamente fora da arena até existir um passe terrain-native.
-- **Expansão futura aprovada em conceito:** um arquipélago modular com ilhas de
+- **Expansão em protótipo isolado:** um arquipélago modular com ilhas de
   dimensões, silhuetas, biomas e conteúdo exclusivos. Ilhas próximas podem ser
   navegáveis na mesma zona marítima; zonas distantes carregam separadamente para
   manter IA, colisão e render apenas na área ativa. Os modelos Kenney/Quaternius
   já existentes podem regressar por tema, sem voltar a encher a ilha principal.
+  `Shipwreck Rocks` valida uma primeira micro-ilha sem zombies, ligada a uma
+  margem de partida por ferry automático. A descoberta não entra ainda no save,
+  no mapa tático nem na run principal.
 
 ## Acampamento
 

@@ -95,12 +95,12 @@ Scrap transportado continuam estado da run.
 
 ### Ordem de implementação
 
-1. manter a ilha principal e validar a nova barreira offshore;
-2. criar **Shipwreck Rocks** como ilha piloto sem zombies e sem barco livre;
-3. adicionar um transporte automático entre dois cais;
-4. adaptar mapa tático e save à descoberta da ilha;
-5. criar **Ironworks** com um único lote do Factory Kit e um encontro exclusivo;
-6. só depois tornar o barco controlável e acrescentar novas zonas marítimas.
+1. [x] manter a ilha principal e validar a nova barreira offshore;
+2. [x] criar **Shipwreck Rocks** como ilha piloto sem zombies e sem barco livre;
+3. [x] adicionar um transporte automático entre dois cais;
+4. [ ] adaptar mapa tático e save à descoberta da ilha;
+5. [ ] criar **Ironworks** com um único lote do Factory Kit e um encontro exclusivo;
+6. [ ] só depois tornar o barco controlável e acrescentar novas zonas marítimas.
 
 ## Layout recomendado para a ilha
 
@@ -151,7 +151,8 @@ Princípios:
   rotas de fuga segundo a sensação real de jogo.
 - [ ] Reintroduzir modelos apenas por lotes pequenos com orçamento de render.
 - [ ] Decidir se no futuro a barreira dá lugar a natação, dano ou retorno à margem.
-- [ ] Implementar Shipwreck Rocks como primeira ilha piloto do arquipélago.
+- [x] Implementar Shipwreck Rocks como primeira ilha piloto do arquipélago, numa
+  cena isolada com uma região persistente, dois cais e ferry automático.
 
 ## Referências técnicas
 
