@@ -29,7 +29,7 @@ const REQUIRED: Array[Dictionary] = [
 	{"group": &"arena_navigation", "method": &"build_navigation_mesh"},
 	# The camp: without these the core loop has no Scrap deposit and no upgrades.
 	{"group": &"camp_core", "method": &"get_effective_resupply_radius"},
-	{"group": &"fortification_site", "method": &"interact"},
+	{"group": &"defense_tower", "method": &"interact"},
 ]
 
 var _passed := 0

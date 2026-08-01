@@ -47,8 +47,10 @@ direito), mapa tático (`Tab`).
 
 ## Inimigos
 
-Perseguem **apenas o jogador** — núcleo, acampamento e fortificações não são
-alvos nem condição de derrota.
+Perseguem o alvo ativo mais próximo: o jogador está sempre disponível e as
+torres defensivas entram temporariamente no grupo de alvos quando são
+construídas. Núcleo, muralhas e restantes estruturas continuam ignorados; a
+destruição de uma torre não termina a run.
 
 | Inimigo | Papel | Notas |
 |---|---|---|
@@ -87,7 +89,12 @@ desaparece pouco depois.
   compra reparações e melhorias.
 - **Melhorias da base** (por partida, compradas nos pedestais junto ao núcleo):
   Resupply Rate, Resupply Range e Scavenging (+% Scrap), 3 níveis cada.
-- **3 pontos de fortificação** com barricada (30 Scrap, 200 HP, reparável).
+- **3 torres defensivas exteriores**, junto aos acessos norte, oeste e este.
+  São opcionais, disparam automaticamente e podem receber dano, ser reparadas
+  ou reconstruídas com Scrap armazenado.
+- Cada torre tem 3 níveis ligados à progressão da run: LV1 custa 45 Scrap no
+  nível 1 da run; LV2 custa 90 no nível 5; LV3 custa 150 no nível 10. Vida,
+  dano, alcance e cadência sobem em cada nível.
 
 ## Progressão
 
@@ -115,8 +122,10 @@ desaparece pouco depois.
 
 ## Direção visual
 
-Low-poly CC0 (kit Quaternius Zombie Apocalypse) + primitivas graybox para
-protótipos. Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
+Low-poly CC0 (Quaternius, Kenney e KayKit) + primitivas apenas onde ainda são
+necessárias para colisão ou prototipagem. O acampamento reutiliza cercas,
+contentores, paletes, máquinas, tenda, ambulância, armas e props destes kits em
+vez de volumes graybox visíveis. Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
 Quaternius para modelos e animações (cobre todos os movimentos necessários);
 Mixamo parqueado. As armas visíveis continuam a ser as malhas embutidas nos
 modelos; armas externas só serão reconsideradas com `BoneAttachment3D`. O

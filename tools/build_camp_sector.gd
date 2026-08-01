@@ -8,23 +8,18 @@ extends SceneTree
 ## Run:  <godot> --headless --path . --script res://tools/build_camp_sector.gd
 
 const OUTPUT_PATH := "res://scenes/world/camp_sector.tscn"
+const CAMP_VISUALS := preload("res://scenes/world/camp_visuals.tscn")
 const CAMP_CORE := preload("res://scenes/world/camp_core.tscn")
-const UPGRADE_STATION := preload("res://scenes/world/camp_upgrade_station.tscn")
-const FORTIFICATION := preload("res://scenes/world/fortification_site.tscn")
+const DEFENSE_TOWER := preload("res://scenes/world/defense_tower_site.tscn")
 const BUILD_GRID_SCRIPT := preload("res://scripts/systems/build_grid.gd")
+const ARENA_NAVIGATION_SCRIPT := preload("res://scripts/systems/arena_navigation.gd")
 
-## Laid out around the core at the origin, so the whole camp can be positioned
-## by moving one node.
-const UPGRADES: Array[Dictionary] = [
-	{"id": &"resupply_rate", "name": "ResupplyRate", "offset": Vector3(-6.0, 0.0, -4.0)},
-	{"id": &"resupply_range", "name": "ResupplyRange", "offset": Vector3(0.0, 0.0, -6.5)},
-	{"id": &"scavenging", "name": "Scavenging", "offset": Vector3(6.0, 0.0, -4.0)},
-]
-## Three barricade points covering the approaches the player cannot watch at once.
-const FORTIFICATIONS: Array[Dictionary] = [
-	{"name": "FortificationNorth", "offset": Vector3(0.0, 0.0, -10.0)},
-	{"name": "FortificationWest", "offset": Vector3(-9.0, 0.0, 4.0)},
-	{"name": "FortificationEast", "offset": Vector3(9.0, 0.0, 4.0)},
+## Towers sit outside and to one side of each secondary gate: they protect the
+## approaches without becoming a new wall across the player's route.
+const DEFENSE_TOWERS: Array[Dictionary] = [
+	{"name": "DefenseTowerNorth", "offset": Vector3(-8.2, 0.0, -25.5), "rotation": 0.0},
+	{"name": "DefenseTowerWest", "offset": Vector3(-25.5, 0.0, 8.2), "rotation": PI * 0.5},
+	{"name": "DefenseTowerEast", "offset": Vector3(25.5, 0.0, -8.2), "rotation": -PI * 0.5},
 ]
 
 
@@ -37,28 +32,23 @@ func _run() -> void:
 	var camp := Node3D.new()
 	camp.name = "CampSector"
 
+	var visuals := CAMP_VISUALS.instantiate() as Node3D
+	visuals.name = "CampVisuals"
+	camp.add_child(visuals)
+
 	var core := CAMP_CORE.instantiate() as Node3D
 	core.name = "CampCore"
 	camp.add_child(core)
 
-	var stations := Node3D.new()
-	stations.name = "UpgradeStations"
-	camp.add_child(stations)
-	for entry in UPGRADES:
-		var station := UPGRADE_STATION.instantiate() as Node3D
-		station.name = String(entry["name"])
-		station.set(&"upgrade_id", entry["id"])
-		stations.add_child(station)
-		station.position = entry["offset"]
-
-	var forts := Node3D.new()
-	forts.name = "Fortifications"
-	camp.add_child(forts)
-	for entry in FORTIFICATIONS:
-		var site := FORTIFICATION.instantiate() as Node3D
+	var towers := Node3D.new()
+	towers.name = "DefenseTowers"
+	camp.add_child(towers)
+	for entry in DEFENSE_TOWERS:
+		var site := DEFENSE_TOWER.instantiate() as Node3D
 		site.name = String(entry["name"])
-		forts.add_child(site)
+		towers.add_child(site)
 		site.position = entry["offset"]
+		site.rotation.y = float(entry["rotation"])
 
 	# The three nodes CampBuilder expects, kept together so its NodePaths are
 	# stable wherever the camp is placed.
@@ -80,21 +70,34 @@ func _run() -> void:
 	var spawn := Marker3D.new()
 	spawn.name = "PlayerSpawn"
 	camp.add_child(spawn)
-	spawn.position = Vector3(0.0, 1.0, 6.0)
+	spawn.position = Vector3(0.0, 1.0, 8.0)
+
+	# The camp lives in a streamed sector outside the arena's original navmesh.
+	# A local region makes enemies respect the perimeter, facilities and anything
+	# placed later on the free-construction grid.
+	var navigation := NavigationRegion3D.new()
+	navigation.name = "CampNavigation"
+	navigation.set_script(ARENA_NAVIGATION_SCRIPT)
+	navigation.set(&"navigation_half_extent", 32.0)
+	navigation.add_to_group(&"arena_navigation", true)
+	camp.add_child(navigation)
 
 	_reown(camp, camp)
 	var scene := PackedScene.new()
 	if scene.pack(camp) != OK:
 		push_error("Could not pack the camp")
+		camp.free()
 		quit(1)
 		return
 	var error := ResourceSaver.save(scene, OUTPUT_PATH)
 	if error != OK:
 		push_error("Could not save the camp: %d" % error)
+		camp.free()
 		quit(1)
 		return
-	print("BUILT: %s (%d upgrade stations, %d fortifications)" % [
-		OUTPUT_PATH, UPGRADES.size(), FORTIFICATIONS.size()
+	camp.free()
+	print("BUILT: %s (fortified visuals, local navigation, %d defense towers)" % [
+		OUTPUT_PATH, DEFENSE_TOWERS.size()
 	])
 	quit(0)
 

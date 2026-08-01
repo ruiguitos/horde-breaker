@@ -109,8 +109,21 @@ XP e auto-fire; a exploração, POIs e base continuam a ser o diferenciador.
 **Core loop:** explorar → combater a horda → recolher Scrap/munições/armas →
 reabastecer e melhorar a base → subir de nível e desbloquear skills/mastery →
 aguentar níveis de ameaça mais altos → morrer → recomeçar com progressão
-permanente. Não há rondas nem vitória formal; a partida acaba com a morte do
-jogador.
+permanente. Não há rondas.
+
+**Fim da run, em cinco tempos** (`run_objective.gd`, refeito a 2026-07-31): o
+relógio já não termina a partida — decide quando o *fim começa*.
+
+1. Sobreviver ao relógio (10 min).
+2. Última fase do relógio: a horda intensifica-se e depois **a torneira fecha**.
+3. **LAST STAND** — nada mais nasce, e o que está no mapa é um número finito que
+   tem de ir a zero.
+4. Com o mapa limpo, a extração abre: **deslocar-se até ao acampamento**.
+5. Resumo, e a opção de esticar a run por uma recompensa maior.
+
+> Antes, o zero do relógio entregava a run onde quer que o jogador estivesse, o
+> que fazia o último minuto valer menos do que qualquer outro. Agora o zero é o
+> princípio do combate.
 
 ---
 
@@ -229,7 +242,7 @@ lê de `paint_world` onde ficaram os pátios):
 | `arena_navigation.gd` | Grelha de navegação em runtime que exclui `navigation_blocker`. Decisão: navmesh de editor não se aplica (setores gerados em runtime). |
 | `camp_economy.gd` | Scrap transportado/armazenado, multiplicadores, **melhorias da base** (Resupply Rate/Range, Scavenging), progresso de mastery de Scrap. |
 | `camp_core.gd` / `camp_upgrade_station.gd` | Núcleo, **zona de reabastecimento** (raio/valores crescem com upgrades), 3 pedestais de upgrade. |
-| `fortification_site.gd` | 3 pontos de barricada construíveis/reparáveis. |
+| `defense_tower_site.gd` | 3 torres exteriores automáticas com vida, reparação e 3 níveis dependentes de Scrap e nível da run. |
 | `character_progression.gd` | XP por kill/nível/ciclo, Credits por ciclo, **mastery** (kills/threat). |
 | `skill_tree.gd` / `character_skills.gd` | Árvore permanente (3 ramos × 5 tiers, níveis mín. 2/5/9/14/20) e aplicação dos bónus. |
 | `character_mastery.gd` | Objetivos de mastery (EXTERMINATOR/STORM RIDER/SCAVENGER). |

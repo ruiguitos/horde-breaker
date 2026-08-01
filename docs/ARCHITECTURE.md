@@ -46,8 +46,9 @@ GL Compatibility), GDScript tipado, sem C#.
 - `camp_core.gd` — vida/reparação do núcleo, **zona de reabastecimento**
   (raio/cura/munição efetivos = base + bónus de upgrade), spawn dos 3 pedestais
   (`camp_upgrade_station.gd`).
-- `fortification_site.gd` — 3 pontos fixos de barricada (construir/reparar com
-  Scrap armazenado, navegação regenerada).
+- `defense_tower_site.gd` — 3 torres exteriores opcionais; construção,
+  reparação e upgrades com Scrap armazenado, requisitos de nível da run,
+  aquisição de inimigos, disparo automático e regeneração da navegação.
 - `character_progression.gd` — XP por kill/nível/ciclo (multiplicador da skill
   tree), Credits por ciclo, **mastery** (kills, threat level) e feedback de
   mastery completa.
@@ -75,7 +76,9 @@ GL Compatibility), GDScript tipado, sem C#.
   com repath 0,35 s escalonado; **orçamento de IA**: > 40 m o repath passa a
   1,2 s e o steering (query de caminho) é cacheado e refrescado a 0,3 s; modo
   ranged (Spitter) aproxima/recua/dispara; morte deixa cadáver 2,5 s sem
-  colisão/grupos/hitboxes. `boss_breaker.gd` estende com invocação periódica.
+  colisão/grupos/hitboxes. O alvo é reavaliado a cada 0,75 s entre o jogador e
+  torres construídas, evitando uma pesquisa por frame. `boss_breaker.gd`
+  estende com invocação periódica.
 - Dano por zonas via `DamageHitbox` (Area3D corpo 1× / cabeça 2×) separado da
   cápsula física.
 
@@ -97,7 +100,7 @@ GL Compatibility), GDScript tipado, sem C#.
 ## Grupos-chave
 
 `player`, `enemy`, `enemy_target`, `enemy_spawn_point`, `weapon_controller`,
-`wave_manager`, `camp_economy`, `world_streamer`, `camp_core`,
+`wave_manager`, `camp_economy`, `world_streamer`, `camp_core`, `defense_tower`,
 `point_of_interest`, `navigation_blocker`, `scrap_pickup`/`ammo_pickup`/
 `health_pickup`/`weapon_pickup`, `world_sector`, `poi_interior_point`.
 

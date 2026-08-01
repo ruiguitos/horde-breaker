@@ -1,0 +1,129 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/defense_tower_site.gd" id="1_tower_script"]
+[ext_resource type="Script" path="res://scripts/systems/fortification_interaction.gd" id="2_interaction_script"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="3_barrier"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/building-structure.glb" id="4_structure"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/building-platform.glb" id="5_platform"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/building-roof.glb" id="6_roof"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/ladder.glb" id="7_ladder"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_factory_kit/machine-fortified.glb" id="8_turret_base"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/weapons/Rifle.gltf" id="9_rifle"]
+[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/PlasticBarrier.gltf" id="10_plastic_barrier"]
+
+[sub_resource type="BoxShape3D" id="Shape_tower"]
+size = Vector3(3.8, 5.2, 3.8)
+
+[sub_resource type="SphereShape3D" id="Shape_interaction"]
+radius = 3.2
+
+[node name="DefenseTowerSite" type="StaticBody3D" groups=["defense_tower", "navigation_blocker"]]
+collision_layer = 3
+collision_mask = 5
+script = ExtResource("1_tower_script")
+
+[node name="SiteVisual" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="BarrierLeft" parent="SiteVisual" instance=ExtResource("3_barrier")]
+position = Vector3(-0.9, 0, 0)
+rotation = Vector3(0, 0.25, 0)
+
+[node name="BarrierRight" parent="SiteVisual" instance=ExtResource("3_barrier")]
+position = Vector3(0.9, 0, 0.1)
+rotation = Vector3(0, -0.2, 0)
+
+[node name="TowerVisual" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="Frame" parent="TowerVisual" instance=ExtResource("4_structure")]
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="Platform" parent="TowerVisual" instance=ExtResource("5_platform")]
+position = Vector3(0, 3.45, 0)
+scale = Vector3(3.0, 3.0, 3.0)
+
+[node name="Roof" parent="TowerVisual" instance=ExtResource("6_roof")]
+position = Vector3(0, 4.1, 0)
+scale = Vector3(3.1, 3.1, 3.1)
+
+[node name="Ladder" parent="TowerVisual" instance=ExtResource("7_ladder")]
+position = Vector3(0, 0, 2.0)
+scale = Vector3(4, 4, 4)
+
+[node name="TurretPivot" type="Node3D" parent="TowerVisual"]
+unique_name_in_owner = true
+position = Vector3(0, 4.35, 0)
+
+[node name="TurretBase" parent="TowerVisual/TurretPivot" instance=ExtResource("8_turret_base")]
+position = Vector3(0, -0.5, 0)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="Rifle" parent="TowerVisual/TurretPivot" instance=ExtResource("9_rifle")]
+position = Vector3(0, 0.05, -0.35)
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(1.4, 1.4, 1.4)
+
+[node name="Muzzle" type="Marker3D" parent="TowerVisual/TurretPivot"]
+unique_name_in_owner = true
+position = Vector3(0, 0.1, -1.25)
+
+[node name="LevelTwoVisual" type="Node3D" parent="TowerVisual"]
+unique_name_in_owner = true
+visible = false
+
+[node name="ArmorLeft" parent="TowerVisual/LevelTwoVisual" instance=ExtResource("10_plastic_barrier")]
+position = Vector3(-1.7, 0, -1.3)
+rotation = Vector3(0, 0.45, 0)
+scale = Vector3(1.35, 1.35, 1.35)
+
+[node name="ArmorRight" parent="TowerVisual/LevelTwoVisual" instance=ExtResource("10_plastic_barrier")]
+position = Vector3(1.7, 0, -1.3)
+rotation = Vector3(0, -0.45, 0)
+scale = Vector3(1.35, 1.35, 1.35)
+
+[node name="LevelThreeVisual" type="Node3D" parent="TowerVisual"]
+unique_name_in_owner = true
+visible = false
+
+[node name="SecondaryRifle" parent="TowerVisual/LevelThreeVisual" instance=ExtResource("9_rifle")]
+position = Vector3(0.45, 4.48, -0.35)
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(1.4, 1.4, 1.4)
+
+[node name="SearchLight" type="SpotLight3D" parent="TowerVisual/TurretPivot"]
+position = Vector3(0, -0.1, -0.75)
+rotation = Vector3(-0.38, 0, 0)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 2.1
+spot_range = 20.0
+spot_angle = 34.0
+shadow_enabled = false
+
+[node name="StatusLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 6.15, 0)
+modulate = Color(0.9, 0.96, 0.78, 1)
+outline_modulate = Color(0.02, 0.03, 0.025, 1)
+text = "DEFENSE TOWER\n45 SCRAP  •  RUN LV 1\n[F] BUILD"
+font_size = 22
+outline_size = 8
+billboard = 1
+no_depth_test = true
+
+[node name="InteractionArea" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitorable = true
+script = ExtResource("2_interaction_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+position = Vector3(0, 1.6, 0)
+shape = SubResource("Shape_interaction")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 2.6, 0)
+shape = SubResource("Shape_tower")
+disabled = true

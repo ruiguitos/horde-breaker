@@ -718,6 +718,26 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - [x] `tests/test_world_edge.gd` (10 verificacoes) leva o jogador aos quatro limites, varre para fora com uma consulta de forma e exige que a primeira coisa em que bate tenha uma malha. **Confirmado a falhar contra o mapa sem o anel**: os quatro limites paravam o jogador contra `OuterWall*` a 32 m.
 - Suite: 15 ficheiros, **435 verificacoes**, todas a passar. Arena limpa em 400 frames.
 
+## Fim da run em duas etapas: LAST STAND e extracao (2026-07-31)
+
+- [x] **O relogio deixou de terminar a run.** Ao chegar a zero comeca o LAST STAND em vez de entregar a partida onde quer que o jogador esteja — o que fazia o ultimo minuto valer menos do que qualquer outro. `run_objective.gd` passou a ter fases explicitas (SURVIVING / LAST_STAND / EXTRACTING / FINISHED) com sinais proprios.
+- [x] **O diretor de horda tem uma fase final finita.** `begin_final_phase()` fecha a torneira: para de nascer, esvazia a fila de spawns, desliga a intensificacao e para de subir o nivel de ameaca. `is_preparation_active()` passa a devolver `false`, o que tambem corta as emboscadas de setor e os encontros dos POIs — sem isso um POI podia fazer nascer um grupo novo e o mapa nunca ficaria limpo. Os inimigos ja vivos continuam a ser puxados de volta ao jogador, ou os ultimos perdidos seriam impossiveis de encontrar.
+- [x] **A extracao so abre com o mapa limpo**, e a run so acaba ao chegar a zona (o acampamento, que ja era a zona de extracao). Estar dentro da zona com inimigos vivos nao faz nada.
+- [x] A contagem usa o grupo `enemy` inteiro, nao so os inimigos que o diretor gerou: emboscadas e encontros criam os seus, e "limpar a horda" significa todos.
+- [x] Como so se conclui a run chegando a zona, a recompensa e sempre integral; o pagamento parcial por estar fora de posicao saiu com o relogio que terminava a run. `missed_reward_ratio` foi removido.
+- [x] **HUD, pausa:** o relogio a 0:00 nao dizia nada. O mesmo espaco passa a mostrar `CLEAR  N` durante o last stand e `EXTRACT` quando abre, a vermelho durante todo o fim da run.
+- [x] Corrigido pelo caminho: `get_living_enemy_count()` chamava `get_tree()` sem guarda e rebentava quando o diretor era consultado fora da arvore — um `SCRIPT ERROR` nos mesmos registos que se usam para encontrar erros a serio.
+- `tests/test_five_phases.gd` reescrito (37 verificacoes) para os cinco tempos novos, com um diretor de substituicao cuja contagem de inimigos o teste controla, mais um bloco que usa o diretor real para confirmar que o last stand corta emboscadas e encontros.
+- Suite: 15 ficheiros, **452 verificacoes**, todas a passar. Arena limpa em 400 frames.
+
+### Nao implementado nesta etapa, e porque
+
+- **Three.js / procura de modelos:** sao tarefas de investigacao, e a propria nota diz que nao autoriza downloads nem importacoes. Nao ha nada a implementar sem essa decisao.
+- **Mais classes, armas e skills:** a nota condiciona-as a "depois de definir papeis e combinacoes de loadout que nao repitam as classes atuais". Esse desenho e do utilizador; acrescentar conteudo antes disso e exatamente o que a nota manda evitar.
+- **Remocao das armas melee:** a nota diz "avaliar", e a decisao atravessa Renegade, Medic, variantes, ARMORY, evolucoes, animacoes e migracao de saves. E uma decisao, nao uma implementacao.
+- **Grips e animacoes de arma:** implementavel, mas colide com uma decisao firme do projeto (armas visiveis = malhas embutidas nos rigs; `BoneAttachment3D` so para modelos externos). Precisa de saber primeiro se essa decisao se mantem.
+- **Mapa tatico:** a nota condiciona-o a "estudar minimapas de outros jogos antes de decidir orientacao, zoom, fog of war, marcadores, filtros e objetivos".
+
 ## Problemas conhecidos
 
 - Os ataques contínuos reutilizam apenas três composições e escalam a quantidade de Normal Zombies; Brute, Spitter, boss e progressão por variedade ficam para etapas posteriores.
@@ -739,9 +759,9 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - O estado por setor cobre caches, munições e emboscada; estruturas locais e descoberta de POIs ainda não têm estado.
 - Apenas o estado do farol é preservado ao descarregar; loot, encontros, inimigos e estruturas locais ainda não possuem estado de setor.
 - O disparo automático pesquisa o grupo `enemy` a cada frame de física e usa provisoriamente 3 metros; desempenho e sensação precisam de playtest com hordas maiores.
-- Com a perseguição exclusiva do jogador, a vida do núcleo e as estruturas
-  construídas têm utilidade defensiva limitada; o bloqueio de navegação funciona,
-  mas o seu papel no combate precisa de playtest e objetivos próprios.
+- As torres defensivas construídas já atraem zombies próximos e participam no
+  combate; núcleo, muralhas e restantes estruturas continuam ignorados. O peso
+  relativo das torres como distração ainda precisa de playtest com hordas reais.
 - Ameaças de exploração não contam para a vaga e podem continuar vivas quando o ataque seguinte começa se forem ativadas perto do fim da exploração.
 - As hitboxes de corpo e cabeça acompanham a raiz do zombie, mas ainda não seguem ossos individuais durante as animações.
 - O flash de dano e os sons sintetizados são provisórios; arte de reação (animações de hit) e áudio final ficam para milestones de arte.
@@ -772,10 +792,10 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 
 ## Notas de design e conteúdo (2026-07-31)
 
-- [ ] Alterar o fim da run para uma sequência em duas etapas: primeiro eliminar
+- [x] Alterar o fim da run para uma sequência em duas etapas: primeiro eliminar
   todos os zombies ativos; depois deslocar-se até um ponto de extração específico
   do mapa. O relógio, por si só, deixa de concluir a run.
-- [ ] Definir como o diretor de horda transita para uma fase final finita, para
+- [x] Definir como o diretor de horda transita para uma fase final finita, para
   ser possível limpar os inimigos sem nascerem novos zombies indefinidamente.
 - [ ] Adicionar mais classes de personagens, armas e skills depois de definir
   papéis e combinações de loadout que não repitam as classes atuais.
@@ -787,3 +807,85 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   `BoneAttachment3D`.
 - [ ] Melhorar o mapa tático e estudar minimapas de outros jogos antes de
   decidir orientação, zoom, fog of war, marcadores, filtros e objetivos.
+
+## Acampamento fortificado inspirado no conceito (2026-08-01)
+
+- [x] O acampamento deixou de ser um conjunto solto de nós: ganhou um perímetro
+  octogonal de metal e madeira, quatro portões legíveis e duas torres de vigia
+  com holofotes. Tudo usa primitivas e materiais do Godot, sem downloads nem
+  dependências externas.
+- [x] As funções do acampamento passaram a ter zonas próprias junto à muralha:
+  `STORAGE / SCRAP`, `WORKSHOP / UPGRADES`, `ARMORY` e
+  `MEDBAY / RESUPPLY`, com bancadas, gerador, caixas, barris, armas de fogo,
+  camas e sinalética provisória.
+- [x] O núcleo ganhou um anel de sacos de areia, postes de luz e rotas visuais
+  em cruz até aos quatro portões. O quadrado central de 28 × 28 m continua
+  reservado à construção livre e às estruturas persistidas nos saves.
+- [x] Os três pontos de fortificação foram alinhados com os portões norte,
+  oeste e este; o portão sul fica sempre livre como entrada e saída principal.
+- [x] Corrigida a duplicação dos upgrades: a cena criava três pedestais e o
+  `CampCore` criava outros três. Existem agora apenas os três funcionais,
+  reunidos em frente à oficina.
+- [x] O setor do acampamento ganhou uma `NavigationRegion3D` local. Muralha,
+  instalações, torres e sacos de areia são recortados da navegação, os quatro
+  portões mantêm células transitáveis e as reconstruções dinâmicas escolhem a
+  região do setor correto.
+- [x] `tools/build_camp_visuals.gd` passou a gerar a camada visual isolada e
+  `tools/build_camp_sector.gd` recompõe o setor sem deixar recursos pendurados
+  no encerramento do Godot.
+- [x] Novo `tests/test_camp_layout.gd`: 28 verificações para integração na
+  arena, quatro instalações, quatro portões, duas torres, três upgrades sem
+  duplicados, fortificações e navegação. Também passaram `test_arena_wiring`
+  (23), `test_gridmap_navigation` (15), `test_painted_map` (30),
+  `test_five_phases` (37), `test_pause_summary` (19) e `test_sector_content`
+  (14). Importação headless e arena durante 400 frames terminaram sem erros.
+- [x] Durante a validação, a guarda de `get_living_enemy_count()` foi corrigida
+  para usar `is_inside_tree()` antes de `get_tree()`, eliminando o erro de motor
+  que ainda aparecia no teste da fase final.
+- Limitação: esta é uma versão funcional em graybox, próxima da composição do
+  conceito, mas não substitui modelos finais, texturas, animações ambientais ou
+  um passe posterior de iluminação e áudio.
+
+## Passe visual CC0 e torres defensivas exteriores (2026-08-01)
+
+- [x] A composição aprovada do acampamento foi mantida, mas as formas graybox
+  visíveis foram substituídas onde existiam modelos adequados no repositório:
+  cerca danificada, postes industriais, contentores, paletes, barris, caixas,
+  rodas, máquina e ecrã de oficina, armas de fogo, tenda médica e ambulância.
+  Não foram descarregados novos assets.
+- [x] As duas torres decorativas e os três pontos interiores de barricada foram
+  removidos da cena gerada. Três locais de torre funcional ficam agora no
+  exterior dos portões norte, oeste e este, deslocados para o lado para não
+  bloquearem as rotas.
+- [x] Cada torre tem construção, vida, dano, alcance, cadência, reparação,
+  destruição e reconstrução. A progressão por torre é:
+
+  | Torre | Requisito | Custo | Vida | Dano | Alcance | Intervalo |
+  |---|---:|---:|---:|---:|---:|---:|
+  | LV1 | Run LV 1 | 45 Scrap | 200 | 12 | 14 m | 0,90 s |
+  | LV2 | Run LV 5 | 90 Scrap | 325 | 18 | 17 m | 0,70 s |
+  | LV3 | Run LV 10 | 150 Scrap | 475 | 28 | 20 m | 0,50 s |
+
+- [x] A interação usa Scrap armazenado. Se a torre estiver danificada, `F`
+  repara até 75 HP antes de permitir outra melhoria; o estado e os custos são
+  apresentados na etiqueta do mundo.
+- [x] Zombies reavaliam a cada 0,75 s o alvo válido mais próximo entre jogador
+  e torres ativas. Torres destruídas saem imediatamente do grupo `enemy_target`;
+  muralhas, núcleo e construção livre não foram transformados em alvos.
+- [x] Spitters também danificam torres com o projétil. As torres procuram o
+  inimigo mais próximo dentro do alcance, verificam se a linha está livre,
+  rodam o módulo superior e mostram um tracer curto ao disparar.
+- [x] A navegação continua aberta nos quatro portões e é reconstruída quando
+  uma torre nasce ou é destruída.
+- [x] `test_defense_tower.gd` acrescentou 29 verificações de custos, requisitos,
+  stats, reparação, disparo, dano melee/ranged, targeting e destruição.
+  `test_camp_layout.gd` passou a 30 verificações e confirma posições exteriores,
+  ausência das fortificações antigas e rotas transitáveis. Passaram também
+  `test_arena_wiring` (23), `test_horde_performance` (7) e
+  `test_five_phases` (37).
+- [x] Captura OpenGL real inspecionada com as três torres em LV3. O benchmark
+  extremo atual de 140 zombies mediu 25,8 FPS médios; fica registado para uma
+  comparação controlada antes/depois, sem o atribuir isoladamente a este passe.
+- Limitação: custos, requisitos de nível, prioridade de targeting e poder de
+  fogo são valores iniciais de game design e precisam de playtest. Os modelos
+  CC0 melhoram muito a leitura, mas ainda não constituem arte final unificada.

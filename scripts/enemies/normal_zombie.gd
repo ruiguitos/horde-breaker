@@ -4,9 +4,9 @@ signal health_changed(current_health: float, maximum_health: float)
 signal attacked(target: Node, damage: float)
 signal died(enemy: Node)
 
-const PLAYER_GROUP := &"player"
 const ALIVE_TARGET_GROUP := &"enemy_target"
 const TARGET_REPATH_DISTANCE := 0.25
+const TARGET_SCAN_INTERVAL := 0.75
 const ENEMY_SCRAP_DROP_GROUP := &"enemy_scrap_drop"
 const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
 const XP_ORB_SCENE := preload("res://scenes/pickups/xp_orb.tscn")
@@ -71,6 +71,7 @@ var current_health: float
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _target: PhysicsBody3D
 var _cached_target: PhysicsBody3D
+var _target_scan_time: float = 0.0
 var _repath_time: float = 0.0
 var _steer_time: float = 0.0
 var _skipped_physics_frames: int = 0
@@ -87,6 +88,7 @@ func _ready() -> void:
 	current_health = maximum_health
 	_setup_hit_flash()
 	_repath_time = randf() * REPATH_INTERVAL
+	_target_scan_time = randf() * TARGET_SCAN_INTERVAL
 
 	var attack_shape := attack_collision.shape.duplicate() as SphereShape3D
 	if attack_shape == null:
@@ -100,6 +102,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_target_scan_time -= delta
 	_target = _acquire_target()
 	if not is_instance_valid(_target):
 		_apply_gravity(delta)
@@ -150,30 +153,36 @@ func _process_ranged(delta: float) -> void:
 
 
 func _acquire_target() -> PhysicsBody3D:
-	# Cache the player reference and only rescan the group when it becomes
-	# invalid (e.g. on death), instead of iterating a group every frame.
+	# The player and active defense towers share one target group. Rescanning on
+	# a staggered interval lets a nearby tower draw pressure without making every
+	# zombie iterate the group on every physics frame.
 	if (
 		is_instance_valid(_cached_target)
 		and _cached_target.is_in_group(ALIVE_TARGET_GROUP)
+		and _target_scan_time > 0.0
 	):
 		return _cached_target
-	_cached_target = _find_player_target()
+	_target_scan_time = TARGET_SCAN_INTERVAL
+	_cached_target = _find_closest_target()
 	return _cached_target
 
 
-func _find_player_target() -> PhysicsBody3D:
-	# Enemies pursue only the player; camp, core and fortifications are
-	# never targeted. The player leaves the alive-target group on death.
-	for node in get_tree().get_nodes_in_group(PLAYER_GROUP):
+func _find_closest_target() -> PhysicsBody3D:
+	var closest_target: PhysicsBody3D
+	var closest_distance_squared := INF
+	for node in get_tree().get_nodes_in_group(ALIVE_TARGET_GROUP):
 		var candidate := node as PhysicsBody3D
 		if candidate == null:
 			continue
-		if not candidate.is_in_group(ALIVE_TARGET_GROUP):
-			continue
 		if not candidate.has_method(&"take_damage"):
 			continue
-		return candidate
-	return null
+		var distance_squared := global_position.distance_squared_to(
+			candidate.global_position
+		)
+		if distance_squared < closest_distance_squared:
+			closest_target = candidate
+			closest_distance_squared = distance_squared
+	return closest_target
 
 
 func _horizontal_distance_to_target() -> float:
@@ -362,7 +371,7 @@ func _apply_gravity(delta: float) -> void:
 func _pursue_target(delta: float) -> void:
 	var distance := _horizontal_distance_to_target()
 	if distance > SIM_NAVMESH_DISTANCE:
-		# Beyond the navmesh band the horde just walks at the player. No
+		# Beyond the navmesh band the horde just walks at its current target. No
 		# NavigationServer work at all, which is what makes big counts viable.
 		_steer_time -= delta
 		if _steer_time <= 0.0:

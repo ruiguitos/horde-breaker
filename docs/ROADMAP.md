@@ -16,7 +16,7 @@ cada um vive no histórico do `docs/PROGRESS.md`.
 - **M10–M14 — Progressão e classes:** save permanente (XP/Credits/armas), menus,
   Renegade melee, três classes com loadouts e passivos, modelos CC0 Quaternius.
 - **M15–M17 — Survival e exploração:** núcleo/acampamento, Scrap e reparação,
-  fortificação, POIs com interiores (hospital, armazém, posto militar, estação),
+  torres defensivas exteriores, POIs com interiores (hospital, armazém, posto militar, estação),
   dano por zonas, feedback de combate, tema visual próprio.
 - **M18 — Mundo aberto compacto:** grelha 4×4 por seed, streaming em worker
   threads, navegação contínua, céu procedural, mapa tático.
