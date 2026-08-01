@@ -48,7 +48,11 @@ GL Compatibility), GDScript tipado, sem C#.
   (`camp_upgrade_station.gd`).
 - `defense_tower_site.gd` — 3 torres exteriores opcionais; construção,
   reparação e upgrades com Scrap armazenado, requisitos de nível da run,
-  aquisição de inimigos, disparo automático e regeneração da navegação.
+  aquisição de inimigos, disparo automático, flashes reutilizáveis de tiro e
+  impacto e regeneração da navegação.
+- `build_camp_visuals.gd` — gera a camada visual do acampamento e quatro acessos
+  exteriores. Estradas e modelos são decorativos; apenas coberturas e marcos
+  sólidos recebem colisões simples e entram em `navigation_blocker`.
 - `character_progression.gd` — XP por kill/nível/ciclo (multiplicador da skill
   tree), Credits por ciclo, **mastery** (kills, threat level) e feedback de
   mastery completa.

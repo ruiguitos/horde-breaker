@@ -92,6 +92,9 @@ desaparece pouco depois.
 - **3 torres defensivas exteriores**, junto aos acessos norte, oeste e este.
   São opcionais, disparam automaticamente e podem receber dano, ser reparadas
   ou reconstruídas com Scrap armazenado.
+- Os quatro acessos têm estrada danificada e sinalização própria. Norte, oeste
+  e este incluem cobertura lateral sem fechar o corredor central; torre de
+  água, camião blindado, sinal urbano e bandeiras distinguem as direções.
 - Cada torre tem 3 níveis ligados à progressão da run: LV1 custa 45 Scrap no
   nível 1 da run; LV2 custa 90 no nível 5; LV3 custa 150 no nível 10. Vida,
   dano, alcance e cadência sobem em cada nível.
@@ -125,7 +128,9 @@ desaparece pouco depois.
 Low-poly CC0 (Quaternius, Kenney e KayKit) + primitivas apenas onde ainda são
 necessárias para colisão ou prototipagem. O acampamento reutiliza cercas,
 contentores, paletes, máquinas, tenda, ambulância, armas e props destes kits em
-vez de volumes graybox visíveis. Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
+vez de volumes graybox visíveis. Os acessos exteriores usam estradas partidas,
+barreiras, veículos e marcos verticais para ligar visualmente a base à cidade.
+Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
 Quaternius para modelos e animações (cobre todos os movimentos necessários);
 Mixamo parqueado. As armas visíveis continuam a ser as malhas embutidas nos
 modelos; armas externas só serão reconsideradas com `BoneAttachment3D`. O

@@ -103,6 +103,8 @@ func _run() -> void:
 	for _frame in 3:
 		await physics_frame
 	_check("tower automatically damages a nearby enemy", enemy.current_health <= 72.0)
+	_check("tower has a reusable muzzle flash", tower.get_node_or_null("TowerVisual/TurretPivot/Muzzle/MuzzleFlash") != null)
+	_check("tower has a reusable impact flash", tower.get_node_or_null("ImpactFlash") != null)
 
 	var health_before_spit := float(tower.get(&"current_health"))
 	var spit := SPIT_SCENE.instantiate() as Area3D

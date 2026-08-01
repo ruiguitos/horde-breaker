@@ -27,6 +27,14 @@ const MODEL_AMBULANCE := preload("res://assets/models/kenney_car_kit/ambulance.g
 const MODEL_RIFLE := preload("res://assets/models/quaternius_zombie_apocalypse/weapons/Rifle.gltf")
 const MODEL_PISTOL := preload("res://assets/models/quaternius_zombie_apocalypse/weapons/Pistol.gltf")
 const MODEL_SHOTGUN := preload("res://assets/models/quaternius_zombie_apocalypse/weapons/Shotgun.gltf")
+const MODEL_ROAD_DAMAGED := preload("res://assets/models/quaternius_zombie_apocalypse/environment/Street_Straight_Crack1.gltf")
+const MODEL_TRAFFIC_BARRIER := preload("res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf")
+const MODEL_PLASTIC_BARRIER := preload("res://assets/models/quaternius_zombie_apocalypse/environment/PlasticBarrier.gltf")
+const MODEL_TOWN_SIGN := preload("res://assets/models/quaternius_zombie_apocalypse/environment/TownSign.gltf")
+const MODEL_STREET_LIGHTS := preload("res://assets/models/quaternius_zombie_apocalypse/environment/StreetLights.gltf")
+const MODEL_WATER_TOWER := preload("res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf")
+const MODEL_ARMORED_TRUCK := preload("res://assets/models/quaternius_zombie_apocalypse/vehicles/Vehicle_Truck_Armored.gltf")
+const MODEL_FLAG := preload("res://assets/models/kenney_mini_forest/flag.glb")
 
 var _materials: Dictionary = {}
 
@@ -43,6 +51,7 @@ func _run() -> void:
 	camp.name = "CampVisuals"
 	_add_ground(camp)
 	_add_perimeter(camp)
+	_add_exterior_approaches(camp)
 	_add_facilities(camp)
 	_add_core_dressing(camp)
 
@@ -241,6 +250,122 @@ func _add_gate(
 		gate, "GateSignal", Vector3(0.0, 4.18, -0.41),
 		Vector3(3.0, 0.15, 0.06), _materials[&"orange_glow"]
 	)
+
+
+func _add_exterior_approaches(parent: Node3D) -> void:
+	var approaches := Node3D.new()
+	approaches.name = "ExteriorApproaches"
+	parent.add_child(approaches)
+
+	var north := _add_approach_route(
+		approaches, "NorthApproach", Vector3(0.0, 0.0, -28.0), PI * 0.5
+	)
+	_add_defense_checkpoint(north, 1.0)
+	_add_static_model(
+		north, "WaterTowerLandmark", MODEL_WATER_TOWER,
+		Vector3(0.0, 0.0, 13.0), Vector3.ZERO, Vector3.ONE,
+		Vector3(3.4, 8.0, 3.4)
+	)
+
+	var west := _add_approach_route(
+		approaches, "WestApproach", Vector3(-28.0, 0.0, 0.0), 0.0
+	)
+	_add_defense_checkpoint(west, -1.0)
+	_add_static_model(
+		west, "ArmoredTruckLandmark", MODEL_ARMORED_TRUCK,
+		Vector3(0.0, 0.0, -11.0), Vector3(0.0, PI * 0.5, 0.0),
+		Vector3.ONE, Vector3(5.8, 2.8, 2.8)
+	)
+
+	var east := _add_approach_route(
+		approaches, "EastApproach", Vector3(28.0, 0.0, 0.0), 0.0
+	)
+	_add_defense_checkpoint(east, 1.0)
+	# The sign mesh is offset around its authored origin. It remains decorative
+	# so its large gantry never creates a misleading invisible collision volume.
+	_add_model(
+		east, "TownSignLandmark", MODEL_TOWN_SIGN,
+		Vector3(0.0, 0.0, 10.5), Vector3(0.0, -PI * 0.5, 0.0),
+		Vector3(0.8, 0.8, 0.8)
+	)
+	_add_model(
+		east, "StreetLightLandmark", MODEL_STREET_LIGHTS,
+		Vector3(1.5, 0.0, 7.5), Vector3(0.0, PI * 0.5, 0.0),
+		Vector3.ONE
+	)
+
+	var south := _add_approach_route(
+		approaches, "SouthApproach", Vector3(0.0, 0.0, 28.0), PI * 0.5
+	)
+	for side in [-1.0, 1.0]:
+		_add_model(
+			south, "EvacuationFlag%s" % ("Left" if side < 0.0 else "Right"),
+			MODEL_FLAG, Vector3(0.5, 0.0, side * 5.0),
+			Vector3(0.0, PI if side < 0.0 else 0.0, 0.0),
+			Vector3(2.1, 2.1, 2.1)
+		)
+
+
+func _add_approach_route(
+	parent: Node3D, approach_name: String, position: Vector3, rotation_y: float
+) -> Node3D:
+	var approach := Node3D.new()
+	approach.name = approach_name
+	approach.position = position
+	approach.rotation.y = rotation_y
+	parent.add_child(approach)
+	_add_model(
+		approach, "DamagedRoad", MODEL_ROAD_DAMAGED,
+		Vector3(0.0, 0.01, 0.0), Vector3.ZERO, Vector3.ONE
+	)
+	for side in [-1.0, 1.0]:
+		_add_visual_box(
+			approach, "Reflector%s" % ("Left" if side < 0.0 else "Right"),
+			Vector3(-2.8, 0.18, side * 4.2), Vector3(0.16, 0.36, 0.7),
+			_materials[&"orange_glow"]
+		)
+	return approach
+
+
+func _add_defense_checkpoint(approach: Node3D, roadside: float) -> void:
+	var checkpoint := _add_static_box(
+		approach, "DefenseCheckpoint", Vector3(0.4, 0.55, roadside * 5.35),
+		Vector3(4.2, 1.1, 1.35), _materials[&"dark_metal"]
+	)
+	(checkpoint.get_node("Mesh") as MeshInstance3D).visible = false
+	_add_model(
+		checkpoint, "TrafficBarrier", MODEL_TRAFFIC_BARRIER,
+		Vector3(-1.0, -0.55, 0.0), Vector3.ZERO, Vector3.ONE
+	)
+	_add_model(
+		checkpoint, "PlasticBarrier", MODEL_PLASTIC_BARRIER,
+		Vector3(1.15, -0.55, 0.0), Vector3.ZERO, Vector3.ONE
+	)
+	_add_visual_box(
+		checkpoint, "SafetySignal", Vector3(0.0, 0.25, 0.0),
+		Vector3(1.4, 0.12, 0.08), _materials[&"orange_glow"]
+	)
+
+
+func _add_static_model(
+	parent: Node3D,
+	node_name: String,
+	scene: PackedScene,
+	position: Vector3,
+	rotation: Vector3,
+	scale: Vector3,
+	collision_size: Vector3
+) -> StaticBody3D:
+	var body := _add_static_box(
+		parent, node_name, position + Vector3.UP * collision_size.y * 0.5,
+		collision_size, _materials[&"dark_metal"]
+	)
+	(body.get_node("Mesh") as MeshInstance3D).visible = false
+	_add_model(
+		body, "Model", scene, Vector3.DOWN * collision_size.y * 0.5,
+		rotation, scale
+	)
+	return body
 
 
 func _add_watch_tower(

@@ -8,47 +8,47 @@
 [ext_resource type="Script" path="res://scripts/systems/build_grid.gd" id="6_twwne"]
 [ext_resource type="Script" path="res://scripts/systems/arena_navigation.gd" id="7_exmw1"]
 
-[node name="CampSector" type="Node3D" unique_id=581519485]
+[node name="CampSector" type="Node3D" unique_id=1136882406]
 
-[node name="CampVisuals" type="Node3D" parent="." unique_id=797261827 instance=ExtResource("1_r2f32")]
+[node name="CampVisuals" type="Node3D" parent="." unique_id=1573326518 instance=ExtResource("1_r2f32")]
 
-[node name="CampCore" type="StaticBody3D" parent="." unique_id=1990207387 groups=["camp_core"] instance=ExtResource("2_g3bc4")]
+[node name="CampCore" type="StaticBody3D" parent="." unique_id=1145056001 groups=["camp_core"] instance=ExtResource("2_g3bc4")]
 collision_layer = 3
 collision_mask = 5
 script = ExtResource("3_78qes")
 
-[node name="DefenseTowers" type="Node3D" parent="." unique_id=1492932054]
+[node name="DefenseTowers" type="Node3D" parent="." unique_id=1758377666]
 
-[node name="DefenseTowerNorth" type="StaticBody3D" parent="DefenseTowers" unique_id=1678305483 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
+[node name="DefenseTowerNorth" type="StaticBody3D" parent="DefenseTowers" unique_id=2059196100 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.2, 0, -25.5)
 collision_layer = 3
 collision_mask = 5
 script = ExtResource("5_55i2k")
 
-[node name="DefenseTowerWest" type="StaticBody3D" parent="DefenseTowers" unique_id=368568069 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
+[node name="DefenseTowerWest" type="StaticBody3D" parent="DefenseTowers" unique_id=1000268468 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -25.5, 0, 8.2)
 collision_layer = 3
 collision_mask = 5
 script = ExtResource("5_55i2k")
 
-[node name="DefenseTowerEast" type="StaticBody3D" parent="DefenseTowers" unique_id=1615442380 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
+[node name="DefenseTowerEast" type="StaticBody3D" parent="DefenseTowers" unique_id=216611468 groups=["defense_tower", "navigation_blocker"] instance=ExtResource("4_3ugxn")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 25.5, 0, -8.2)
 collision_layer = 3
 collision_mask = 5
 script = ExtResource("5_55i2k")
 
-[node name="CampConstruction" type="Node3D" parent="." unique_id=942859535]
+[node name="CampConstruction" type="Node3D" parent="." unique_id=1089541093]
 
-[node name="BuildGrid" type="Node3D" parent="CampConstruction" unique_id=495856128]
+[node name="BuildGrid" type="Node3D" parent="CampConstruction" unique_id=367208894]
 script = ExtResource("6_twwne")
 
-[node name="GhostContainer" type="Node3D" parent="CampConstruction" unique_id=1585872501]
+[node name="GhostContainer" type="Node3D" parent="CampConstruction" unique_id=1015321775]
 
-[node name="BuiltStructures" type="Node3D" parent="CampConstruction" unique_id=955286921]
+[node name="BuiltStructures" type="Node3D" parent="CampConstruction" unique_id=1592457401]
 
-[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1684825056]
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=423548954]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 8)
 
-[node name="CampNavigation" type="NavigationRegion3D" parent="." unique_id=1007065198 groups=["arena_navigation"]]
+[node name="CampNavigation" type="NavigationRegion3D" parent="." unique_id=1375090020 groups=["arena_navigation"]]
 script = ExtResource("7_exmw1")
 navigation_half_extent = 32.0

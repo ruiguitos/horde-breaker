@@ -889,3 +889,36 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Limitação: custos, requisitos de nível, prioridade de targeting e poder de
   fogo são valores iniciais de game design e precisam de playtest. Os modelos
   CC0 melhoram muito a leitura, mas ainda não constituem arte final unificada.
+
+## Acessos exteriores e feedback de tiro das torres (2026-08-01)
+
+- [x] Os quatro portões passaram a continuar visualmente para o exterior através
+  de um tile de estrada danificada, evitando que a base termine abruptamente no
+  perímetro. Os corredores centrais continuam livres para jogador e zombies.
+- [x] Norte, oeste e este ganharam um pequeno posto de cobertura no lado oposto
+  à respetiva torre. As barreiras têm uma única colisão simples por conjunto e
+  participam na grelha de navegação; não foram criadas paredes novas no centro.
+- [x] Cada direção tem uma silhueta própria com modelos CC0 já presentes: torre
+  de água a norte, camião blindado a oeste, sinal e iluminação urbana a este e
+  duas bandeiras no acesso sul, que funciona como saída/rota de extração.
+- [x] O grande sinal urbano fica deliberadamente sem colisão: a origem da malha
+  é deslocada e uma caixa automática criaria uma parede invisível afastada do
+  visual. Os restantes marcos sólidos usam caixas medidas e simples.
+- [x] As torres mostram agora flash no cano e no ponto de impacto. Ambos são
+  nós reutilizados por torre, sem partículas, luzes novas ou criação de meshes
+  a cada disparo.
+- [x] `test_camp_layout.gd` passou a 51 verificações: quatro estradas, três
+  coberturas, quatro marcos, ausência de luzes com sombras e navegação livre em
+  todos os portões e acessos. `test_defense_tower.gd` passou a 31 verificações
+  e confirma os dois efeitos reutilizáveis.
+- [x] Passaram também `test_arena_wiring` (23), `test_horde_performance` (7) e
+  `test_five_phases` (37); total desta regressão: 149 verificações. Importação
+  headless e arena durante 400 frames terminaram sem erros.
+- [x] Captura OpenGL real inspecionada. Benchmark com 140 zombies: 38,23 ms
+  médios / 26,2 FPS, mediana 37,20 ms, p95 46,32 ms, 2751 draw calls e 7 551 944
+  primitivas. A referência imediatamente anterior era 25,8 FPS; a diferença é
+  demasiado pequena para atribuir melhoria ou regressão, mas fica como baseline
+  para a etapa de otimização pedida.
+- Limitação: os acessos já têm melhor leitura, mas o piso interior continua
+  demasiado uniforme. O próximo trabalho deve ser profiling/otimização antes
+  de acrescentar mais densidade visual ou efeitos dinâmicos.

@@ -49,6 +49,8 @@ const LEVEL_DEFINITIONS: Array[Dictionary] = [
 @onready var level_three_visual: Node3D = %LevelThreeVisual
 @onready var turret_pivot: Node3D = %TurretPivot
 @onready var muzzle: Marker3D = %Muzzle
+@onready var muzzle_flash: MeshInstance3D = %MuzzleFlash
+@onready var impact_flash: MeshInstance3D = %ImpactFlash
 @onready var status_label: Label3D = %StatusLabel
 @onready var collision: CollisionShape3D = %Collision
 
@@ -261,7 +263,18 @@ func _has_clear_shot(target: Node3D) -> bool:
 func _fire_at(target: Node3D) -> void:
 	_fire_time = get_fire_interval()
 	target.call(&"take_damage", get_damage())
-	_spawn_tracer(muzzle.global_position, target.global_position + Vector3.UP * 0.8)
+	var impact_position := target.global_position + Vector3.UP * 0.8
+	_spawn_tracer(muzzle.global_position, impact_position)
+	_show_shot_feedback(impact_position)
+
+
+func _show_shot_feedback(impact_position: Vector3) -> void:
+	muzzle_flash.visible = true
+	impact_flash.global_position = impact_position
+	impact_flash.visible = true
+	await get_tree().create_timer(0.065).timeout
+	muzzle_flash.visible = false
+	impact_flash.visible = false
 
 
 func _spawn_tracer(start: Vector3, end: Vector3) -> void:

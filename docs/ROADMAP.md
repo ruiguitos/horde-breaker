@@ -125,6 +125,9 @@ mundo aberto, POIs e base como diferenciador.
 ## Milestone 22 — Balanceamento e sensação de jogo
 
 - [ ] Curva do diretor de horda (intervalo de subida, lotes, limite simultâneo).
+- [ ] Otimização orientada por profiling: benchmark atual de 140 zombies ronda
+  26 FPS no GL Compatibility; começar por skinning/animação e draw calls antes
+  de reduzir conteúdo visual.
 - [ ] Decisões de playtest pendentes: alcance do auto-fire por arma e manter
   disparo manual.
 - [ ] Mini-hitch do `add_child` dos setores (encaixar malhas por frames) — em

@@ -19,6 +19,18 @@ const GATE_CENTERS: Array[Vector3] = [
 	Vector3(-22.0, 0.0, 0.0),
 	Vector3(22.0, 0.0, 0.0),
 ]
+const EXPECTED_APPROACHES: Array[String] = [
+	"NorthApproach",
+	"SouthApproach",
+	"WestApproach",
+	"EastApproach",
+]
+const APPROACH_CENTERS: Array[Vector3] = [
+	Vector3(0.0, 0.0, -28.0),
+	Vector3(0.0, 0.0, 28.0),
+	Vector3(-28.0, 0.0, 0.0),
+	Vector3(28.0, 0.0, 0.0),
+]
 
 var _passed := 0
 var _failed := 0
@@ -82,6 +94,7 @@ func _run() -> void:
 
 	_test_upgrade_stations(camp)
 	_test_defense_towers(camp)
+	_test_exterior_approaches(visuals)
 	_test_navigation(camp)
 	_report()
 
@@ -119,6 +132,51 @@ func _test_defense_towers(camp: Node3D) -> void:
 	_check("legacy interior fortifications are absent", camp.get_node_or_null("Fortifications") == null)
 
 
+func _test_exterior_approaches(visuals: Node3D) -> void:
+	var approaches := visuals.get_node_or_null("ExteriorApproaches") as Node3D
+	_check("exterior approach dressing exists", approaches != null)
+	if approaches == null:
+		return
+	for approach_name in EXPECTED_APPROACHES:
+		var approach := approaches.get_node_or_null(approach_name) as Node3D
+		_check("%s exists" % approach_name, approach != null)
+		if approach != null:
+			_check(
+				"%s has a damaged road" % approach_name,
+				approach.get_node_or_null("DamagedRoad") != null
+			)
+	for approach_name in ["NorthApproach", "WestApproach", "EastApproach"]:
+		var checkpoint := approaches.get_node_or_null(
+			"%s/DefenseCheckpoint" % approach_name
+		)
+		_check(
+			"%s has tactical roadside cover" % approach_name,
+			checkpoint != null and checkpoint.is_in_group(&"navigation_blocker")
+		)
+	_check(
+		"north approach has a water tower landmark",
+		approaches.get_node_or_null("NorthApproach/WaterTowerLandmark") != null
+	)
+	_check(
+		"west approach has an armored truck landmark",
+		approaches.get_node_or_null("WestApproach/ArmoredTruckLandmark") != null
+	)
+	_check(
+		"east approach has town signage",
+		approaches.get_node_or_null("EastApproach/TownSignLandmark") != null
+	)
+	_check(
+		"south evacuation route has two flags",
+		approaches.get_node_or_null("SouthApproach/EvacuationFlagLeft") != null
+		and approaches.get_node_or_null("SouthApproach/EvacuationFlagRight") != null
+	)
+	var shadow_light_count := 0
+	for child in approaches.find_children("*", "Light3D", true, false):
+		if bool(child.get(&"shadow_enabled")):
+			shadow_light_count += 1
+	_check("exterior pass adds no shadow-casting lights", shadow_light_count == 0)
+
+
 func _test_navigation(camp: Node3D) -> void:
 	var navigation := camp.get_node_or_null("CampNavigation") as NavigationRegion3D
 	_check("camp has a local navigation region", navigation != null)
@@ -134,6 +192,11 @@ func _test_navigation(camp: Node3D) -> void:
 		_check(
 			"%s remains open in navigation" % EXPECTED_GATES[index],
 			_has_polygon_near(navigation_mesh, GATE_CENTERS[index], 0.8)
+		)
+	for index in APPROACH_CENTERS.size():
+		_check(
+			"%s central lane remains walkable" % EXPECTED_APPROACHES[index],
+			_has_polygon_near(navigation_mesh, APPROACH_CENTERS[index], 0.8)
 		)
 	# The same row as the south gate must be blocked where the wall exists.
 	_check(
