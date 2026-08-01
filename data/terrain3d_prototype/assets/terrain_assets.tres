@@ -1,0 +1,24 @@
+[gd_resource type="Terrain3DAssets" format=3]
+
+[ext_resource type="Texture2D" path="res://data/terrain3d_prototype/assets/soil_albedo.res" id="1_7hx0b"]
+[ext_resource type="Texture2D" path="res://data/terrain3d_prototype/assets/soil_normal_roughness.res" id="2_bosct"]
+[ext_resource type="Texture2D" path="res://data/terrain3d_prototype/assets/grass_albedo.res" id="3_lc6tn"]
+[ext_resource type="Texture2D" path="res://data/terrain3d_prototype/assets/grass_normal_roughness.res" id="4_qphbl"]
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_7k1hw"]
+name = "Exposed soil"
+albedo_texture = ExtResource("1_7hx0b")
+normal_texture = ExtResource("2_bosct")
+uv_scale = 0.08
+detiling_rotation = 0.12
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_bl7mu"]
+name = "Dry grass"
+id = 1
+albedo_texture = ExtResource("3_lc6tn")
+normal_texture = ExtResource("4_qphbl")
+uv_scale = 0.13
+detiling_rotation = 0.12
+
+[resource]
+texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_7k1hw"), SubResource("Terrain3DTextureAsset_bl7mu")])

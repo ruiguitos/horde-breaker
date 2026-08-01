@@ -922,3 +922,92 @@ do utilizador; Mixamo e armas externas continuam parqueados.
 - Limitação: os acessos já têm melhor leitura, mas o piso interior continua
   demasiado uniforme. O próximo trabalho deve ser profiling/otimização antes
   de acrescentar mais densidade visual ou efeitos dinâmicos.
+
+## Alinhamento do piso e diagnóstico dos spawns (2026-08-01)
+
+- [x] O piso físico da arena (`Y = 0`) passou a ser a referência única das
+  superfícies caminháveis do acampamento. `CampFloor`, as duas rotas interiores
+  e as quatro estradas exteriores terminam agora em `Y = 0,004`, apenas 4 mm
+  acima da colisão para evitar z-fighting. A personagem não recebeu offsets por
+  classe: a causa estava nas superfícies visuais elevadas entre 9,5 e 14 cm.
+- [x] `test_camp_layout.gd` mede os limites reais das malhas em coordenadas de
+  mundo e falha se uma destas sete superfícies se afastar mais de 1,5 cm do piso
+  físico. Passou de 51 para 59 verificações.
+- [x] O diretor de horda ganhou `debug_spawn_points`, desligado por defeito. Em
+  playtest mostra todos os marcadores com distância e estado: verde para os seis
+  ativos, vermelho quando estão demasiado perto e âmbar quando são válidos mas
+  ficam de fora por estarem mais longe. Desligado não cria nós nem materiais na
+  cena e não altera a seleção usada pelo gameplay.
+- [x] Novo `tests/test_spawn_debug.gd`: 8 verificações para o estado por defeito,
+  criação/remoção da sobreposição, etiquetas, correspondência com os pontos
+  selecionados e ausência de alteração da seleção.
+- Validação: importação headless sem erros; 212 verificações de regressão
+  passaram em `test_arena_wiring`, `test_gridmap_navigation`,
+  `test_painted_map`, `test_camp_layout`, `test_spawn_debug`,
+  `test_horde_and_pickups`, `test_horde_performance` e `test_five_phases`.
+  Uma captura OpenGL real confirmou os pés e as rotas sem o degrau visual.
+- Limitação observada fora deste âmbito: executar diretamente a arena durante
+  400 frames termina com código 0, mas o encerramento ainda pode emitir
+  `ScrapPickup requires a camp_economy node` enquanto a árvore é desmontada.
+  Os testes que carregam e fecham a mesma arena não reproduzem o erro.
+
+## Protótipo isolado com Terrain3D (2026-08-01)
+
+- [x] Instalado o Terrain3D `1.0.2-stable` a partir do pacote oficial, com
+  licença MIT, e ativado em `project.godot`. Foi copiado apenas o addon; o mapa
+  de demonstração e os respetivos assets externos não entraram no projeto.
+- [x] Criada `scenes/world/terrain3d_prototype.tscn`, independente da arena
+  atual. A primeira versão gerava em runtime um terreno de 512 × 512 m,
+  repartido em quatro regiões de 256 m, com colinas suaves, duas texturas
+  processuais, clareira nivelada para acampamento e caminho sinuoso.
+- [x] O protótipo reutiliza exclusivamente árvores, rochas, tendas, cercas e
+  adereços já existentes no repositório. O jogador e dois zombies são as cenas
+  reais do jogo, permitindo avaliar escala, contacto dos pés e perseguição.
+- [x] A colisão cobre as quatro regiões. Uma área central de 156 × 156 m recebe
+  NavMesh em runtime a partir da geometria do Terrain3D e dos colliders de um
+  obstáculo rochoso, para confirmar que os zombies percorrem declives e contornam
+  o bloqueio em vez de seguirem uma grelha plana.
+- [x] `tests/test_terrain3d_prototype.gd` valida regiões, relevo, plataforma do
+  acampamento, alinhamento do jogador, colisão, vegetação, NavMesh e rota do
+  zombie. O teste terminou em cerca de 3 s; a importação headless também passou.
+- [x] Captura OpenGL real a 1152 × 648 inspecionada. Confirmou leitura contínua
+  das encostas, campismo integrado no terreno, linha de visão interrompida por
+  colinas e floresta, e o corredor central. O número de FPS visível na captura
+  pertence ao gravador offline e não é um benchmark do jogo.
+- Limitações desta primeira versão, resolvidas na etapa seguinte: os dados de
+  altura e texturas eram gerados ao arrancar e ainda não constituíam um terreno
+  editável/persistido pelo editor. O caminho usa uma
+  faixa visual simples com margens duras; a maioria da vegetação desta prova é
+  apenas visual e não entra na navegação. Antes de substituir o mapa atual é
+  necessário fazer um setor piloto persistente, pintar transições finais e
+  medir memória, draw calls, colisão dinâmica e custo de NavMesh com hordas.
+
+## Setor Terrain3D persistente e editável (2026-08-01)
+
+- [x] O relevo deixou de ser calculado ao arrancar. Quatro recursos
+  `Terrain3DRegion` em `data/terrain3d_prototype/regions` guardam os 512 × 512 m
+  e são carregados diretamente pelo addon; a captura real mediu 194 ms para
+  colisão, composição dos adereços e bake do NavMesh depois da carga.
+- [x] As texturas processuais passaram a recursos binários externos e a lista
+  `terrain_assets.tres` fica reutilizável. O ficheiro de design concentra a
+  fórmula do relevo, caminho, clareira e elevação rochosa para que a ferramenta
+  e o runtime não tenham duas versões divergentes.
+- [x] `tools/build_terrain3d_prototype_data.gd` regenera de forma determinística
+  as quatro regiões e os assets. A ferramenta valida o número de regiões e
+  termina com erro se um recurso não puder ser criado ou guardado.
+- [x] `Terrain3DPersistentMount` corre também no editor, monta o Terrain3D só
+  depois de o nó nativo entrar na árvore e carrega a pasta externa. Esta ordem
+  evita uma queda nativa observada ao serializar `data_directory` diretamente
+  na cena com Terrain3D 1.0.2 e Godot 4.7.
+- [x] Ao abrir o protótipo, o terreno é selecionado automaticamente. O nó
+  persistente `TerrainMount` também oferece no Inspector os botões
+  `Select editable Terrain3D` e `Save Terrain3D regions`, permitindo voltar às
+  ferramentas de escultura/pintura e guardar explicitamente as alterações.
+- [x] O teste do protótipo passou a exigir dados persistentes, quatro recursos
+  de região válidos, asset list externa, ações do editor, relevo, colisão,
+  NavMesh e desvio do zombie. A captura OpenGL confirmou o mesmo enquadramento,
+  824 polígonos de navegação e 84 adereços.
+- Limitações: caminho e adereços continuam a ser compostos no arranque e ainda
+  não são editáveis no viewport. O aviso de compatibilidade
+  `instance_reset_physics_interpolation()` vem do addon oficial. O Terrain3D
+  permanece numa cena piloto e não substitui ainda a arena principal.
