@@ -9,14 +9,17 @@ const LOCKED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 
 @onready var credits_label: Label = %CreditsLabel
 @onready var recruit_panel: PanelContainer = %RecruitPanel
+@onready var recruit_stats_label: Label = %RecruitStatsLabel
 @onready var recruit_progress_label: Label = %RecruitProgressLabel
 @onready var recruit_status_label: Label = %RecruitStatusLabel
 @onready var recruit_button: Button = %RecruitButton
 @onready var renegade_panel: PanelContainer = %RenegadePanel
+@onready var renegade_stats_label: Label = %RenegadeStatsLabel
 @onready var renegade_progress_label: Label = %RenegadeProgressLabel
 @onready var renegade_status_label: Label = %RenegadeStatusLabel
 @onready var renegade_button: Button = %RenegadeButton
 @onready var medic_panel: PanelContainer = %MedicPanel
+@onready var medic_stats_label: Label = %MedicStatsLabel
 @onready var medic_progress_label: Label = %MedicProgressLabel
 @onready var medic_status_label: Label = %MedicStatusLabel
 @onready var medic_button: Button = %MedicButton
@@ -27,6 +30,8 @@ const LOCKED_COLOR := Color(0.62, 0.665, 0.7, 1.0)
 @onready var skill_tree_button: Button = %SkillTreeButton
 @onready var armory_button: Button = %ArmoryButton
 @onready var character_preview: Node3D = %CharacterPreview
+@onready var roster_count_label: Label = %RosterCountLabel
+@onready var roster_selection_label: Label = %RosterSelectionLabel
 
 var _displayed_credits := 0
 var _variant_label: Label
@@ -67,6 +72,9 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
+	roster_count_label.text = "ROSTER  //  %02d ACTIVE OPERATIVES" % (
+		3 if MEDIC_DATA.is_selectable else 2
+	)
 	var credits := SaveManager.get_credits()
 	UiAnimations.count_integer(
 		credits_label, _displayed_credits, credits, "CREDITS  ·  "
@@ -75,6 +83,7 @@ func _refresh() -> void:
 	_configure_character(
 		RECRUIT_DATA,
 		recruit_panel,
+		recruit_stats_label,
 		recruit_progress_label,
 		recruit_status_label,
 		recruit_button
@@ -82,6 +91,7 @@ func _refresh() -> void:
 	_configure_character(
 		RENEGADE_DATA,
 		renegade_panel,
+		renegade_stats_label,
 		renegade_progress_label,
 		renegade_status_label,
 		renegade_button
@@ -90,6 +100,7 @@ func _refresh() -> void:
 		_configure_character(
 			MEDIC_DATA,
 			medic_panel,
+			medic_stats_label,
 			medic_progress_label,
 			medic_status_label,
 			medic_button
@@ -100,6 +111,9 @@ func _refresh() -> void:
 	)
 	if selected_data == null:
 		return
+	roster_selection_label.text = "SELECTED  //  %s" % (
+		selected_data.display_name.to_upper()
+	)
 	character_preview.call(&"show_character", selected_data.character_id)
 	weapon_context_label.text = "%s  —  %s\n%s" % [
 		selected_data.display_name,
@@ -200,10 +214,16 @@ func _on_variant_changed(_character_id: StringName) -> void:
 func _configure_character(
 	character_data: CharacterData,
 	panel: PanelContainer,
+	stats_label: Label,
 	progress_label: Label,
 	status_label: Label,
 	button: Button
 ) -> void:
+	stats_label.text = "HEALTH %d  //  RELOAD +%d%%  //  REGEN %.1f/S" % [
+		roundi(character_data.base_health),
+		roundi((1.0 - character_data.reload_duration_multiplier) * 100.0),
+		character_data.health_regeneration_rate,
+	]
 	progress_label.text = _get_progress_text(character_data)
 	var character_id := character_data.character_id
 	var is_unlocked := SaveManager.is_character_unlocked(character_id)

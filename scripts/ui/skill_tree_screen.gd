@@ -35,6 +35,7 @@ const TREE_SIZE := Vector2(264.0, 364.0)
 var _detail_title: Label
 var _detail_body: Label
 var _detail_state: Label
+var _detail_panel: PanelContainer
 var _confirm_dialog: ConfirmationDialog
 var _focused_node_id: StringName = &""
 var _pending_node_id: StringName = &""
@@ -50,6 +51,16 @@ func _ready() -> void:
 	_build_confirm_dialog()
 	_rebuild()
 	back_button.grab_focus()
+	UiAnimations.enhance_buttons(self)
+	$PageMargin/Content/TopBar.modulate.a = 0.0
+	branches_container.modulate.a = 0.0
+	_detail_panel.modulate.a = 0.0
+	await get_tree().process_frame
+	UiAnimations.slide_fade_in(
+		$PageMargin/Content/TopBar, Vector2(0.0, -18.0), 0.0
+	)
+	UiAnimations.slide_fade_in(branches_container, Vector2(0.0, 18.0), 0.06)
+	UiAnimations.slide_fade_in(_detail_panel, Vector2(0.0, 16.0), 0.12)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -73,16 +84,16 @@ func _build_detail_panel() -> void:
 	# Built in code so the existing scene keeps its layout: a single panel under
 	# the trees describes whichever node the cursor is on, which is what keeps
 	# the nodes themselves free of text.
-	var panel := PanelContainer.new()
-	panel.name = "DetailPanel"
-	panel.theme_type_variation = &"MenuPanel"
-	panel.custom_minimum_size = Vector2(0, 84)
+	_detail_panel = PanelContainer.new()
+	_detail_panel.name = "DetailPanel"
+	_detail_panel.theme_type_variation = &"MenuPanel"
+	_detail_panel.custom_minimum_size = Vector2(0, 84)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(&"margin_left", 18)
 	margin.add_theme_constant_override(&"margin_top", 10)
 	margin.add_theme_constant_override(&"margin_right", 18)
 	margin.add_theme_constant_override(&"margin_bottom", 10)
-	panel.add_child(margin)
+	_detail_panel.add_child(margin)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 20)
 	margin.add_child(row)
@@ -101,7 +112,7 @@ func _build_detail_panel() -> void:
 	_detail_state = Label.new()
 	_detail_state.theme_type_variation = &"MutedLabel"
 	text_column.add_child(_detail_state)
-	branches_container.get_parent().add_child(panel)
+	branches_container.get_parent().add_child(_detail_panel)
 	_show_detail(&"")
 
 
@@ -135,6 +146,8 @@ func _rebuild() -> void:
 	_node_buttons.clear()
 	for branch in SkillTree.BRANCHES:
 		branches_container.add_child(_build_branch_panel(character_id, branch))
+	if not _node_buttons.has(_focused_node_id):
+		_focused_node_id = _get_default_focus(character_id)
 	_show_detail(_focused_node_id)
 
 
@@ -154,14 +167,30 @@ func _build_branch_panel(
 	panel.add_child(margin)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 2)
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(column)
 
+	var header := HBoxContainer.new()
+	column.add_child(header)
+	var header_balance := Control.new()
+	header_balance.custom_minimum_size = Vector2(54, 0)
+	header.add_child(header_balance)
 	var branch_title := Label.new()
 	branch_title.theme_type_variation = &"SectionTitle"
 	branch_title.add_theme_color_override(&"font_color", branch_color)
 	branch_title.text = String(branch["title"])
+	branch_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	branch_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(branch_title)
+	header.add_child(branch_title)
+	var progress_label := Label.new()
+	progress_label.custom_minimum_size = Vector2(54, 0)
+	progress_label.theme_type_variation = &"EyebrowLabel"
+	progress_label.text = "%02d/%02d" % [
+		_get_unlocked_count(character_id, branch_id),
+		_get_branch_node_count(branch_id),
+	]
+	progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	header.add_child(progress_label)
 	var tagline := Label.new()
 	tagline.theme_type_variation = &"MutedLabel"
 	tagline.add_theme_font_size_override(&"font_size", 12)
@@ -182,7 +211,7 @@ func _make_tree_canvas(
 	# Shrink-centre rather than expand: node positions are computed against
 	# TREE_SIZE, so the canvas has to keep exactly that width to stay centred.
 	canvas.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	canvas.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	canvas.clip_contents = true
 	var links := _TreeLinks.new()
 	links.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -258,6 +287,39 @@ func _build_node_button(
 	button.mouse_entered.connect(_show_detail.bind(node_id))
 	button.pressed.connect(_on_node_pressed.bind(node_id))
 	return button
+
+
+func _get_default_focus(character_id: StringName) -> StringName:
+	for node_definition in SkillTree.NODES:
+		var node_id: StringName = node_definition["id"]
+		if SaveManager.can_unlock_skill_node(character_id, node_id):
+			return node_id
+	for node_definition in SkillTree.NODES:
+		var node_id: StringName = node_definition["id"]
+		if SaveManager.is_skill_node_unlocked(character_id, node_id):
+			return node_id
+	if SkillTree.NODES.is_empty():
+		return &""
+	return SkillTree.NODES[0]["id"]
+
+
+func _get_unlocked_count(character_id: StringName, branch_id: StringName) -> int:
+	var count := 0
+	for node_definition in SkillTree.NODES:
+		if (
+			node_definition["branch"] == branch_id
+			and SaveManager.is_skill_node_unlocked(character_id, node_definition["id"])
+		):
+			count += 1
+	return count
+
+
+func _get_branch_node_count(branch_id: StringName) -> int:
+	var count := 0
+	for node_definition in SkillTree.NODES:
+		if node_definition["branch"] == branch_id:
+			count += 1
+	return count
 
 
 func _on_node_pressed(node_id: StringName) -> void:

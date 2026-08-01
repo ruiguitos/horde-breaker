@@ -126,10 +126,28 @@ text = "CREDITS  ·  0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="RosterRail" type="HBoxContainer" parent="PageMargin/Content"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+
+[node name="RosterCountLabel" type="Label" parent="PageMargin/Content/RosterRail"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"EyebrowLabel"
+text = "ROSTER  //  02 ACTIVE OPERATIVES"
+
+[node name="RosterSelectionLabel" type="Label" parent="PageMargin/Content/RosterRail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "SELECTED  //  RECRUIT"
+horizontal_alignment = 2
+
 [node name="Characters" type="HBoxContainer" parent="PageMargin/Content"]
 custom_minimum_size = Vector2(0, 330)
 layout_mode = 2
-size_flags_vertical = 6
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
 [node name="PreviewPanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
@@ -192,10 +210,10 @@ light_energy = 2.2
 omni_range = 6.0
 
 [node name="Camera3D" type="Camera3D" parent="PageMargin/Content/Characters/PreviewPanel/Margin/Content/PreviewContainer/PreviewViewport/CharacterPreview"]
-position = Vector3(0, 1.15, 3.35)
+position = Vector3(0, 1.15, 3.9)
 rotation = Vector3(-0.03, 0, 0)
 current = true
-fov = 38.0
+fov = 42.0
 
 [node name="RecruitPanel" type="PanelContainer" parent="PageMargin/Content/Characters"]
 unique_name_in_owner = true
@@ -292,6 +310,17 @@ theme_type_variation = &"MutedLabel"
 text = "Assault Rifle + Pistol
 30% faster reloads."
 autowrap_mode = 2
+
+[node name="ProfileCaption" type="Label" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "BASE PROFILE"
+
+[node name="RecruitStatsLabel" type="Label" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "HEALTH 100  //  RELOAD +30%  //  REGEN 1.0/S"
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/RecruitPanel/Margin/Content"]
 layout_mode = 2
@@ -410,9 +439,20 @@ color = Color(0.78, 0.34, 0.3, 1)
 custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Shotgun + Worn Sword
+text = "Shotgun + SMG
 150 health points."
 autowrap_mode = 2
+
+[node name="ProfileCaption" type="Label" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "BASE PROFILE"
+
+[node name="RenegadeStatsLabel" type="Label" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "HEALTH 150  //  RELOAD +0%  //  REGEN 1.0/S"
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/RenegadePanel/Margin/Content"]
 layout_mode = 2
@@ -531,9 +571,20 @@ color = Color(0.294, 0.698, 0.465, 1)
 custom_minimum_size = Vector2(0, 47)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Pistol + Spear
+text = "Pistol + SMG
 Regenerates 3 HP/s after 4 s."
 autowrap_mode = 2
+
+[node name="ProfileCaption" type="Label" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+text = "BASE PROFILE"
+
+[node name="MedicStatsLabel" type="Label" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "HEALTH 100  //  RELOAD +0%  //  REGEN 1.0/S"
 
 [node name="Spacer" type="Control" parent="PageMargin/Content/Characters/MedicPanel/Margin/Content"]
 layout_mode = 2

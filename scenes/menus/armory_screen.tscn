@@ -144,6 +144,13 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "LEVEL 1  -  PERMANENT LOADOUT"
 
+[node name="LoadoutReadyLabel" type="Label" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"EyebrowLabel"
+theme_override_colors/font_color = Color(0.44, 0.82, 0.59, 1)
+text = "RUN READY  //  2 SLOTS EQUIPPED"
+
 [node name="Divider" type="HSeparator" parent="PageMargin/Content/Body/LoadoutPanel/Margin/Content"]
 layout_mode = 2
 
@@ -214,6 +221,53 @@ text = "AVAILABLE WEAPONS"
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Buy eligible weapons with Credits, then assign them to slot 1 or 2."
+
+[node name="InventorySummary" type="HBoxContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="OwnedCard" type="PanelContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="OwnedSummaryLabel" type="Label" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary/OwnedCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"NumericLabel"
+theme_override_colors/font_color = Color(0.44, 0.82, 0.59, 1)
+text = "OWNED  0 / 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AvailableCard" type="PanelContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="AvailableSummaryLabel" type="Label" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary/AvailableCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"NumericLabel"
+theme_override_colors/font_color = Color(0.957, 0.694, 0.31, 1)
+text = "AVAILABLE  0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LockedCard" type="PanelContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="LockedSummaryLabel" type="Label" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content/InventorySummary/LockedCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"NumericLabel"
+theme_override_colors/font_color = Color(0.42, 0.47, 0.52, 1)
+text = "LEVEL LOCKED  0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="WeaponsScroll" type="ScrollContainer" parent="PageMargin/Content/Body/InventoryPanel/Margin/Content"]
 layout_mode = 2

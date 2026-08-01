@@ -9,7 +9,7 @@ const TEST_STARTING_CREDITS := 0
 const TEST_RECRUIT_XP := 0
 const REFERENCE_SIZE := Vector2(1152.0, 648.0)
 const MIN_UI_SCALE := 0.82
-const MAX_UI_SCALE := 1.9
+const MAX_UI_SCALE := 1.16
 
 @onready var credits_label: Label = %CreditsLabel
 @onready var selection_label: Label = %SelectionLabel
@@ -68,7 +68,7 @@ func _refresh() -> void:
 	var primary_weapon_id := SaveManager.get_primary_weapon(character_id)
 	var secondary_weapon_id := SaveManager.get_secondary_weapon(character_id)
 	operative_portrait.texture = UiVisualCatalog.get_character_icon(character_id)
-	selection_label.text = "%s\n[1] %s   •   [2] %s" % [
+	selection_label.text = "%s\n[1] %s\n[2] %s" % [
 		character_data.display_name,
 		_get_weapon_name(primary_weapon_id),
 		_get_weapon_name(secondary_weapon_id),
@@ -123,13 +123,13 @@ func _apply_responsive_layout() -> void:
 	_set_button_size(quit_button, Vector2(420.0, 48.0), ui_scale)
 	credits_label.add_theme_font_size_override(&"font_size", roundi(16.0 * ui_scale))
 	credits_plate.custom_minimum_size = Vector2(0.0, 34.0 * ui_scale)
-	summary_card.custom_minimum_size = Vector2(0.0, 176.0 * ui_scale)
+	summary_card.custom_minimum_size = Vector2(0.0, 206.0 * ui_scale)
 	_set_margin(summary_margin, 24.0, 22.0, ui_scale)
 	summary_content.add_theme_constant_override(&"separation", roundi(11.0 * ui_scale))
 	summary_eyebrow.add_theme_font_size_override(&"font_size", roundi(12.0 * ui_scale))
 	selection_row.add_theme_constant_override(&"separation", roundi(16.0 * ui_scale))
 	_scale_emblem(ui_scale)
-	selection_label.add_theme_font_size_override(&"font_size", roundi(22.0 * ui_scale))
+	selection_label.add_theme_font_size_override(&"font_size", roundi(20.0 * ui_scale))
 	progress_label.add_theme_font_size_override(&"font_size", roundi(16.0 * ui_scale))
 	notice_label.add_theme_font_size_override(&"font_size", roundi(15.0 * ui_scale))
 	notice_label.custom_minimum_size = Vector2(0.0, 58.0 * ui_scale)

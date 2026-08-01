@@ -10,8 +10,12 @@ const LOCKED_COLOR := Color(0.42, 0.47, 0.52, 1.0)
 @onready var credits_label: Label = %CreditsLabel
 @onready var class_label: Label = %ClassLabel
 @onready var level_label: Label = %LevelLabel
+@onready var loadout_ready_label: Label = %LoadoutReadyLabel
 @onready var primary_weapon_label: Label = %PrimaryWeaponLabel
 @onready var secondary_weapon_label: Label = %SecondaryWeaponLabel
+@onready var owned_summary_label: Label = %OwnedSummaryLabel
+@onready var available_summary_label: Label = %AvailableSummaryLabel
+@onready var locked_summary_label: Label = %LockedSummaryLabel
 @onready var weapons_list: VBoxContainer = %WeaponsList
 
 var _displayed_credits := 0
@@ -68,9 +72,25 @@ func _rebuild() -> void:
 	secondary_weapon_label.text = _get_weapon_name(
 		SaveManager.get_secondary_weapon(character_id)
 	)
+	var equipped_slot_count := 0
+	if SaveManager.get_primary_weapon(character_id) != &"":
+		equipped_slot_count += 1
+	if SaveManager.get_secondary_weapon(character_id) != &"":
+		equipped_slot_count += 1
+	loadout_ready_label.text = "%s  //  %d/2 SLOTS EQUIPPED" % [
+		"RUN READY" if equipped_slot_count == 2 else "LOADOUT INCOMPLETE",
+		equipped_slot_count,
+	]
+	loadout_ready_label.add_theme_color_override(
+		&"font_color", OWNED_COLOR if equipped_slot_count == 2 else ACCENT_COLOR
+	)
 	for child in weapons_list.get_children():
 		child.queue_free()
 	var section_count := 0
+	var total_count := 0
+	var owned_count := 0
+	var available_count := 0
+	var locked_count := 0
 	for section in WeaponCatalog.get_compatible_weapons_by_category(character_id):
 		var listed: Array[WeaponData] = []
 		for weapon_value in section["weapons"]:
@@ -79,12 +99,25 @@ func _rebuild() -> void:
 				listed.append(weapon_data)
 		if listed.is_empty():
 			continue
+		total_count += listed.size()
+		for weapon_data in listed:
+			if SaveManager.is_weapon_purchased(character_id, weapon_data.weapon_id):
+				owned_count += 1
+			elif SaveManager.get_character_level(character_id) >= weapon_data.required_level:
+				available_count += 1
+			else:
+				locked_count += 1
 		weapons_list.add_child(
-			_build_section_header(String(section["name"]), section_count > 0)
+			_build_section_header(
+				String(section["name"]), listed.size(), section_count > 0
+			)
 		)
 		section_count += 1
 		for weapon_data in listed:
 			weapons_list.add_child(_build_weapon_card(character_id, weapon_data))
+	owned_summary_label.text = "OWNED  %d / %d" % [owned_count, total_count]
+	available_summary_label.text = "AVAILABLE  %d" % available_count
+	locked_summary_label.text = "LEVEL LOCKED  %d" % locked_count
 	UiAnimations.enhance_buttons(weapons_list)
 
 
@@ -99,10 +132,10 @@ func _is_locked_evolution(
 	)
 
 
-func _build_section_header(title: String, add_top_gap: bool) -> Control:
+func _build_section_header(title: String, item_count: int, add_top_gap: bool) -> Control:
 	var header := Label.new()
 	header.theme_type_variation = &"EyebrowLabel"
-	header.text = title
+	header.text = "%s  //  %02d" % [title, item_count]
 	header.add_theme_color_override(&"font_color", ACCENT_COLOR)
 	if add_top_gap:
 		# The list separation alone reads as a single run of cards; the extra
@@ -331,10 +364,6 @@ const WEAPON_ROLES: Dictionary[StringName, String] = {
 	&"siege_breaker": "CLOSE-RANGE FIREARM",
 	&"machine_gun": "SUPPRESSION - SLOWS YOU DOWN",
 	&"minigun": "SUPPRESSION - SLOWS YOU DOWN",
-	&"worn_sword": "MELEE - SLASH",
-	&"cleaver": "MELEE - SLASH",
-	&"spear": "MELEE - THRUST",
-	&"fire_axe": "MELEE - HEAVY SWING",
 }
 
 

@@ -1,13 +1,13 @@
 extends Node3D
 
-@export_range(0.0, 20.0, 0.1) var orbit_speed_degrees: float = 3.8
-@export var orbit_radius: float = 15.0
-@export var orbit_height: float = 4.4
-@export var look_target := Vector3(0.0, 1.35, 0.0)
+@export_range(0.0, 20.0, 0.1) var orbit_speed_degrees: float = 2.2
+@export var orbit_radius: float = 22.0
+@export var orbit_height: float = 7.2
+@export var look_target := Vector3(0.0, 1.0, 0.0)
 
 @onready var camera: Camera3D = %Camera3D
 
-var _orbit_angle := deg_to_rad(28.0)
+var _orbit_angle := deg_to_rad(34.0)
 
 
 func _ready() -> void:

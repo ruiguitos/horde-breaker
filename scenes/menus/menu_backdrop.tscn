@@ -1,19 +1,19 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/menu_backdrop.gd" id="1_backdrop_script"]
-[ext_resource type="PackedScene" path="res://scenes/world/city_road_grid.tscn" id="2_road_grid"]
-[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Green.gltf" id="3_container_green"]
-[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/Container_Red.gltf" id="4_container_red"]
-[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/StreetLights.gltf" id="5_street_lights"]
-[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/TrafficBarrier_1.gltf" id="6_traffic_barrier"]
-[ext_resource type="PackedScene" path="res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf" id="7_water_tower"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/tree.glb" id="2_tree"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/tree-high.glb" id="3_tree_high"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/tent.glb" id="4_tent"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/rocks-high.glb" id="5_rocks"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/fence.glb" id="6_fence"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_mini_forest/flag.glb" id="7_flag"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_backdrop"]
-sky_top_color = Color(0.09, 0.12, 0.19, 1)
-sky_horizon_color = Color(0.72, 0.46, 0.28, 1)
+sky_top_color = Color(0.035, 0.075, 0.115, 1)
+sky_horizon_color = Color(0.54, 0.315, 0.17, 1)
 sky_curve = 0.14
 ground_bottom_color = Color(0.04, 0.05, 0.07, 1)
-ground_horizon_color = Color(0.5, 0.35, 0.24, 1)
+ground_horizon_color = Color(0.22, 0.25, 0.22, 1)
 sun_angle_max = 25.0
 sun_curve = 0.18
 
@@ -24,19 +24,39 @@ sky_material = SubResource("SkyMaterial_backdrop")
 background_mode = 2
 sky = SubResource("Sky_backdrop")
 ambient_light_source = 3
-ambient_light_energy = 0.6
+ambient_light_energy = 0.72
 fog_enabled = true
-fog_light_color = Color(0.42, 0.32, 0.26, 1)
-fog_density = 0.002
+fog_light_color = Color(0.28, 0.31, 0.27, 1)
+fog_density = 0.006
 fog_sky_affect = 0.15
 
-[sub_resource type="StandardMaterial3D" id="Material_ground"]
-albedo_color = Color(0.115, 0.135, 0.15, 1)
+[sub_resource type="StandardMaterial3D" id="Material_water"]
+albedo_color = Color(0.028, 0.105, 0.135, 1)
+metallic = 0.18
+roughness = 0.28
+
+[sub_resource type="PlaneMesh" id="Mesh_water"]
+material = SubResource("Material_water")
+size = Vector2(72, 72)
+
+[sub_resource type="StandardMaterial3D" id="Material_island"]
+albedo_color = Color(0.095, 0.19, 0.12, 1)
 roughness = 1.0
 
-[sub_resource type="PlaneMesh" id="Mesh_ground"]
-material = SubResource("Material_ground")
-size = Vector2(48, 48)
+[sub_resource type="CylinderMesh" id="Mesh_island"]
+material = SubResource("Material_island")
+top_radius = 20.0
+bottom_radius = 22.5
+height = 0.8
+radial_segments = 32
+
+[sub_resource type="StandardMaterial3D" id="Material_path"]
+albedo_color = Color(0.29, 0.17, 0.085, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_path"]
+material = SubResource("Material_path")
+size = Vector2(4.4, 34)
 
 [sub_resource type="StandardMaterial3D" id="Material_core_base"]
 albedo_color = Color(0.13, 0.17, 0.2, 1)
@@ -86,11 +106,18 @@ light_color = Color(1, 0.94, 0.84, 1)
 light_energy = 1.15
 shadow_enabled = true
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-position = Vector3(0, -0.14, 0)
-mesh = SubResource("Mesh_ground")
+[node name="Water" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.84, 0)
+mesh = SubResource("Mesh_water")
 
-[node name="RoadGrid" parent="." instance=ExtResource("2_road_grid")]
+[node name="Island" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.45, 0)
+mesh = SubResource("Mesh_island")
+
+[node name="DirtPath" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, -0.035, 0.2)
+rotation = Vector3(0, 0.38, 0)
+mesh = SubResource("Mesh_path")
 
 [node name="CampVisual" type="Node3D" parent="."]
 
@@ -112,31 +139,76 @@ light_color = Color(1, 0.36, 0.08, 1)
 light_energy = 2.2
 omni_range = 5.0
 
-[node name="GreenContainer" parent="." instance=ExtResource("3_container_green")]
-position = Vector3(-7.5, 0, -4.5)
-rotation = Vector3(0, 0.35, 0)
+[node name="WestTent" parent="." instance=ExtResource("4_tent")]
+position = Vector3(-5.8, 0, -2.2)
+rotation = Vector3(0, -0.35, 0)
+scale = Vector3(2.35, 2.35, 2.35)
 
-[node name="RedContainer" parent="." instance=ExtResource("4_container_red")]
-position = Vector3(7.5, 0, 5.5)
-rotation = Vector3(0, -1.1, 0)
+[node name="EastTent" parent="." instance=ExtResource("4_tent")]
+position = Vector3(5.9, 0, 4.2)
+rotation = Vector3(0, 2.35, 0)
+scale = Vector3(2.1, 2.1, 2.1)
 
-[node name="StreetLightsNorth" parent="." instance=ExtResource("5_street_lights")]
-position = Vector3(-4, 0, -7)
+[node name="CampFlag" parent="." instance=ExtResource("7_flag")]
+position = Vector3(3.4, 0, -2.7)
+rotation = Vector3(0, -0.4, 0)
+scale = Vector3(2.2, 2.2, 2.2)
 
-[node name="StreetLightsSouth" parent="." instance=ExtResource("5_street_lights")]
-position = Vector3(4, 0, 7)
-rotation = Vector3(0, 3.14159, 0)
+[node name="FenceWest" parent="." instance=ExtResource("6_fence")]
+position = Vector3(-8.8, 0, 4.0)
+rotation = Vector3(0, 0.42, 0)
+scale = Vector3(2.1, 2.1, 2.1)
 
-[node name="BarrierWest" parent="." instance=ExtResource("6_traffic_barrier")]
-position = Vector3(-3.2, 0, 2.4)
+[node name="FenceEast" parent="." instance=ExtResource("6_fence")]
+position = Vector3(8.9, 0, -3.7)
+rotation = Vector3(0, -2.7, 0)
+scale = Vector3(2.1, 2.1, 2.1)
+
+[node name="RocksNorth" parent="." instance=ExtResource("5_rocks")]
+position = Vector3(-9.6, 0, -7.8)
+rotation = Vector3(0, 0.7, 0)
+scale = Vector3(2.6, 2.6, 2.6)
+
+[node name="RocksSouth" parent="." instance=ExtResource("5_rocks")]
+position = Vector3(10.4, 0, 7.0)
+rotation = Vector3(0, -0.5, 0)
+scale = Vector3(2.2, 2.2, 2.2)
+
+[node name="Trees" type="Node3D" parent="."]
+
+[node name="TreeNorthWest" parent="Trees" instance=ExtResource("3_tree_high")]
+position = Vector3(-12.5, 0, -8.0)
+scale = Vector3(2.5, 2.5, 2.5)
+
+[node name="TreeNorth" parent="Trees" instance=ExtResource("2_tree")]
+position = Vector3(-3.0, 0, -14.2)
+rotation = Vector3(0, 0.8, 0)
+scale = Vector3(2.8, 2.8, 2.8)
+
+[node name="TreeNorthEast" parent="Trees" instance=ExtResource("3_tree_high")]
+position = Vector3(10.8, 0, -9.6)
+rotation = Vector3(0, -0.5, 0)
+scale = Vector3(2.35, 2.35, 2.35)
+
+[node name="TreeEast" parent="Trees" instance=ExtResource("2_tree")]
+position = Vector3(15.0, 0, 1.5)
 rotation = Vector3(0, 0.25, 0)
+scale = Vector3(2.5, 2.5, 2.5)
 
-[node name="BarrierEast" parent="." instance=ExtResource("6_traffic_barrier")]
-position = Vector3(3.2, 0, -2.4)
-rotation = Vector3(0, 3.35, 0)
+[node name="TreeSouthEast" parent="Trees" instance=ExtResource("3_tree_high")]
+position = Vector3(10.2, 0, 11.8)
+rotation = Vector3(0, 0.6, 0)
+scale = Vector3(2.6, 2.6, 2.6)
 
-[node name="WaterTower" parent="." instance=ExtResource("7_water_tower")]
-position = Vector3(-11, 0, 10)
+[node name="TreeSouthWest" parent="Trees" instance=ExtResource("2_tree")]
+position = Vector3(-11.7, 0, 10.6)
+rotation = Vector3(0, -0.7, 0)
+scale = Vector3(2.55, 2.55, 2.55)
+
+[node name="TreeWest" parent="Trees" instance=ExtResource("3_tree_high")]
+position = Vector3(-15.0, 0, 1.0)
+rotation = Vector3(0, 0.4, 0)
+scale = Vector3(2.3, 2.3, 2.3)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 unique_name_in_owner = true
