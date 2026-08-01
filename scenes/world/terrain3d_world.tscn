@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/terrain3d_world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/systems/terrain3d_persistent_mount.gd" id="2_mount"]
 [ext_resource type="Terrain3DAssets" path="res://data/terrain3d_prototype/assets/terrain_assets.tres" id="3_assets"]
 [ext_resource type="Shader" path="res://assets/materials/terrain3d_water.gdshader" id="4_water_shader"]
+[ext_resource type="Script" path="res://scripts/systems/terrain3d_coastline.gd" id="5_coastline"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 render_priority = -1
@@ -15,6 +16,10 @@ size = Vector2(768, 768)
 
 [node name="Terrain3DWorld" type="Node3D" groups=["terrain3d_world"]]
 script = ExtResource("1_world")
+
+[node name="CoastlineSystem" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_coastline")
 
 [node name="WaterPlane" type="MeshInstance3D" parent="." groups=["terrain3d_water"]]
 position = Vector3(128, -3, 128)

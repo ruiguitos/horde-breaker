@@ -44,6 +44,7 @@ func _run() -> void:
 		terrain.material.shader_override_enabled)
 	_test_world_coverage(world)
 	_test_water_plane()
+	_test_coastline_system()
 	_test_coastal_sector_filtering()
 	_test_legacy_map_removed()
 	await _test_streamed_sectors()
@@ -106,6 +107,18 @@ func _test_water_plane() -> void:
 		plane != null
 		and plane.size.x >= DESIGN.TERRAIN_SIZE
 		and plane.size.y >= DESIGN.TERRAIN_SIZE)
+
+
+func _test_coastline_system() -> void:
+	var boundary := get_first_node_in_group(&"shoreline_boundary") as StaticBody3D
+	var foam := get_first_node_in_group(&"terrain3d_coast_foam") as MeshInstance3D
+	_check("the shoreline has one persistent collision body", boundary != null)
+	_check("the shoreline barrier uses a continuous segmented ring",
+		boundary != null and boundary.get_child_count() >= 96)
+	_check("the coastline has one lightweight foam mesh",
+		foam != null
+		and foam.mesh != null
+		and foam.mesh.get_surface_count() == 1)
 
 
 func _test_coastal_sector_filtering() -> void:

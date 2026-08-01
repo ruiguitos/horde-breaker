@@ -8,6 +8,8 @@ const ALIVE_TARGET_GROUP := &"enemy_target"
 const WORLD_COLLISION_LAYER := 1
 const TERRAIN_WORLD_GROUP := &"terrain3d_world"
 const TERRAIN_FEET_OFFSET := 1.0
+const FOOT_BONE_TOKEN := "foot"
+const FOOT_CONTACT_DEPTH := 0.02
 const TARGET_REPATH_DISTANCE := 0.25
 const TARGET_SCAN_INTERVAL := 0.75
 const ENEMY_SCRAP_DROP_GROUP := &"enemy_scrap_drop"
@@ -87,10 +89,18 @@ var _scrap_drop_attempted := false
 var _ammo_drop_attempted := false
 var _uses_terrain_height_query := false
 var _terrain_world: Node3D
+var _foot_bones: Array[Dictionary] = []
+var _visual_animation_players: Array[AnimationPlayer] = []
+var _visual_grounding_initialized := false
 
 
 func _ready() -> void:
 	current_health = maximum_health
+	# ImportedModelAnimation chooses clips during the regular process pass and its
+	# AnimationPlayer advances in physics. Keep the enemy after both components
+	# so the current physics pose is the one corrected against the terrain.
+	process_priority = 100
+	process_physics_priority = 100
 	# Terrain3D physics is reserved for the player. A large horde colliding its
 	# capsules with the terrain facets is substantially more expensive than one
 	# deterministic height lookup per simulated zombie.
@@ -98,6 +108,8 @@ func _ready() -> void:
 	_uses_terrain_height_query = _terrain_world != null
 	if _uses_terrain_height_query:
 		collision_mask &= ~WORLD_COLLISION_LAYER
+	_configure_animation_grounding_order()
+	_cache_visual_foot_bones()
 	_setup_hit_flash()
 	_repath_time = randf() * REPATH_INTERVAL
 	_target_scan_time = randf() * TARGET_SCAN_INTERVAL
@@ -111,6 +123,14 @@ func _ready() -> void:
 	navigation_agent.target_desired_distance = (
 		preferred_distance if is_ranged else attack_range * 0.8
 	)
+
+
+func _process(_delta: float) -> void:
+	# Corpses stop their own physics process while their death clip continues.
+	# Living enemies are corrected once in the physics pass, where their imported
+	# AnimationPlayer also advances; avoid doing the same bone work twice.
+	if not is_physics_processing():
+		_align_visual_feet()
 
 
 func _physics_process(delta: float) -> void:
@@ -127,6 +147,7 @@ func _physics_process(delta: float) -> void:
 		_skipped_physics_frames += 1
 		if _skipped_physics_frames <= FAR_PHYSICS_FRAME_SKIP:
 			_snap_to_terrain()
+			_align_visual_feet()
 			return
 		delta *= float(_skipped_physics_frames)
 		_skipped_physics_frames = 0
@@ -387,6 +408,11 @@ func _apply_gravity(delta: float) -> void:
 func _move_on_ground() -> void:
 	move_and_slide()
 	_snap_to_terrain()
+	_align_visual_feet()
+
+
+func uses_terrain_height_grounding() -> bool:
+	return _uses_terrain_height_query and is_instance_valid(_terrain_world)
 
 
 func _snap_to_terrain() -> void:
@@ -397,6 +423,76 @@ func _snap_to_terrain() -> void:
 	)
 	global_position.y = terrain_height + TERRAIN_FEET_OFFSET
 	velocity.y = 0.0
+
+
+func _cache_visual_foot_bones() -> void:
+	_foot_bones.clear()
+	for value in visual_root.find_children("*", "Skeleton3D", true, false):
+		var skeleton := value as Skeleton3D
+		if skeleton == null or not skeleton.is_visible_in_tree():
+			continue
+		var indices := PackedInt32Array()
+		for bone_index in skeleton.get_bone_count():
+			var bone_name := String(skeleton.get_bone_name(bone_index)).to_lower()
+			if FOOT_BONE_TOKEN in bone_name:
+				indices.append(bone_index)
+		if not indices.is_empty():
+			_foot_bones.append({"skeleton": skeleton, "indices": indices})
+
+
+func _configure_animation_grounding_order() -> void:
+	_visual_animation_players.clear()
+	for value in visual_root.find_children("*", "AnimationPlayer", true, false):
+		var animation_player := value as AnimationPlayer
+		_visual_animation_players.append(animation_player)
+		animation_player.callback_mode_process = (
+			AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS
+		)
+		animation_player.process_physics_priority = -100
+
+
+func _align_visual_feet() -> void:
+	# Animation LOD freezes every model outside the nearest animation budget.
+	# Its last corrected pose remains valid while the CharacterBody moves over
+	# Terrain3D, so reading skeleton bones again would only waste horde CPU time.
+	if _visual_grounding_initialized and not _has_active_visual_animation():
+		return
+	var lowest_foot_y := _get_lowest_visual_foot_local_y()
+	if is_inf(lowest_foot_y):
+		return
+	var target_y := -TERRAIN_FEET_OFFSET - FOOT_CONTACT_DEPTH
+	visual_root.position.y += target_y - lowest_foot_y
+	_visual_grounding_initialized = true
+
+
+func _has_active_visual_animation() -> bool:
+	for animation_player in _visual_animation_players:
+		if is_instance_valid(animation_player) and animation_player.active:
+			return true
+	return false
+
+
+func _get_lowest_visual_foot_local_y() -> float:
+	var lowest_y := INF
+	for foot_set in _foot_bones:
+		var skeleton: Skeleton3D = foot_set["skeleton"]
+		if not is_instance_valid(skeleton) or not skeleton.is_visible_in_tree():
+			continue
+		var indices: PackedInt32Array = foot_set["indices"]
+		for bone_index in indices:
+			var bone_transform := (
+				skeleton.global_transform
+				* skeleton.get_bone_global_pose(bone_index)
+			)
+			lowest_y = minf(lowest_y, to_local(bone_transform.origin).y)
+	return lowest_y
+
+
+func get_lowest_visual_foot_world_y() -> float:
+	var local_y := _get_lowest_visual_foot_local_y()
+	if is_inf(local_y):
+		return INF
+	return global_position.y + local_y
 
 
 func _pursue_target(delta: float) -> void:

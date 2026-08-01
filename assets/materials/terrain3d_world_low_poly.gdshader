@@ -27,12 +27,58 @@ uniform highp sampler2DArray _height_maps : repeat_disable;
 uniform vec3 grass_color : source_color = vec3(0.20, 0.30, 0.13);
 uniform vec3 soil_color : source_color = vec3(0.25, 0.15, 0.07);
 uniform vec3 sand_color : source_color = vec3(0.50, 0.40, 0.22);
+uniform vec3 forest_color : source_color = vec3(0.10, 0.22, 0.10);
+uniform vec3 dry_grass_color : source_color = vec3(0.38, 0.27, 0.12);
+uniform vec3 rock_color : source_color = vec3(0.29, 0.30, 0.27);
+uniform vec3 route_color : source_color = vec3(0.28, 0.16, 0.065);
 uniform float water_height = -3.0;
 uniform float slope_start : hint_range(0.0, 1.0) = 0.08;
 uniform float slope_end : hint_range(0.0, 1.0) = 0.42;
 
 varying float v_vertex_xz_dist;
 varying vec3 v_world_position;
+
+
+float island_radius(float angle) {
+	return 220.0
+		+ sin(angle * 3.0 + 0.4) * 18.0
+		+ cos(angle * 5.0 - 0.6) * 10.0
+		+ sin(angle * 7.0 + 0.8) * 5.0;
+}
+
+
+float segment_distance(vec2 point, vec2 start, vec2 end) {
+	vec2 segment = end - start;
+	float progress = clamp(
+		dot(point - start, segment) / max(dot(segment, segment), 0.001),
+		0.0,
+		1.0
+	);
+	return length(point - (start + segment * progress));
+}
+
+
+float route_weight_at(vec2 world_position) {
+	vec2 local = world_position - vec2(32.0);
+	float angle = atan(local.y, local.x);
+	float radius = length(local);
+	float inner_distance = abs(radius - 104.0);
+	float coast_distance = abs(radius - (island_radius(angle) - 38.0));
+	float route_distance = min(inner_distance, coast_distance);
+	route_distance = min(
+		route_distance,
+		segment_distance(world_position, vec2(-64.0), vec2(-32.0, -66.0))
+	);
+	route_distance = min(
+		route_distance,
+		segment_distance(world_position, vec2(132.0, 42.0), vec2(194.0, 34.0))
+	);
+	route_distance = min(
+		route_distance,
+		segment_distance(world_position, vec2(54.0, 132.0), vec2(65.0, 196.0))
+	);
+	return 1.0 - smoothstep(4.0, 12.0, route_distance);
+}
 
 
 ivec3 get_index_coord(const vec2 uv, const int search) {
@@ -112,7 +158,21 @@ void fragment() {
 	float beach_weight = 1.0 - smoothstep(
 		water_height + 0.2, water_height + 2.2, v_world_position.y
 	);
-	vec3 inland_color = mix(grass_color, soil_color, soil_weight);
-	ALBEDO = mix(inland_color, sand_color, beach_weight) + vec3(macro_variation);
+	float forest_weight = (
+		1.0 - smoothstep(-90.0, 70.0, v_world_position.z)
+	) * (0.72 + sin(v_world_position.x * 0.032) * 0.14);
+	float dry_weight = smoothstep(50.0, 150.0, v_world_position.x) * 0.78;
+	float rock_weight = max(
+		smoothstep(7.5, 13.0, v_world_position.y),
+		smoothstep(0.24, 0.56, slope)
+	);
+	float route_weight = route_weight_at(v_world_position.xz);
+	vec3 biome_color = mix(grass_color, forest_color, clamp(forest_weight, 0.0, 1.0));
+	biome_color = mix(biome_color, dry_grass_color, dry_weight);
+	vec3 inland_color = mix(biome_color, soil_color, soil_weight);
+	inland_color = mix(inland_color, rock_color, rock_weight);
+	vec3 terrain_color = mix(inland_color, sand_color, beach_weight);
+	terrain_color = mix(terrain_color, route_color, route_weight * (1.0 - beach_weight));
+	ALBEDO = terrain_color + vec3(macro_variation);
 	ROUGHNESS = 0.96;
 }

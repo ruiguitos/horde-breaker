@@ -1,6 +1,6 @@
 # Horde Breaker — Roadmap
 
-Sincronizado a 2026-07-22. Os milestones 0–19 estão concluídos; o detalhe de
+Sincronizado a 2026-08-01. Os milestones 0–19 estão concluídos; o detalhe de
 cada um vive no histórico do `docs/PROGRESS.md`.
 
 ## Regras
@@ -36,7 +36,8 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
   2/5/9/14/20, sem retirar skills de saves anteriores.
 - [x] Ecrã `ARMORY` com estados comprado/comprável/bloqueado, compra com Credits
   e escolha persistente dos slots 1/2.
-- [x] Spear do Medic baseada na malha embutida, com alcance melee e animação `Stab`.
+- [x] Spear do Medic baseada na malha embutida (implementação histórica,
+  posteriormente retirada do catálogo jogável).
 - [x] Primeiro passe de identidade das classes: Recruit 100 HP/recarga rápida,
   Renegade 150 HP, Medic 100 HP/regeneração 3 HP/s após 4 s.
 - [x] Variantes de classe como capstone da mastery (VETERAN/BERSERKER/COMBAT
@@ -44,9 +45,11 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
 - [x] Munição do chão a escalar com o nível de ameaça (base + 4/nível, teto 4×).
 - [ ] Rever dano, cadência, alcance automático e regeneração após playtest das
   três classes (incluindo os números das variantes).
-- [x] SMG (automática, cadência 11/dano 16, carregador 35; nível 3 · 400 cr) e
-  Fire Axe (melee, dano 70/cooldown 0,9 s; nível 4 · 500 cr) compráveis no
-  ARMORY, com as malhas embutidas SMG/Axe e ícones gerados.
+- [x] SMG automática (cadência 11/dano 16, carregador 35; nível 3 · 400 cr)
+  comprável no ARMORY. A Fire Axe desta passagem foi depois retirada.
+- [x] Armas melee retiradas do catálogo, ARMORY, pickups, loadouts, evoluções,
+  HUD e animações ativas. Saves antigos migram para AR/Pistol, Shotgun/SMG e
+  Pistol/SMG sem perder os contadores históricos.
 - [x] Alcance de auto-fire por arma (AR 6 m, Pistol 5,5 m, Shotgun 4,5 m, SMG 7 m).
 
 ## Milestone 24 — Terrain3D e reconstrução do mapa (em curso)
@@ -65,11 +68,20 @@ os percursos e o desempenho estarem validados.
 - [x] `MapRoads`, `MapStructures` e `MapProps` esvaziados; POIs autorados removidos.
 - [x] Forward+ restaurado e colisão otimizada para hordas: jogador usa colisão
   dinâmica, zombies usam consulta de altura.
-- [ ] Playtest do relevo completo, declives, visibilidade e leitura espacial.
-- [ ] Desenhar caminhos terrain-native antes de colocar novos modelos.
-- [ ] Reintroduzir landmarks/POIs em pequenos lotes, com orçamento de render e
+- [x] Barreira física persistente deslocada 24 m para dentro do mar; costa e
+  espuma ficam livres, paredes quadradas foram removidas e a continuidade foi
+  validada à superfície e abaixo do fundo marinho.
+- [x] Playtest técnico automatizado cobre os dois caminhos, doze aterragens do
+  jogador, declives por amostragem e contacto dos cinco tipos de inimigo.
+- [x] Dois caminhos terrain-native em anel e três ligações, espuma costeira,
+  cinco zonas de material e quatro landmarks de relevo.
+- [x] Mapa tático recortado pela costa, com mar, caminhos e landmarks; a grelha
+  de setores fica apenas como referência sobre a parte terrestre.
+- [ ] Fazer o playtest humano prolongado de visibilidade, sensação dos declives,
+  rotas de fuga e leitura espacial.
+- [ ] Reintroduzir POIs/dressing em pequenos lotes, com orçamento de render e
   navegação medido por etapa.
-- [ ] Melhorar o mapa tático e avaliar a criação de um minimapa dedicado.
+- [ ] Avaliar a criação de um minimapa dedicado.
   Estudar referências de outros jogos antes de decidir escala, orientação,
   fog of war, marcadores, filtros, zoom, objetivos e relação entre minimapa,
   bússola e mapa completo.
@@ -100,11 +112,27 @@ mundo aberto, POIs e base como diferenciador.
   limpeza dos zombies ativos; só depois de não restarem inimigos deve ficar
   disponível um ponto de extração numa localização específica do mapa. A run
   termina apenas quando o jogador chegar a esse ponto.
-- [x] **Fase 3 — hordas massivas:** teto 30 → 140 com LOD de simulação (navmesh
+- [x] **Fase 3 — hordas massivas:** LOD de simulação (navmesh
   perto, steering direto ao médio, frames saltados ao longe) e LOD de animação
-  (>42 m desliga o AnimationPlayer). 120 inimigos = 58 fps a 1152×648.
+  (>42 m desliga o AnimationPlayer). O teto de gameplay é agora 90, partilhado
+  por todas as origens de spawn, com guarda absoluta de 120, fila máxima de 12
+  e apenas 2 novas instâncias por frame de física.
 - [x] Evolução de armas por abates (4 evoluções desbloqueadas no ARMORY).
 - [ ] Esquadrão de 3 personagens (controlas 1, IA segue) — o mais caro.
+
+## Milestone 27 — Arquipélago modular (conceito aprovado; não implementado)
+
+Objetivo: transformar a ilha atual no ponto de partida de uma rede navegável de
+ilhas com escalas, formas, biomas, encontros e recompensas próprias, reutilizando
+os modelos CC0 que já existem no projeto.
+
+- [x] Definir estratégia híbrida: 2–4 ilhas próximas por zona marítima e zonas
+  distantes carregadas separadamente; apenas a ilha/zona ativa mantém IA,
+  colisão e conteúdo completos.
+- [ ] Criar `IslandData` e uma ilha piloto pequena sem alterar o save principal.
+- [ ] Implementar transporte de barco simples antes de considerar física naval.
+- [ ] Adaptar mapa tático, persistência de descoberta e diretor de horda à ilha ativa.
+- [ ] Reintroduzir um único kit visual na ilha piloto e medir FPS/draw calls.
 
 ## Milestone 21 — Ambiente e POIs finais (absorvido pelo M24)
 
@@ -114,7 +142,9 @@ mundo aberto, POIs e base como diferenciador.
 
 ## Milestone 22 — Balanceamento e sensação de jogo
 
-- [ ] Curva do diretor de horda (intervalo de subida, lotes, limite simultâneo).
+- [x] Primeira proteção da curva do diretor: teto simultâneo global de 90,
+  reservas em fila limitadas a 12 e instanciação limitada a 2 por frame.
+- [ ] Afinar intervalo, composição e teto após playtest/profiling em Forward+.
 - [ ] Otimização orientada por profiling: benchmark atual de 140 zombies ronda
   26 FPS no GL Compatibility; começar por skinning/animação e draw calls antes
   de reduzir conteúdo visual.
@@ -130,11 +160,12 @@ mundo aberto, POIs e base como diferenciador.
 - [ ] Salvamento de partida a meio (continuar uma run).
 - [ ] Persistência opcional de loot entre partidas (se o playtest o pedir).
 - [ ] Mixamo (parqueado): só se for precisa uma animação que o Quaternius não tem.
-- [ ] Adicionar mais classes de personagens, armas e skills, definindo primeiro
-  papéis distintos, compatibilidades de loadout e impacto na progressão.
-- [ ] Decidir se as armas melee devem ser removidas. Antes de avançar, preparar
-  a substituição dos loadouts do Renegade e Medic e rever variantes, ARMORY,
-  evolução de armas, animações e compatibilidade com saves existentes.
+- [x] Definir papéis e combinações não repetidas para a expansão de classes,
+  armas e skills em `docs/CONTENT_EXPANSION_PLAN.md`.
+- [ ] Implementar a expansão de conteúdo pela ordem aprovada, começando por uma
+  classe/arma vertical slice e medindo desempenho antes da seguinte.
+- [x] Remover armas melee e migrar Renegade, Medic, BERSERKER, ARMORY, pickups,
+  evoluções, animações, HUD e saves antigos para alternativas de armas de fogo.
 - [ ] Melhorar as animações e o encaixe das mãos nas armas: avaliar grips por
   arma, `BoneAttachment3D`, poses de mira, disparo e recarga compatíveis com o rig.
 - [ ] Investigar o pipeline de arte final para personagens e mapa, comparando:

@@ -14,6 +14,11 @@ visual natural ao mundo em vez de parecer uma arena quadrada.
 - centro da ilha: `(32, 32)`; acampamento: setor `(-1, -1)`;
 - água: `Y = -3 m`; fundo marinho: `Y = -6 m`;
 - relevo: costa irregular, cordilheira norte, planalto leste e elevação oeste;
+- percursos: anel interior, anel costeiro e três ligações terrain-native;
+- landmarks: Twin Ridge, Red Plateau, West Rise e South Cape;
+- materiais: praia, relva, floresta, zona seca, rocha e caminho de terra;
+- limite: parede invisível persistente 24 m offshore, ainda dentro dos dados
+  Terrain3D e com a praia/início da água livres;
 - conteúdo: só pode nascer em terreno acima da linha costeira navegável;
 - navegação: células submersas não recebem polígonos;
 - arte: continuam fora da arena casas, estradas, vegetação e POIs antigos.
@@ -26,10 +31,10 @@ não é necessário instalar esse asset novamente.
 
 | Opção | Vantagens | Riscos | Adequação ao Horde Breaker |
 |---|---|---|---|
-| **Ilha grande** — atual | limite natural, silhueta clara, costa útil para extração, fácil dividir em biomas | água/natação e costa no mapa tático precisam de solução | **Alta**: mantém exploração e horda contínua sem parecer uma caixa |
+| **Ilha grande** — atual | limite natural, silhueta clara, costa útil para extração, fácil dividir em biomas | a barreira resolve a queda, mas ainda não existe gameplay de natação | **Alta**: mantém exploração e horda contínua sem parecer uma caixa |
 | **Península** | uma ligação terrestre pode ser objetivo, gargalo ou evacuação | o limite interior continua a precisar de montanha/muralha | Alta para uma campanha orientada; média para sandbox |
 | **Vale fechado / cratera** | montanhas explicam o limite e criam leitura vertical forte | horizonte repetitivo; zombies podem sofrer em declives extremos | Alta para uma arena mais tensa e controlada |
-| **Arquipélago** | zonas muito distintas e forte identidade visual | pontes/barcos fragmentam a navegação e as hordas; streaming mais complexo | Baixa nesta fase; interessante para expansão futura |
+| **Arquipélago** | zonas muito distintas, recompensas exclusivas e reutilização temática dos modelos existentes | barcos fragmentam navegação/hordas e exigem streaming por zona | **Alta como expansão**, depois de validar uma ilha piloto e o transporte |
 | **Massa continental aberta** | máxima liberdade para estradas e cidade | o bordo quadrado volta a ser visível; exige limites artificiais | Média, se a cidade densa for novamente a prioridade |
 | **Terreno real por DEM** | formas naturais credíveis e rápidas de obter | escala, ruído, licença da fonte e legibilidade de gameplay | Média como matéria-prima; não deve ser usado sem edição |
 
@@ -48,6 +53,54 @@ Three.js pode gerar ou visualizar geometria e exportar glTF/GLB, mas não resolv
 por si só o design do mapa, a colisão, a navegação, os LODs ou a edição no Godot.
 Para o chão contínuo, Terrain3D com heightmap é a base mais apropriada; Three.js
 fica útil para ferramentas específicas ou protótipos, não como editor principal.
+
+## Expansão recomendada: arquipélago modular
+
+A melhor solução não é aumentar já o Terrain3D atual para um oceano gigante.
+Recomenda-se uma arquitetura híbrida:
+
+- cada **zona marítima** contém 2–4 ilhas próximas, visíveis e navegáveis sem
+  loading durante o percurso curto;
+- viagens maiores ligam zonas separadas, carregando o próximo conjunto enquanto
+  o barco atravessa um corredor de mar ou uma transição curta;
+- só a ilha onde o jogador está mantém zombies, navegação, colisão detalhada,
+  loot e interiores ativos; ilhas distantes usam silhuetas/LOD muito leves;
+- o diretor de horda pausa no oceano e retoma com uma composição própria ao
+  desembarcar, sempre dentro do teto global de 90 inimigos;
+- a primeira versão do barco deve ser um `CharacterBody3D` simples, estável e
+  previsível. Ondas e física naval avançada ficam para depois do loop funcionar.
+
+### Catálogo inicial de ilhas
+
+| Ilha | Dimensão indicativa | Forma | Modelos já disponíveis | Conteúdo exclusivo possível |
+|---|---:|---|---|---|
+| Home Island | atual, ~440 m de diâmetro | grande e irregular | acampamento + terreno atual | base, upgrades e extração principal |
+| Ironworks | 160 × 110 m | comprida, porto numa ponta | Kenney Factory/City Industrial, armazém e fuel station | blueprints Heavy, muito Scrap, Brutes |
+| Quarantine Key | 120 × 90 m | crescente com baía interior | hospital/police facades e City Commercial | skills de suporte, medkits raros, Spitters |
+| Fort Breaker | 90 × 70 m | compacta e elevada | Military Outpost, Quaternius/Kenney props | armas e munição exclusiva, encontro de elite |
+| Mourning Isle | 80 × 60 m | assimétrica, floresta densa | Graveyard Kit + Mini Forest | variante rara, boss/noturno, mastery |
+| Shipwreck Rocks | 25–50 m | micro-ilhas/rochedos | carros, caixas, cercas e destroços existentes | caches, beacon, eventos curtos |
+
+As dimensões são alvos de protótipo, não uma grelha obrigatória. Cada ilha deve
+ter costa própria, dois pontos de desembarque no máximo, uma silhueta reconhecível
+e uma razão concreta para ser visitada.
+
+### Dados necessários antes da segunda ilha
+
+Um futuro `IslandData` deve declarar `island_id`, tamanho/bounds, cena ou pasta
+Terrain3D, conteúdo visual, pontos de desembarque, tabela de loot, pesos de
+inimigos, requisito de desbloqueio e recompensa exclusiva. Descoberta, loot
+único e bosses derrotados ficam persistidos por `island_id`; zombies vivos e
+Scrap transportado continuam estado da run.
+
+### Ordem de implementação
+
+1. manter a ilha principal e validar a nova barreira offshore;
+2. criar **Shipwreck Rocks** como ilha piloto sem zombies e sem barco livre;
+3. adicionar um transporte automático entre dois cais;
+4. adaptar mapa tático e save à descoberta da ilha;
+5. criar **Ironworks** com um único lote do Factory Kit e um encontro exclusivo;
+6. só depois tornar o barco controlável e acrescentar novas zonas marítimas.
 
 ## Layout recomendado para a ilha
 
@@ -82,17 +135,23 @@ Princípios:
 - caminhos principais permitem circulação de uma horda larga;
 - de qualquer zona jogável existe um landmark reconhecível;
 - o acampamento continua nivelado e ligado a pelo menos duas rotas;
-- benchmark de 140 zombies não sofre uma regressão material face à baseline;
+- benchmark de 90 zombies não sofre uma regressão material face à baseline;
 - o mapa tático passa a representar costa, água e setores parcialmente terrestres.
 
-## Próximas decisões
+## Estado dos critérios e próximas decisões
 
-1. Fazer playtest da ilha vazia e aprovar escala, declives e linha de costa.
-2. Esculpir duas rotas terrain-native e três ligações entre elas.
-3. Escolher quatro landmarks sem reutilizar edifícios antigos por defeito.
-4. Definir biomas e texturas: praia, planície, floresta/serra e zona industrial.
-5. Só depois reintroduzir modelos, por lotes pequenos e com orçamento de render.
-6. Decidir natação, dano/retorno na água ou barreira costeira natural.
+- [x] Costa livre; barreira persistente 24 m offshore, contínua acima da água e
+  abaixo do fundo marinho, sem paredes quadradas depois do mar.
+- [x] Dois anéis e três ligações largos, secos e com declive amostrado até 0,415.
+- [x] Cinco tipos de inimigo com os ossos dos pés a 0,00 m do terreno nos testes.
+- [x] Quatro landmarks de relevo e cinco zonas de material sem modelos externos.
+- [x] Mapa tático com costa, água, caminhos e setores parcialmente terrestres.
+- [x] Playtest automatizado em doze pontos dos caminhos e grelha de declives a 4 m.
+- [ ] Fazer o playtest humano prolongado da ilha e ajustar ritmo, visibilidade e
+  rotas de fuga segundo a sensação real de jogo.
+- [ ] Reintroduzir modelos apenas por lotes pequenos com orçamento de render.
+- [ ] Decidir se no futuro a barreira dá lugar a natação, dano ou retorno à margem.
+- [ ] Implementar Shipwreck Rocks como primeira ilha piloto do arquipélago.
 
 ## Referências técnicas
 
@@ -102,4 +161,3 @@ Princípios:
 - Preparação de heightmaps: <https://terrain3d.readthedocs.io/en/latest/docs/heightmaps.html>
 - Navegação sobre Terrain3D: <https://terrain3d.readthedocs.io/en/stable/docs/navigation.html>
 - Preparação de texturas: <https://terrain3d.readthedocs.io/en/stable/docs/texture_prep.html>
-

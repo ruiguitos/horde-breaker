@@ -17,7 +17,7 @@ não é cenário decorativo. Cinco exigências, por ordem de importância:
 1. **Legibilidade em pânico.** Com 100 zombies atrás, o jogador tem de saber
    para onde fugir *sem* abrir o mapa. Isto decide quase toda a estrutura.
 2. **Ritmo alternado.** Espaços abertos (arma de longo alcance útil, horda
-   espalha-se) alternados com apertados (melee e AoE brilham, horda concentra-se).
+   espalha-se) alternados com apertados (shotgun e AoE brilham, horda concentra-se).
    Um mapa todo aberto ou todo apertado torna metade do arsenal inútil.
 3. **Risco espacial.** O loot bom tem de estar onde é perigoso ir buscá-lo, e
    o caminho de volta tem de ser pior que o de ida.
@@ -190,7 +190,12 @@ Com Forward+ há folga (140 inimigos a 143 FPS), mas o mapa deve ajudar:
 |---|---|
 | **Demolição** | gerador procedural de estradas, `city_layout_generator`, `road_graph`, `sector_edge_contract`, `city_layout_rules` e o debug overlay removidos (863 linhas) |
 | **Terrain3D integral** | 9 regiões persistentes cobrem os 64 setores e substituem o chão plano visível |
-| **Renderer** | Forward+: 140 inimigos com Terrain3D medidos a 123,2 FPS |
+| **Costa** | barreira invisível persistente com 128 segmentos e espuma num único mesh; paredes quadradas removidas |
+| **Percursos** | anel interior, anel costeiro e três ligações, nivelados na própria altura do terreno |
+| **Biomas** | praia, relva, floresta norte/oeste, zona seca leste e rocha por altura/declive |
+| **Landmarks** | Twin Ridge, Red Plateau, West Rise e South Cape, também identificados no mapa tático |
+| **Mapa tático** | setores recortados pela silhueta costeira; mar, caminhos e landmarks visíveis |
+| **Renderer** | Forward+: 140 inimigos medidos a 99,6 FPS nesta passagem visual |
 | **Camadas GridMap** | `MapRoads`, `MapStructures`, `MapProps` mantidas vazias apenas como pontos de extensão |
 | **Navegação** | vértices dos setores seguem a mesma função de altura do terreno; sem bloqueios invisíveis |
 | **Gerador** | passou a colocar **só conteúdo** (caches, munições, arma, spawns); 894 → 339 linhas |
@@ -200,10 +205,12 @@ Com Forward+ há folga (140 inimigos a 143 FPS), mas o mapa deve ajudar:
 
 ### ❌ Falta
 
-- **Playtest do relevo** — declives, pés, rotas de fuga e visibilidade.
-- **Caminhos terrain-native** — definir ligações macro antes de adicionar meshes.
-- **Biomas e landmarks** — estabelecer linguagem visual e orçamento por setor.
-- **POIs** — reintroduzir apenas depois dos percursos estarem aprovados.
+- **Playtest humano prolongado** — sensação dos declives, rotas de fuga,
+  visibilidade e leitura espacial; os testes técnicos automáticos já passam.
+- **POIs e dressing** — reintroduzir por lotes pequenos depois da aprovação dos
+  percursos, sem voltar a preencher a ilha inteira com a cidade antiga.
+- **Otimização visual** — recuperar parte da baseline anterior sem retirar a
+  leitura dos caminhos, biomas e costa; a medição atual continua acima de 60 FPS.
 
 ### Ferramentas
 

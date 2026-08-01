@@ -1132,3 +1132,137 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   a grelha quadrada e não desenha a costa. Faltam caminhos terrain-native,
   texturas/espuma finais, biomas, landmarks e playtest dos declives. O aviso de
   depreciação do addon oficial no Godot 4.7 mantém-se.
+
+## Costa segura, caminhos e contacto animado com o terreno (2026-08-01)
+
+- [x] `Terrain3DCoastline` substitui as paredes quadradas exteriores por um
+  `StaticBody3D` persistente com 128 segmentos derivados da linha costeira. A
+  barreira fica antes do mar, acompanha toda a ilha e impede a queda para fora
+  dos dados Terrain3D; os setores do perfil `world` deixaram de criar
+  `OuterWalls` para lá da água.
+- [x] A mesma costa gera uma faixa de espuma animada com 256 segmentos numa
+  única superfície. O terreno ganhou dois caminhos em anel e três ligações,
+  praia, relva, floresta norte/oeste, zona seca leste e rocha por altura/declive.
+  Twin Ridge, Red Plateau, West Rise e South Cape servem de landmarks sem
+  reintroduzir casas, estradas ou props antigos.
+- [x] O mapa tático já não apresenta os cantos marítimos como terreno quadrado:
+  cada setor é recortado pelo polígono da costa, com mar, caminhos e landmarks.
+  A grelha permanece apenas como referência dos setores terrestres.
+- [x] O erro visual dos inimigos foi medido nos rigs, não apenas na origem do
+  `CharacterBody3D`: Normal, Runner, Brute, Spitter e Boss alinham agora o
+  `VisualRoot` pelo osso `Foot` mais baixo depois da animação. Modelos Terrain3D
+  são tratados como grounded e o cálculo respeita o orçamento de animação.
+- [x] Playtest técnico: dois anéis + três ligações secos; declive máximo 0,415
+  nos caminhos e 0,710 na grelha jogável amostrada; doze aterragens do jogador
+  sem falhas; quatro landmarks acessíveis. A barreira foi atingida em 32/32
+  amostras e os cinco tipos de inimigo ficaram com erro de contacto de 0,000 m.
+- [x] Regressão: `test_enemy_grounding` 6/6, `test_world_edge` 6/6,
+  `test_terrain_routes` 7/7, `test_terrain3d_world` 35/35, `test_minimap` 17/17
+  e mais nove suites relacionadas passaram; **278 verificações, zero falhas**.
+  Capturas Forward+ confirmaram costa/espuma/caminhos, mapa insular e os cinco
+  inimigos em contacto com o chão.
+- [x] Forward+ na RX 590, 1152 × 648, 140 zombies: **99,6 FPS**, 10,04 ms de
+  média, mediana 11,26 ms, p95 14,95 ms, 2015 draw calls e 5 507 405 primitivas.
+  Continua acima do alvo de 60 FPS, mas fica registada a regressão face aos
+  124,4 FPS anteriores para o passe de otimização planeado. Arranque headless:
+  3,37 s até jogável, com quatro setores residentes.
+- Limitações atuais: falta o playtest humano prolongado de ritmo, visibilidade e
+  rotas de fuga; os POIs/dressing terrain-native continuam fora da arena; o mar
+  não tem natação porque a barreira o torna apenas visual. Mantém-se o aviso de
+  depreciação `instance_reset_physics_interpolation()` do Terrain3D 1.0.2 e o
+  aviso conhecido de sincronização das margens da navegação no teste rápido.
+
+## Passe visual dos menus de progressão (2026-08-01)
+
+- [x] O menu principal deixou de usar a antiga grelha urbana. O fundo mostra
+  agora uma pequena ilha com trilho, floresta e acampamento, composta apenas com
+  assets Kenney CC0 já presentes no projeto. A cena continua leve e independente
+  do Terrain3D para não carregar o mapa integral dentro do menu.
+- [x] A escala responsiva do menu principal ficou limitada a `1.16`, evitando
+  que título, botões e cartão da personagem dominem ecrãs grandes. O loadout usa
+  uma linha por slot, o cartão tem mais espaço útil e os textos de protocolo,
+  extração e perfil local ficaram coerentes com o jogo atual.
+- [x] A seleção de classes ganhou estado de roster/seleção, cartões que ocupam a
+  altura útil, preview melhor enquadrado e um perfil base por personagem com
+  vida, bónus de reload e regeneração. Os dados são lidos de `CharacterData`,
+  não duplicados no script.
+- [x] A Skill Tree centra cada árvore verticalmente, mostra progresso por ramo
+  e seleciona automaticamente a primeira skill desbloqueável. O painel inferior
+  deixa assim de abrir vazio e mantém a confirmação existente para gastar pontos.
+- [x] O Armory mostra de imediato quantas armas são próprias, compráveis ou
+  bloqueadas por nível, o estado dos dois slots e a quantidade de itens em cada
+  categoria. Compra, evolução e equipar/trocar slots mantêm o comportamento anterior.
+- [x] Validação Forward+ com capturas reais a 1705 × 954 e 1152 × 648 nos quatro
+  ecrãs, sem cortes nem sobreposição. A importação headless passou; as suites
+  `test_skill_tree` e `test_balance_and_weapons` passaram **191 verificações**,
+  zero falhas.
+- Limitações: o fundo do menu é uma representação leve da ilha, não uma segunda
+  instância do Terrain3D. Este passe visual não alterou saves nem regras de
+  progressão; a retirada melee foi tratada na etapa seguinte.
+
+## Orçamento global da horda e retirada das armas melee (2026-08-01)
+
+- [x] O diretor passou a aplicar um orçamento global a todos os nós do grupo
+  `enemy`, incluindo horda itinerante, boss, emboscadas e encontros dos POIs.
+  O teto normal configurável é 90 e existe uma guarda absoluta de 120 para
+  impedir que uma alteração acidental na cena crie uma horda sem limite.
+- [x] Pedidos de spawn ficam limitados a 12 reservas e o diretor instancia no
+  máximo 2 inimigos por frame de física. A fila reserva capacidade antes de
+  criar nós, encontros de exploração recusam excesso e bosses esperam por uma
+  vaga. A fase final continua a limpar a fila para tornar a horda finita.
+- [x] Worn Sword, Cleaver, Spear e Fire Axe foram retiradas do catálogo ativo,
+  categorias do ARMORY, pickups do mapa, evoluções, ícones da UI, HUD e ligações
+  de animação/ataque. Os loadouts passam a Recruit AR/Pistol, Renegade
+  Shotgun/SMG e Medic Pistol/SMG.
+- [x] BERSERKER deixou de depender de lifesteal melee: mantém 110 HP e passa a
+  dar +20% de dano a todas as armas de fogo do loadout.
+- [x] Saves antigos são migrados ao carregar: compras e slots melee são
+  removidos/substituídos pelos loadouts válidos, sem apagar contadores
+  históricos como `kills_worn_sword`. O teste constrói um save legado real e
+  confirma a migração dos três personagens.
+- [x] `docs/CONTENT_EXPANSION_PLAN.md` define a matriz antes de acrescentar
+  conteúdo: Heavy Gunner, Recon Scout, Field Engineer e Demolitionist têm
+  loadouts, passivos, dependências e módulos de skills distintos. Heavy Gunner
+  é o vertical slice recomendado; nenhuma classe nova foi criada nesta etapa.
+- [x] Validação: orçamento de spawn 7/7, migração melee 13/13, arsenal e balanço
+  51/51, pickups/horda 27/27 e extração em cinco fases 37/37 — **135 verificações,
+  zero falhas**. A importação no editor headless terminou sem erros de script.
+- [x] Benchmark Forward+ na RX 590, 1152 × 648, com o novo teto de 90 zombies:
+  **114,8 FPS**, média 8,71 ms, mediana 7,65 ms, p95 16,08 ms, pior frame
+  40,29 ms, 1568 draw calls e 3 515 837 primitivas.
+- Limitações: os `.tres`, cenas e o script melee legados permanecem no
+  repositório, inalcançáveis pelo jogo, para permitir rollback durante a
+  validação da migração; podem ser apagados numa limpeza posterior. Falta um
+  playtest humano dos novos loadouts e do ritmo real no teto de 90. Mantêm-se o
+  aviso de depreciação do Terrain3D ao encerrar e o ruído conhecido de
+  `ScrapPickup` no teardown do teste de extração.
+
+## Barreira offshore e conceito de arquipélago (2026-08-01)
+
+- [x] A parede invisível deixou de coincidir com o início da água. O
+  `Terrain3DCoastline` reutiliza a silhueta da costa, mas coloca o backstop
+  **24 m offshore**, deixando praia, espuma e uma faixa real de mar livres.
+- [x] A colisão vertical passou a cobrir desde 1 m abaixo do fundo marinho até
+  8 m acima da superfície. Assim, mover a parede para o mar não abre uma
+  passagem por baixo quando o jogador desce para o seabed.
+- [x] `test_world_edge` valida 32 direções: costa sem colisão 32/32, parede
+  contínua à superfície 32/32, contínua no fundo 32/32, totalmente submersa
+  32/32 e dentro dos limites Terrain3D 32/32. Resultado total: **11/11**.
+- [x] Regressão adicional: `test_terrain3d_world` 35/35,
+  `test_terrain_routes` 7/7 e `test_minimap` 17/17. Com a borda são **70
+  verificações, zero falhas**; editor e cena principal arrancaram sem erros de
+  script.
+- [x] O arquipélago ficou aprovado como expansão modular, não como aumento
+  imediato do mapa atual. A proposta usa zonas marítimas com 2–4 ilhas próximas,
+  carrega zonas distantes separadamente e só mantém IA/colisão detalhada na ilha
+  ativa. Isto preserva o teto de 90 zombies e o orçamento de render.
+- [x] `docs/TERRAIN_MAP_OPTIONS.md` regista seis escalas/temas: Home Island,
+  Ironworks, Quarantine Key, Fort Breaker, Mourning Isle e Shipwreck Rocks.
+  Factory/Industrial, Commercial, Military Outpost, Graveyard e Mini Forest já
+  existentes no repositório são os kits propostos; não foram importados assets.
+- Limitações: ainda não existe natação, dano de água nem barco. Nesta etapa foi
+  corrigido apenas o backstop da ilha atual e definido o plano; nenhuma ilha
+  adicional foi gerada. O primeiro protótipo recomendado é Shipwreck Rocks com
+  transporte automático entre dois cais, antes de implementar barco controlável.
+  Mantêm-se os avisos conhecidos de depreciação do Terrain3D, sincronização das
+  margens da navegação e leaks de encerramento do runner headless.

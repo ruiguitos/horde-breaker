@@ -25,7 +25,10 @@ Forward+), GDScript tipado, sem C#.
 
 - `wave_manager.gd` — **diretor de horda contínuo**: threat level sobe a cada
   75 s, spawns em lotes nos 6 pontos mais próximos (≥ 12 m do jogador), pesos por
-  tipo, boss a cada 5 níveis, `cycle_completed` a cada 3 níveis.
+  tipo, boss a cada 5 níveis, `cycle_completed` a cada 3 níveis. Um orçamento
+  global inclui todos os nós do grupo `enemy`: máximo normal de 90, guarda
+  absoluta de 120, fila de 12 reservas e instanciação limitada a 2 por frame.
+  Emboscadas, POIs e boss respeitam o mesmo teto.
 - `world_streamer.gd` — grelha 8 × 8; setores gerados construídos em
   **WorkerThreadPool** e adicionados prontos à árvore; carga a 72 m, descarga a
   96 m; estado por setor em memória (loot, arma, emboscada) + emboscadas
@@ -35,13 +38,22 @@ Forward+), GDScript tipado, sem C#.
   os 512 × 512 m, aplica o shader leve, quatro LODs e colisão dinâmica a 48 m.
   A cena contém também um único plano de água; o mar não altera os recursos de
   altura nem cria uma segunda superfície física.
+- `terrain3d_coastline.gd` — deriva 128 segmentos da costa determinística e
+  constrói um único `StaticBody3D` persistente 24 m offshore. A parede vai da
+  margem inferior do fundo marinho até 8 m acima da água, deixando costa/espuma
+  livres sem permitir passar por baixo. A curva original continua a gerar uma
+  faixa de espuma animada com uma superfície e um draw call.
 - `sector_generator.gd` — não constrói geometria visível: coloca caches, caixa
-  de munições, caixa de arma (~1/3), spawn markers, limites e navegação sobre a
-  altura determinística do Terrain3D. Na ilha, rejeita colocações submersas e
-  não gera polígonos de navegação abaixo da linha costeira.
+  de munições, caixa de arma (~1/3), spawn markers e navegação sobre a altura
+  determinística do Terrain3D. Na ilha, rejeita colocações submersas, não gera
+  polígonos abaixo da costa e já não cria as antigas paredes quadradas exteriores.
 - `normal_zombie.gd` — no mapa principal consulta `Terrain3DWorld` e usa a altura
-  dos dados realmente carregados; não repete a fórmula do gerador. Isto permite
-  esculpir ou importar um heightmap sem fazer os inimigos flutuar.
+  dos dados realmente carregados; não repete a fórmula do gerador. Além da
+  origem física, mede os ossos `Foot` do rig depois da animação e corrige
+  `VisualRoot`, respeitando o orçamento que congela animações distantes.
+- `tactical_map.gd` — recorta cada setor pelo polígono costeiro; desenha mar,
+  dois anéis de caminho, três ligações e os quatro landmarks sem apresentar os
+  cantos marítimos como terreno quadrado.
 - `arena_navigation.gd` — grelha de navegação em runtime que exclui células
   ocupadas por `navigation_blocker`. **Decisão:** navmesh de editor não se
   aplica — os setores são gerados em runtime; a grelha é construída na worker
@@ -79,18 +91,20 @@ Forward+), GDScript tipado, sem C#.
   (`SpringArm3D`), `InteractionArea` (mask 8), mapa tático em CanvasLayer.
   `renegade.tscn`/`medic.tscn` herdam e trocam o modelo (`ClassModel`).
 - `imported_model_animation.gd` — componente único de animação por nomes de
-  clips: locomoção (idle/walk/run/crouch/airborne) conforme o estado do corpo e
-  a arma ativa (gun vs melee), `Slash`/`Stab` no melee, e por sinais do corpo:
+  clips: locomoção (idle/walk/run/crouch/airborne) com postura de arma de fogo e,
+  por sinais do corpo:
   `attacked` → `Idle_Attack`, `health_changed` → `HitReact` (cooldown 0,9 s),
-  `died` → `Death` (trava a locomoção).
+  `died` → `Death` (trava a locomoção). Corpos alinhados pela altura Terrain3D
+  contam como grounded mesmo sem colisão facetada, evitando a pose airborne.
 - `normal_zombie.gd` — base dos inimigos: perseguição por `NavigationAgent3D`
   com repath 0,35 s escalonado; **orçamento de IA**: > 40 m o repath passa a
   1,2 s e o steering (query de caminho) é cacheado e refrescado a 0,3 s; modo
   ranged (Spitter) aproxima/recua/dispara; morte deixa cadáver 2,5 s sem
   colisão/grupos/hitboxes. O alvo é reavaliado a cada 0,75 s entre o jogador e
   torres construídas, evitando uma pesquisa por frame. No mapa Terrain3D, os
-  zombies consultam diretamente a altura e deixam a colisão facetada apenas ao
-  jogador. `boss_breaker.gd` estende com invocação periódica.
+  zombies consultam diretamente a altura, alinham os pés animados e deixam a
+  colisão facetada apenas ao jogador. `boss_breaker.gd` estende com invocação
+  periódica.
 - Dano por zonas via `DamageHitbox` (Area3D corpo 1× / cabeça 2×) separado da
   cápsula física.
 
@@ -100,7 +114,8 @@ Forward+), GDScript tipado, sem C#.
   em runtime (`equip_field_weapon`), sinal `active_weapon_changed`.
 - `hitscan_weapon.gd` — raycast câmara→ponto + cano→impacto, dano por zonas,
   munição carregador/reserva, recarga, **auto-fire a 6 m** com raycasts
-  throttled; `melee_weapon.gd` — golpe frontal em área.
+  throttled. O catálogo ativo só aceita as categorias de armas de fogo;
+  ficheiros melee legados permanecem fora do catálogo para permitir rollback.
 - Pickups (`scrap/ammo/health/weapon`): auto-pickup por corpo (layer 2) para
   Scrap/munições, `F` para medkit/armas; sinais `collected` alimentam o estado
   por setor.
@@ -114,7 +129,8 @@ Forward+), GDScript tipado, sem C#.
 `player`, `enemy`, `enemy_target`, `enemy_spawn_point`, `weapon_controller`,
 `wave_manager`, `camp_economy`, `world_streamer`, `camp_core`, `defense_tower`,
 `point_of_interest`, `navigation_blocker`, `scrap_pickup`/`ammo_pickup`/
-`health_pickup`/`weapon_pickup`, `world_sector`, `poi_interior_point`.
+`health_pickup`/`weapon_pickup`, `world_sector`, `poi_interior_point`,
+`shoreline_boundary`, `terrain3d_coast_foam`.
 
 ## Save (`ConfigFile`)
 
@@ -123,16 +139,19 @@ Forward+), GDScript tipado, sem C#.
   Vector2i), **east_beacon_activated**.
 - `[<classe>]` — unlocked, level, xp, skill_nodes, purchased_weapons,
   selected_primary/secondary_weapon, **mastery_<objetivo>**.
+- Ao carregar um save antigo, `SaveManager` remove IDs melee das compras e
+  substitui slots inválidos pelos loadouts Recruit AR/Pistol, Renegade
+  Shotgun/SMG e Medic Pistol/SMG. Contadores históricos de abates são preservados.
 
 ## Dados estáticos
 
-`CharacterData`, `WeaponData` (`data/characters`, `data/weapons`, incluindo a
-Spear do Medic) como
-`Resource` tipados; `WaveData` legado (não usado pelo diretor contínuo).
+`CharacterData`, `WeaponData` (`data/characters`, `data/weapons`; o catálogo
+ativo contém apenas armas de fogo) como `Resource` tipados; `WaveData` legado
+(não usado pelo diretor contínuo).
 
 ## Validação
 
 Headless: `--import` (parsing), cena N frames (`--quit-after`), scripts
-`extends SceneTree` com asserts `TEST:`/`TEST FAIL:`; capturas OpenGL com
-`--rendering-driver opengl3` + `get_viewport().get_texture()`. Autoloads só
-estão na árvore após o primeiro `process_frame` num script `--script`.
+`extends SceneTree` com asserts `TEST:`/`TEST FAIL:`; capturas no renderer
+Forward+ com `get_viewport().get_texture()`. Autoloads só estão na árvore após
+o primeiro `process_frame` num script `--script`.

@@ -28,8 +28,8 @@ progressão permanente (XP, skill tree, mastery, Credits) transita entre partida
 Três classes com loadout primário/secundário (`1`/`2`) e passivos:
 
 - **Recruit** (Assault): Assault Rifle + Pistol; recarrega 30% mais rápido.
-- **Renegade** (Vanguard): Shotgun + Worn Sword; 150 de vida. Desbloqueio: 500 Credits.
-- **Medic** (Support): Pistol + Spear; regenera 3 HP/s após 4 s sem dano.
+- **Renegade** (Vanguard): Shotgun + SMG; 150 de vida. Desbloqueio: 500 Credits.
+- **Medic** (Support): Pistol + SMG; regenera 3 HP/s após 4 s sem dano.
   Desbloqueio: 750 Credits.
 
 Movimento: andar 4 m/s, correr 7 m/s (`Shift`), salto (`Space`), agachar
@@ -41,7 +41,8 @@ direito), mapa tático (`Tab`).
 - **Hitscan** com dano por zonas: corpo 1×, cabeça 2×.
 - **Disparo automático por proximidade**: armas de fogo disparam sozinhas contra
   o inimigo visível mais próximo até **6 m**; disparo manual continua disponível.
-- **Melee** (Worn Sword) com golpe frontal em área e headshot apontado.
+- O arsenal jogável é exclusivamente de armas de fogo; as armas melee foram
+  retiradas do catálogo, pickups, evoluções e loadouts.
 - Feedback: números de dano, flash no inimigo, HitReact, sons sintetizados,
   hit-marker, knockback ao jogador (Brute/Boss).
 
@@ -62,10 +63,13 @@ destruição de uma torre não termina a run.
 
 **Diretor de horda contínuo**: spawns em lotes nos pontos mais próximos do
 jogador (≥ 12 m), nível de ameaça sobe a cada 75 s (mais inimigos, tipos mais
-pesados, intervalos mais curtos), boss a cada 5 níveis. Um "ciclo" = 3 níveis de
-ameaça (recompensa 100 Credits, reposição de loot dos POIs, re-arme das
-emboscadas). Ao morrer, o inimigo toca a animação de morte e o cadáver
-desaparece pouco depois.
+pesados, intervalos mais curtos), boss a cada 5 níveis. O orçamento global é de
+90 inimigos ativos, partilhado por horda, boss, emboscadas e POIs, com uma
+barreira absoluta de 120. A fila reserva no máximo 12 spawns e instancia apenas
+2 por frame de física; acima do teto, a dificuldade cresce pela composição e
+não pela quantidade. Um "ciclo" = 3 níveis de ameaça (recompensa 100 Credits,
+reposição de loot dos POIs, re-arme das emboscadas). Ao morrer, o inimigo toca
+a animação de morte e o cadáver desaparece pouco depois.
 
 ## Mundo aberto
 
@@ -73,19 +77,30 @@ desaparece pouco depois.
   persistente ocupa `(-1,-1)`; os restantes setores carregam conteúdo por seed
   em worker threads.
 - O protótipo atual assume uma ilha grande: costa irregular, água a `Y = -3 m`,
-  fundo marinho a `Y = -6 m` e três massas de relevo usadas como orientação.
-  Spawns, loot e navegação são excluídos das zonas submersas. As alternativas e
-  critérios estão registados em `docs/TERRAIN_MAP_OPTIONS.md`.
+  fundo marinho a `Y = -6 m`, um anel interior, um anel costeiro e três ligações
+  entre ambos. Twin Ridge, Red Plateau, West Rise e South Cape funcionam como
+  landmarks terrain-native. Spawns, loot e navegação são excluídos das zonas
+  submersas. As alternativas e critérios estão em `docs/TERRAIN_MAP_OPTIONS.md`.
+- Uma barreira física invisível e persistente segue a forma da ilha **24 m para
+  dentro do mar**. A praia e o início da água ficam livres; a parede só funciona
+  como último backstop antes do fim dos dados Terrain3D e estende-se abaixo do
+  fundo marinho. Substitui as antigas paredes quadradas geradas por setor.
 - **O seed do mundo é fixo por perfil** (guardado no save): o layout mantém-se
   entre partidas. Loot volta a cada partida — decisão de design: mundo familiar,
   exploração sempre recompensada.
-- Nesta passagem o exterior do acampamento mostra **apenas terreno e água**. Casas,
-  estradas, props e POIs autorados foram retirados para reconstruir o mapa sobre
-  uma base limpa; caches, munições, caixas de arma e spawns continuam ativos.
+- Nesta passagem o exterior do acampamento mostra **apenas terreno e água**,
+  incluindo caminhos de terra, praia com espuma e variação de relva, floresta,
+  zona seca e rocha. Casas, estradas, props e POIs autorados continuam retirados;
+  caches, munições, caixas de arma e spawns permanecem ativos.
 - **Emboscadas por setor** ao aproximar, re-armadas a cada ciclo.
 - Setores **visitados persistem no save** (memória do mapa tático).
 - Os POIs antigos (hospital, armazém, posto militar, combustível e variantes)
   estão temporariamente fora da arena até existir um passe terrain-native.
+- **Expansão futura aprovada em conceito:** um arquipélago modular com ilhas de
+  dimensões, silhuetas, biomas e conteúdo exclusivos. Ilhas próximas podem ser
+  navegáveis na mesma zona marítima; zonas distantes carregam separadamente para
+  manter IA, colisão e render apenas na área ativa. Os modelos Kenney/Quaternius
+  já existentes podem regressar por tema, sem voltar a encher a ilha principal.
 
 ## Acampamento
 
@@ -109,8 +124,8 @@ desaparece pouco depois.
 - **Scrap**: moeda da partida (desaparece no fim).
 - **Credits**: moeda permanente (ciclos e mastery) — desbloqueia classes e armas.
 - **Character XP**: por classe, **sem teto de nível**; 1 skill point a cada 2 níveis.
-- **Skill tree permanente** por classe: 3 ramos (Offense/Survival/Expedition) ×
-  5 tiers com pré-requisitos e níveis mínimos 2/5/9/14/20 (dano, cadência,
+- **Skill tree permanente** por classe: 3 ramos (Offense/Survival/Expedition),
+  36 nós em 7 tiers com pré-requisitos e níveis mínimos 2/4/7/10/14/18/24 (dano, cadência,
   recarga, vida, regen, redução de dano, velocidade, reserva de munição,
   +Scrap, +XP).
 - **Arsenal permanente**: o ecrã `ARMORY` permite comprar armas elegíveis com
@@ -122,32 +137,36 @@ desaparece pouco depois.
 - **Variantes de classe** (capstone da mastery, alternáveis na seleção; não são
   personagens novos — XP/skills/mastery/armory continuam da classe base):
   **VETERAN** (Recruit: troca a recarga rápida por +15% cadência),
-  **BERSERKER** (Renegade: 110 HP, melee rouba 2 HP por golpe),
+  **BERSERKER** (Renegade: 110 HP, todas as armas de fogo causam +20% de dano),
   **COMBAT MEDIC** (Medic: regen 1,5 HP/s após 5 s, cada abate cura 5 HP).
   Com a variante ativa o modelo ganha um brilho subtil na cor da variante.
 - **Armas encontráveis**: caixas de arma nos setores substituem o slot
   secundário durante a partida; a arma trocada cai no chão e pode ser reapanhada.
+- **Expansão de conteúdo**: classes novas só entram quando tiverem papel,
+  passivo, combinação de loadout e skills específicas que não repitam as atuais.
+  A matriz aprovada e a ordem proposta vivem em `docs/CONTENT_EXPANSION_PLAN.md`.
 
 ## Direção visual
 
 Low-poly CC0 (Quaternius, Kenney e KayKit) + Terrain3D. Fora do acampamento, a
-passagem atual mostra apenas o relevo, sem cidade nem dressing. O acampamento reutiliza cercas,
-contentores, paletes, máquinas, tenda, ambulância, armas e props destes kits em
-vez de volumes graybox visíveis.
+passagem atual mostra relevo, caminhos, biomas e costa, ainda sem cidade nem
+dressing. O acampamento reutiliza cercas, contentores, paletes, máquinas, tenda,
+ambulância, armas e props destes kits em vez de volumes graybox visíveis.
 Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
 Quaternius para modelos e animações (cobre todos os movimentos necessários);
 Mixamo parqueado. As armas visíveis continuam a ser as malhas embutidas nos
 modelos; armas externas só serão reconsideradas com `BoneAttachment3D`. O
-próximo passo de arte é desenhar caminhos, biomas e POIs sobre o novo relevo sem
-reintroduzir a antiga cidade como um bloco monolítico.
+próximo passo de arte é reintroduzir POIs e dressing por pequenos lotes medidos,
+sem transformar novamente a ilha num bloco monolítico de cidade.
 
 ## Interface
 
 Menu principal, seleção de classes (com mastery), `ARMORY`, skill tree, definições
 (janela/resolução/VSync/sensibilidade/som), pausa, derrota. HUD minimalista:
 vida, munição + arma, faixa de ameaça, Scrap, feed de mensagens. Mapa tático
-(`Tab`): setores, visitados, loot, POIs, inimigos, bússola. FPS overlay (`F3`)
-com métricas de streaming.
+(`Tab`): costa e mar, caminhos, landmarks, setores terrestres recortados,
+visitados, loot, POIs, inimigos e bússola. FPS overlay (`F3`) com métricas de
+streaming.
 
 ## Princípios de design
 

@@ -26,9 +26,6 @@ const WEAPON_POOL: Array[Dictionary] = [
 	{"id": &"pistol", "name": "Pistol", "weight": 0.6},
 	{"id": &"smg", "name": "SMG", "weight": 1.0},
 	{"id": &"machine_gun", "name": "Machine Gun", "weight": 0.55},
-	{"id": &"fire_axe", "name": "Fire Axe", "weight": 0.7},
-	{"id": &"spear", "name": "Spear", "weight": 0.7},
-	{"id": &"worn_sword", "name": "Worn Sword", "weight": 0.6},
 	{"id": &"minigun", "name": "Minigun", "weight": 0.12},
 ]
 const SECTOR_HALF_SIZE := 32.0
@@ -51,7 +48,10 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 	sector.add_to_group(&"world_sector")
 	# No per-sector floor: Terrain3D supplies one continuous surface for the
 	# complete world. Sector slabs would leave seams and disappear on unload.
-	_add_outer_walls(sector, config.get("outer_walls", []))
+	# The Terrain3D island owns one persistent shoreline boundary. Streaming a
+	# second square wall per edge sector creates invisible limits out at sea.
+	if StringName(config.get("terrain_profile", &"")) != &"world":
+		_add_outer_walls(sector, config.get("outer_walls", []))
 	return {
 		"config": config,
 		"rng": rng,

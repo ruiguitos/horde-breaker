@@ -7,25 +7,19 @@ extends SceneTree
 ## it measured the tiles instead of asking the physics engine where the player
 ## actually gets stopped.
 ##
-## The island pass replaces the old ring of visible buildings with coastline.
-## This test now requires the terrain to enter the visible sea before the hidden
-## backstop is reached. The backstop remains a last safety measure, not the map's
-## visual explanation for why the player should turn around.
+## The island owns one persistent invisible barrier out at sea. It replaces the
+## streamed square walls, leaves a real band of water after the foam and remains
+## continuous from above the surface down below the seabed.
 ##
 ## Run:  <godot> --headless --path . --script res://tests/test_world_edge.gd
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const TERRAIN_DESIGN := preload("res://scripts/systems/terrain3d_world_design.gd")
-const SECTOR_SIZE := 64.0
+const SECTOR_GENERATOR := preload("res://scripts/systems/sector_generator.gd")
 const WORLD_LAYER := 1
 ## Roughly the player's girth, so the probe stops where the player would.
 const PROBE_RADIUS := 0.45
-const PROBE_HEIGHT := 1.0
-const STEP := 0.5
-## How far past the last sector centre to keep probing.
-const OVERSHOOT := 48.0
-## Frames to let the streamer build and attach the edge sectors.
-const SETTLE_FRAMES := 200
+const BARRIER_SAMPLE_COUNT := 32
 
 var _passed := 0
 var _failed := 0
@@ -43,70 +37,71 @@ func _run() -> void:
 	for _frame in 60:
 		await process_frame
 
-	var streamer := get_first_node_in_group(&"world_streamer")
 	var player := get_first_node_in_group(&"player") as Node3D
-	_check("the world streamer is present", streamer != null)
 	_check("the player is present", player != null)
 	var water := get_first_node_in_group(&"terrain3d_water") as MeshInstance3D
 	_check("the world edge is represented by a visible sea",
 		water != null and water.visible)
-	if streamer == null or player == null:
+	var boundary := get_first_node_in_group(&"shoreline_boundary") as StaticBody3D
+	_check("one persistent offshore boundary exists", boundary != null)
+	if player == null or boundary == null:
 		_report()
 		return
-
-	var grid_min: Vector2i = streamer.get(&"GRID_MIN")
-	var grid_max: Vector2i = streamer.get(&"GRID_MAX")
-	for edge in [
-		{"name": "east", "direction": Vector3.RIGHT, "sector": Vector2i(grid_max.x, 0)},
-		{"name": "west", "direction": Vector3.LEFT, "sector": Vector2i(grid_min.x, 0)},
-		{"name": "south", "direction": Vector3.BACK, "sector": Vector2i(0, grid_max.y)},
-		{"name": "north", "direction": Vector3.FORWARD, "sector": Vector2i(0, grid_min.y)},
-	]:
-		await _test_edge(player, edge)
+	_check("the player collides with world boundaries",
+		(player.collision_mask & WORLD_LAYER) != 0)
+	var coastline_system := boundary.get_parent()
+	var offshore_distance := float(
+		coastline_system.get(&"barrier_offshore_distance")
+	)
+	_check("the safety line is 24 m offshore", is_equal_approx(offshore_distance, 24.0))
+	var surface_collision_count := 0
+	var seabed_collision_count := 0
+	var clear_shore_count := 0
+	var submerged_boundary_count := 0
+	var inside_terrain_count := 0
+	for sample_index in BARRIER_SAMPLE_COUNT:
+		var angle := TAU * float(sample_index) / float(BARRIER_SAMPLE_COUNT)
+		var shore_point := TERRAIN_DESIGN.coastline_point_at(angle)
+		var point := TERRAIN_DESIGN.coastline_point_at(angle, -offshore_distance)
+		if not _point_hits_boundary(
+			Vector3(shore_point.x, TERRAIN_DESIGN.WATER_HEIGHT + 0.5, shore_point.y),
+			boundary
+		):
+			clear_shore_count += 1
+		if _point_hits_boundary(
+			Vector3(point.x, TERRAIN_DESIGN.WATER_HEIGHT + 0.5, point.y),
+			boundary
+		):
+			surface_collision_count += 1
+		if _point_hits_boundary(
+			Vector3(point.x, TERRAIN_DESIGN.SEABED_HEIGHT + 0.5, point.y),
+			boundary
+		):
+			seabed_collision_count += 1
+		if TERRAIN_DESIGN.height_at(point.x, point.y) < TERRAIN_DESIGN.WATER_HEIGHT:
+			submerged_boundary_count += 1
+		if _is_inside_terrain(point, 2.0):
+			inside_terrain_count += 1
+	_check("the shoreline itself has no invisible wall (%d/%d clear)" % [
+		clear_shore_count, BARRIER_SAMPLE_COUNT
+	], clear_shore_count == BARRIER_SAMPLE_COUNT)
+	_check("the offshore wall is continuous at the surface (%d/%d)" % [
+		surface_collision_count, BARRIER_SAMPLE_COUNT
+	], surface_collision_count == BARRIER_SAMPLE_COUNT)
+	_check("the offshore wall reaches below the seabed (%d/%d)" % [
+		seabed_collision_count, BARRIER_SAMPLE_COUNT
+	], seabed_collision_count == BARRIER_SAMPLE_COUNT)
+	_check("the complete safety line is in visible water (%d/%d)" % [
+		submerged_boundary_count, BARRIER_SAMPLE_COUNT
+	], submerged_boundary_count == BARRIER_SAMPLE_COUNT)
+	_check("the safety line remains inside Terrain3D (%d/%d)" % [
+		inside_terrain_count, BARRIER_SAMPLE_COUNT
+	], inside_terrain_count == BARRIER_SAMPLE_COUNT)
+	_test_square_sector_walls_removed()
 	_report()
 
 
-func _test_edge(player: Node3D, edge: Dictionary) -> void:
-	var sector: Vector2i = edge["sector"]
-	var direction: Vector3 = edge["direction"]
-	var start := Vector3(
-		float(sector.x) * SECTOR_SIZE, PROBE_HEIGHT, float(sector.y) * SECTOR_SIZE
-	)
-	player.global_position = start
-	for _frame in SETTLE_FRAMES:
-		await process_frame
-
-	# Three lines across the edge, so a single lucky gap cannot pass for a wall.
-	var across := Vector3(direction.z, 0.0, direction.x)
-	var dry_backstops: Array[String] = []
-	var unstopped := 0
-	for offset: float in [-18.0, 0.0, 18.0]:
-		var origin: Vector3 = start + across * offset
-		var hit := _find_first_collision(origin, direction)
-		if hit.is_empty():
-			unstopped += 1
-			continue
-		if not _crosses_visible_water(origin, direction, float(hit["distance"])):
-			dry_backstops.append("%s at %.0f m (%s)" % [
-				edge["name"], hit["distance"], hit["name"]
-			])
-	_check(
-		"the %s edge stops the player on all three lines (%d open)" % [
-			edge["name"], unstopped
-		],
-		unstopped == 0
-	)
-	_check(
-		"the %s edge crosses visible water before its backstop: %s" % [
-			edge["name"],
-			"yes" if dry_backstops.is_empty() else ", ".join(dry_backstops)
-		],
-		dry_backstops.is_empty()
-	)
-
-
-## The first solid thing along a direction, as {position, distance, name}.
-func _find_first_collision(origin: Vector3, direction: Vector3) -> Dictionary:
+func _point_hits_boundary(point: Vector3, boundary: StaticBody3D) -> bool:
 	var space := root.world_3d.direct_space_state
 	var shape := SphereShape3D.new()
 	shape.radius = PROBE_RADIUS
@@ -114,31 +109,39 @@ func _find_first_collision(origin: Vector3, direction: Vector3) -> Dictionary:
 	query.shape = shape
 	query.collision_mask = WORLD_LAYER
 	query.collide_with_areas = false
-	var travelled := 0.0
-	while travelled <= OVERSHOOT:
-		var point := origin + direction * travelled
-		query.transform = Transform3D(Basis(), point)
-		var hits := space.intersect_shape(query, 1)
-		if not hits.is_empty():
-			var collider: Node = hits[0]["collider"]
-			return {
-				"position": point,
-				"distance": travelled,
-				"name": collider.name if collider != null else "unknown",
-			}
-		travelled += STEP
-	return {}
-
-func _crosses_visible_water(
-	origin: Vector3, direction: Vector3, maximum_distance: float
-) -> bool:
-	var travelled := 0.0
-	while travelled <= maximum_distance:
-		var point := origin + direction * travelled
-		if TERRAIN_DESIGN.height_at(point.x, point.z) < TERRAIN_DESIGN.WATER_HEIGHT:
+	query.transform = Transform3D(Basis(), point)
+	for hit in space.intersect_shape(query, 16):
+		if hit["collider"] == boundary:
 			return true
-		travelled += STEP
 	return false
+
+
+func _is_inside_terrain(point: Vector2, margin: float) -> bool:
+	var terrain_min: Vector2 = TERRAIN_DESIGN.TERRAIN_ORIGIN + Vector2.ONE * margin
+	var terrain_max := (
+		TERRAIN_DESIGN.TERRAIN_ORIGIN
+		+ Vector2.ONE * (float(TERRAIN_DESIGN.TERRAIN_SIZE) - margin)
+	)
+	return (
+		point.x >= terrain_min.x and point.x <= terrain_max.x
+		and point.y >= terrain_min.y and point.y <= terrain_max.y
+	)
+
+
+func _test_square_sector_walls_removed() -> void:
+	var sector := SECTOR_GENERATOR.build_sector({
+		"id": "test_edge_sector",
+		"seed": 1234,
+		"position": Vector3(256.0, 0.0, 0.0),
+		"terrain_profile": &"world",
+		"outer_walls": [&"east"],
+		"collected_caches": [],
+		"ammo_collected": false,
+		"weapon_collected": false,
+	})
+	_check("Terrain3D sectors no longer create square outer walls",
+		sector.get_node_or_null("OuterWalls") == null)
+	sector.free()
 
 
 func _report() -> void:
