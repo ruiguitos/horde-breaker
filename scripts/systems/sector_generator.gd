@@ -4,10 +4,8 @@ extends RefCounted
 ## Fills a 64 x 64 m sector with run content from a deterministic seed: caches,
 ## ammunition, a weapon crate and enemy spawn markers.
 ##
-## It builds no geometry. The map itself — roads, pavement, buildings, props —
-## is hand-painted in the arena's GridMap layers (see docs/MAP_DESIGN.md), and
-## anything procedural placed here would land on top of it. Loot and spawns are
-## scattered over whatever was painted.
+## It builds no visible map geometry. Terrain3D supplies the continuous ground;
+## this generator adds only run content, invisible bounds and navigation.
 ##
 ## Stages must run in order: begin -> content -> finish.
 
@@ -15,6 +13,9 @@ const SCRAP_PICKUP_SCENE := preload("res://scenes/pickups/scrap_pickup.tscn")
 const AMMO_PICKUP_SCENE := preload("res://scenes/pickups/ammo_pickup.tscn")
 const WEAPON_PICKUP_SCENE := preload("res://scenes/pickups/weapon_pickup.tscn")
 const NAVIGATION_SCRIPT := preload("res://scripts/systems/arena_navigation.gd")
+const TERRAIN_WORLD_DESIGN := preload(
+	"res://scripts/systems/terrain3d_world_design.gd"
+)
 ## Weapons found while exploring. These are field pickups: they take over the
 ## secondary slot for the current run only and never touch the permanent ARMORY
 ## loadout, so a rare heavy find is a run highlight rather than a shortcut past
@@ -48,18 +49,15 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 	var sector := Node3D.new()
 	sector.name = String(config["id"]).validate_node_name()
 	sector.add_to_group(&"world_sector")
-	# No per-sector floor: the whole 4x4 grid stands on one continuous ground
-	# plane owned by the arena. Sector-sized slabs left seams at the borders and
-	# punched holes in the world whenever a sector streamed out.
+	# No per-sector floor: Terrain3D supplies one continuous surface for the
+	# complete world. Sector slabs would leave seams and disappear on unload.
 	_add_outer_walls(sector, config.get("outer_walls", []))
-	_add_sector_label(sector, String(config.get("label", "")))
 	return {
 		"config": config,
 		"rng": rng,
 		"sector": sector,
-		# Seeded with the hand-painted map, not empty: content placement has to
-		# start out knowing where the buildings are, or it drops caches inside
-		# walls. The same list already feeds the navigation bake.
+		# Empty in this terrain-only pass. The input remains ready for future
+		# terrain-native landmarks that reserve content space.
 		"blocked_areas": _get_painted_blocked_areas(
 			config.get("painted_obstacles", [])
 		),
@@ -67,11 +65,8 @@ static func begin_sector(config: Dictionary) -> Dictionary:
 
 
 static func add_content_stage(context: Dictionary) -> void:
-	# Content only. The generator no longer builds anything structural — no
-	# buildings, landmarks, containers or set dressing — because the map itself
-	# is now hand-painted in the GridMap layers and procedural geometry would
-	# land on top of it. What is left is the run's loot and where enemies come
-	# from, scattered over whatever was painted.
+	# Content only: caches, ammunition, a possible weapon and enemy spawns. The
+	# visible world remains exclusively Terrain3D in this pass.
 	var sector: Node3D = context["sector"]
 	var rng: RandomNumberGenerator = context["rng"]
 	var config: Dictionary = context["config"]
@@ -84,7 +79,11 @@ static func add_content_stage(context: Dictionary) -> void:
 
 static func finish_sector(context: Dictionary) -> void:
 	var config: Dictionary = context["config"]
-	_add_navigation(context["sector"], config.get("painted_obstacles", []))
+	_add_navigation(
+		context["sector"],
+		config.get("painted_obstacles", []),
+		config
+	)
 
 
 static func build_sector(config: Dictionary) -> Node3D:
@@ -118,7 +117,11 @@ static func _add_caches(
 		var cache := SCRAP_PICKUP_SCENE.instantiate() as Area3D
 		cache.name = "Cache%d" % cache_index
 		caches_root.add_child(cache)
-		cache.position = Vector3(placement.x, 0.25, placement.y)
+		cache.position = Vector3(
+			placement.x,
+			_get_ground_height(config, placement) + 0.25,
+			placement.y
+		)
 		if cache_callable.is_valid():
 			cache.connect(
 				&"collected",
@@ -142,7 +145,11 @@ static func _add_ammo_box(
 	var ammo_box := AMMO_PICKUP_SCENE.instantiate() as Area3D
 	ammo_box.name = "AmmoBox"
 	sector.add_child(ammo_box)
-	ammo_box.position = Vector3(placement.x, 0.25, placement.y)
+	ammo_box.position = Vector3(
+		placement.x,
+		_get_ground_height(config, placement) + 0.25,
+		placement.y
+	)
 	if ammo_callable.is_valid():
 		ammo_box.connect(
 			&"collected", ammo_callable.bind(StringName(config["id"]))
@@ -187,7 +194,11 @@ static func _add_weapon_crate(
 	crate.set(&"weapon_id", weapon_choice["id"])
 	crate.set(&"weapon_display_name", weapon_choice["name"])
 	sector.add_child(crate)
-	crate.position = Vector3(placement.x, 0.35, placement.y)
+	crate.position = Vector3(
+		placement.x,
+		_get_ground_height(config, placement) + 0.35,
+		placement.y
+	)
 	var weapon_callable: Callable = config.get("weapon_collected_callable", Callable())
 	if weapon_callable.is_valid():
 		crate.connect(
@@ -215,7 +226,11 @@ static func _add_spawn_markers(
 		marker.name = "Spawn%d" % spawn_index
 		marker.add_to_group(&"enemy_spawn_point")
 		spawns_root.add_child(marker)
-		marker.position = Vector3(placement.x, 1.0, placement.y)
+		marker.position = Vector3(
+			placement.x,
+			_get_ground_height(config, placement) + 1.0,
+			placement.y
+		)
 
 
 static func _add_outer_walls(sector: Node3D, outer_walls: Array) -> void:
@@ -249,24 +264,10 @@ static func _add_outer_walls(sector: Node3D, outer_walls: Array) -> void:
 		walls_root.add_child(wall)
 
 
-static func _add_sector_label(sector: Node3D, label_text: String) -> void:
-	if label_text.is_empty():
-		return
-	var label := Label3D.new()
-	label.name = "SectorLabel"
-	label.text = label_text
-	label.font_size = 30
-	label.outline_size = 10
-	label.modulate = Color(0.95, 0.55, 0.2, 1.0)
-	label.outline_modulate = Color(0.04, 0.02, 0.01, 1.0)
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.position = Vector3(0.0, 6.0, 0.0)
-	sector.add_child(label)
-
-
 static func _bake_navigation_mesh(
-	sector: Node3D, painted_obstacles: Array = []
+	sector: Node3D,
+	painted_obstacles: Array = [],
+	config: Dictionary = {}
 ) -> NavigationMesh:
 	# Same grid logic as arena_navigation, but computed with transforms relative
 	# to the still-detached sector so it can run off the main thread. Painted
@@ -307,10 +308,12 @@ static func _bake_navigation_mesh(
 	var vertices := PackedVector3Array()
 	for z_index in range(cell_count + 1):
 		for x_index in range(cell_count + 1):
+			var local_x := -SECTOR_HALF_SIZE + x_index * cell_size
+			var local_z := -SECTOR_HALF_SIZE + z_index * cell_size
 			vertices.append(Vector3(
-				-SECTOR_HALF_SIZE + x_index * cell_size,
-				0.0,
-				-SECTOR_HALF_SIZE + z_index * cell_size
+				local_x,
+				_get_ground_height(config, Vector2(local_x, local_z)),
+				local_z
 			))
 	navigation_mesh.vertices = vertices
 	var row_size := cell_count + 1
@@ -319,7 +322,9 @@ static func _bake_navigation_mesh(
 		var center_z := -SECTOR_HALF_SIZE + (z_index + 0.5) * cell_size
 		for x_index in range(cell_count):
 			var center_x := -SECTOR_HALF_SIZE + (x_index + 0.5) * cell_size
-			var blocked := false
+			var blocked := _is_terrain_navigation_blocked(
+				config, Vector2(center_x, center_z)
+			)
 			for blocker in blockers:
 				var center: Vector3 = blocker["center"]
 				if (
@@ -352,16 +357,44 @@ static func _get_transform_relative_to(node: Node3D, ancestor: Node3D) -> Transf
 	return result
 
 
-static func _add_navigation(sector: Node3D, painted_obstacles: Array) -> void:
+static func _add_navigation(
+	sector: Node3D,
+	painted_obstacles: Array,
+	config: Dictionary
+) -> void:
 	var navigation_region := NavigationRegion3D.new()
 	navigation_region.name = "NavigationRegion3D"
 	navigation_region.set_script(NAVIGATION_SCRIPT)
 	navigation_region.set(&"navigation_half_extent", SECTOR_HALF_SIZE)
 	# Baked here (worker thread) so entering the tree costs almost nothing.
 	navigation_region.navigation_mesh = _bake_navigation_mesh(
-		sector, painted_obstacles
+		sector, painted_obstacles, config
 	)
 	sector.add_child(navigation_region)
+
+
+static func _get_ground_height(config: Dictionary, local_position: Vector2) -> float:
+	if StringName(config.get("terrain_profile", &"")) != &"world":
+		return 0.0
+	var sector_position: Vector3 = config.get("position", Vector3.ZERO)
+	return TERRAIN_WORLD_DESIGN.height_at(
+		sector_position.x + local_position.x,
+		sector_position.z + local_position.y
+	)
+
+
+static func _is_terrain_navigation_blocked(
+	config: Dictionary, local_position: Vector2
+) -> bool:
+	if StringName(config.get("terrain_profile", &"")) != &"world":
+		return false
+	var sector_position: Vector3 = config.get("position", Vector3.ZERO)
+	return TERRAIN_WORLD_DESIGN.is_navigation_blocked(
+		Vector2(
+			sector_position.x + local_position.x,
+			sector_position.z + local_position.y
+		)
+	)
 
 
 ## The hand-placed positions for one kind of content, or an empty list when this

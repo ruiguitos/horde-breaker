@@ -4,6 +4,9 @@ extends Node3D
 ## spots inside the camp sector every run, so loot locations never repeat.
 
 const NAVIGATION_BLOCKER_GROUP := &"navigation_blocker"
+const TERRAIN_WORLD_DESIGN := preload(
+	"res://scripts/systems/terrain3d_world_design.gd"
+)
 
 @export_range(4.0, 32.0, 0.5) var placement_half_extent: float = 28.0
 @export_range(0.0, 24.0, 0.5) var minimum_center_distance: float = 8.0
@@ -30,7 +33,9 @@ func _randomize_positions() -> void:
 			)
 			continue
 		pickup.global_position = Vector3(
-			placement.x, pickup.global_position.y, placement.y
+			placement.x,
+			TERRAIN_WORLD_DESIGN.height_at(placement.x, placement.y) + 0.35,
+			placement.y
 		)
 		placed_positions.append(placement)
 

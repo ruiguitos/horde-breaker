@@ -31,6 +31,7 @@ const APPROACH_CENTERS: Array[Vector3] = [
 	Vector3(-28.0, 0.0, 0.0),
 	Vector3(28.0, 0.0, 0.0),
 ]
+const MAXIMUM_WALKABLE_SURFACE_OFFSET := 0.015
 
 var _passed := 0
 var _failed := 0
@@ -94,6 +95,7 @@ func _run() -> void:
 
 	_test_upgrade_stations(camp)
 	_test_defense_towers(camp)
+	_test_walkable_surface_alignment(visuals)
 	_test_exterior_approaches(visuals)
 	_test_navigation(camp)
 	_report()
@@ -175,6 +177,56 @@ func _test_exterior_approaches(visuals: Node3D) -> void:
 		if bool(child.get(&"shadow_enabled")):
 			shadow_light_count += 1
 	_check("exterior pass adds no shadow-casting lights", shadow_light_count == 0)
+
+
+func _test_walkable_surface_alignment(visuals: Node3D) -> void:
+	var terrain_world := get_first_node_in_group(&"terrain3d_world") as Node3D
+	var physical_top := INF
+	if terrain_world != null:
+		physical_top = float(terrain_world.call(
+			&"get_terrain_height", Vector3(-64.0, 0.0, -64.0)
+		))
+	_check("camp Terrain3D platform ends at Y = 0", is_zero_approx(physical_top))
+
+	for surface_path in ["CampFloor", "RouteNorthSouth", "RouteEastWest"]:
+		var surface := visuals.get_node_or_null(surface_path) as MeshInstance3D
+		var visual_top := _get_visual_top(surface)
+		_check(
+			"%s matches the physical floor (%.3f m)" % [surface_path, visual_top],
+			absf(visual_top - physical_top) <= MAXIMUM_WALKABLE_SURFACE_OFFSET
+		)
+	for approach_name in EXPECTED_APPROACHES:
+		var road := visuals.get_node_or_null(
+			"ExteriorApproaches/%s/DamagedRoad" % approach_name
+		)
+		var road_top := _get_visual_top(road)
+		_check(
+			"%s road matches the physical floor (%.3f m)" % [approach_name, road_top],
+			absf(road_top - physical_top) <= MAXIMUM_WALKABLE_SURFACE_OFFSET
+		)
+
+
+func _get_visual_top(root: Node) -> float:
+	if root == null:
+		return INF
+	var top := -INF
+	var meshes: Array[Node] = []
+	if root is MeshInstance3D:
+		meshes.append(root)
+	meshes.append_array(root.find_children("*", "MeshInstance3D", true, false))
+	for node in meshes:
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		var bounds := mesh_instance.mesh.get_aabb()
+		for x in [bounds.position.x, bounds.end.x]:
+			for y in [bounds.position.y, bounds.end.y]:
+				for z in [bounds.position.z, bounds.end.z]:
+					top = maxf(
+						top,
+						(mesh_instance.global_transform * Vector3(x, y, z)).y
+					)
+	return top
 
 
 func _test_navigation(camp: Node3D) -> void:

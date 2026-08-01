@@ -1,7 +1,7 @@
 # Horde Breaker — Arquitetura Técnica
 
-Sincronizado com o código real a 2026-07-22. Godot 4.7 (mono, renderer
-GL Compatibility), GDScript tipado, sem C#.
+Sincronizado com o código real a 2026-08-01. Godot 4.7 (mono, renderer
+Forward+), GDScript tipado, sem C#.
 
 ## Princípios
 
@@ -26,15 +26,16 @@ GL Compatibility), GDScript tipado, sem C#.
 - `wave_manager.gd` — **diretor de horda contínuo**: threat level sobe a cada
   75 s, spawns em lotes nos 6 pontos mais próximos (≥ 12 m do jogador), pesos por
   tipo, boss a cada 5 níveis, `cycle_completed` a cada 3 níveis.
-- `world_streamer.gd` — grelha 4 × 4; setores gerados construídos em
+- `world_streamer.gd` — grelha 8 × 8; setores gerados construídos em
   **WorkerThreadPool** e adicionados prontos à árvore; carga a 72 m, descarga a
   96 m; estado por setor em memória (loot, arma, emboscada) + emboscadas
   re-armadas por ciclo; seed do mundo, setores visitados e farol persistidos via
   `SaveManager`.
-- `sector_generator.gd` — constrói o setor por seed: estradas por quadrantes,
-  marcos `navigation_blocker`, props CC0, caches, caixa de munições, caixa de
-  arma (~1/3), **POI explorável** (~1/2: muros com porta única, cache interior,
-  marcador `point_of_interest`), spawn markers e navegação.
+- `terrain3d_world.gd` — monta nove regiões Terrain3D persistentes para cobrir
+  os 512 × 512 m, aplica o shader leve, quatro LODs e colisão dinâmica a 48 m.
+- `sector_generator.gd` — não constrói geometria visível: coloca caches, caixa
+  de munições, caixa de arma (~1/3), spawn markers, limites e navegação sobre a
+  altura determinística do Terrain3D.
 - `arena_navigation.gd` — grelha de navegação em runtime que exclui células
   ocupadas por `navigation_blocker`. **Decisão:** navmesh de editor não se
   aplica — os setores são gerados em runtime; a grelha é construída na worker
@@ -81,8 +82,9 @@ GL Compatibility), GDScript tipado, sem C#.
   1,2 s e o steering (query de caminho) é cacheado e refrescado a 0,3 s; modo
   ranged (Spitter) aproxima/recua/dispara; morte deixa cadáver 2,5 s sem
   colisão/grupos/hitboxes. O alvo é reavaliado a cada 0,75 s entre o jogador e
-  torres construídas, evitando uma pesquisa por frame. `boss_breaker.gd`
-  estende com invocação periódica.
+  torres construídas, evitando uma pesquisa por frame. No mapa Terrain3D, os
+  zombies consultam diretamente a altura e deixam a colisão facetada apenas ao
+  jogador. `boss_breaker.gd` estende com invocação periódica.
 - Dano por zonas via `DamageHitbox` (Area3D corpo 1× / cabeça 2×) separado da
   cápsula física.
 

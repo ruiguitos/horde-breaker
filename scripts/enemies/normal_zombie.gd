@@ -5,6 +5,12 @@ signal attacked(target: Node, damage: float)
 signal died(enemy: Node)
 
 const ALIVE_TARGET_GROUP := &"enemy_target"
+const WORLD_COLLISION_LAYER := 1
+const TERRAIN_WORLD_GROUP := &"terrain3d_world"
+const TERRAIN_WORLD_DESIGN := preload(
+	"res://scripts/systems/terrain3d_world_design.gd"
+)
+const TERRAIN_FEET_OFFSET := 1.0
 const TARGET_REPATH_DISTANCE := 0.25
 const TARGET_SCAN_INTERVAL := 0.75
 const ENEMY_SCRAP_DROP_GROUP := &"enemy_scrap_drop"
@@ -82,10 +88,19 @@ var _flash_meshes: Array[MeshInstance3D] = []
 var _hit_flash_active := false
 var _scrap_drop_attempted := false
 var _ammo_drop_attempted := false
+var _uses_terrain_height_query := false
 
 
 func _ready() -> void:
 	current_health = maximum_health
+	# Terrain3D physics is reserved for the player. A large horde colliding its
+	# capsules with the terrain facets is substantially more expensive than one
+	# deterministic height lookup per simulated zombie.
+	_uses_terrain_height_query = (
+		get_tree().get_first_node_in_group(TERRAIN_WORLD_GROUP) != null
+	)
+	if _uses_terrain_height_query:
+		collision_mask &= ~WORLD_COLLISION_LAYER
 	_setup_hit_flash()
 	_repath_time = randf() * REPATH_INTERVAL
 	_target_scan_time = randf() * TARGET_SCAN_INTERVAL
@@ -107,7 +122,7 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_target):
 		_apply_gravity(delta)
 		_stop_horizontal_movement()
-		move_and_slide()
+		_move_on_ground()
 		return
 	# Very distant enemies only simulate one frame in three, with the delta
 	# scaled so they still travel the right distance.
@@ -130,7 +145,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_pursue_target(delta)
 
-	move_and_slide()
+	_move_on_ground()
 
 
 func _process_ranged(delta: float) -> void:
@@ -362,10 +377,24 @@ func _remove_oldest_scrap_drop_if_needed() -> void:
 
 
 func _apply_gravity(delta: float) -> void:
+	if _uses_terrain_height_query:
+		velocity.y = 0.0
+		return
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
 		velocity.y -= _gravity * delta
+
+
+func _move_on_ground() -> void:
+	move_and_slide()
+	if not _uses_terrain_height_query:
+		return
+	var terrain_height := TERRAIN_WORLD_DESIGN.height_at(
+		global_position.x, global_position.z
+	)
+	global_position.y = terrain_height + TERRAIN_FEET_OFFSET
+	velocity.y = 0.0
 
 
 func _pursue_target(delta: float) -> void:

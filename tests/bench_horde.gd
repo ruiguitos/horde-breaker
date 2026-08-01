@@ -3,7 +3,8 @@ extends SceneTree
 ## Measures the frame cost of a large horde and isolates what dominates it.
 ## Usage: <godot> --path . --rendering-driver opengl3 --script
 ##        res://tests/bench_horde.gd -- <count> <variant>
-## Variants: baseline | no_overlay | no_animation | no_overlay_no_animation
+## Variants: baseline | no_overlay | no_animation | no_overlay_no_animation |
+##           terrain_visual_off | no_collision | no_terrain
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const ZOMBIE_SCENE := "res://scenes/enemies/normal_zombie.tscn"
@@ -89,6 +90,19 @@ func _run() -> void:
 
 
 func _apply_variant(zombies: Array[Node3D], variant: String) -> void:
+	if variant.contains("terrain_visual_off") or variant.contains("no_terrain"):
+		var world := get_first_node_in_group(&"terrain3d_world") as Node3D
+		if world != null:
+			world.visible = false
+			var terrain := world.call(&"get_terrain") as Terrain3D
+			if terrain != null:
+				terrain.visible = false
+	if variant.contains("no_collision") or variant.contains("no_terrain"):
+		var collision_world := get_first_node_in_group(&"terrain3d_world") as Node3D
+		if collision_world != null:
+			var collision_terrain := collision_world.call(&"get_terrain") as Terrain3D
+			if collision_terrain != null:
+				collision_terrain.collision.mode = Terrain3DCollision.DISABLED
 	var drop_overlay := variant.contains("no_overlay")
 	var stop_animation := variant.contains("no_animation")
 	# Unbinding the skeleton keeps the mesh on screen but renders it in bind

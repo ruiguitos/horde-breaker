@@ -1,13 +1,13 @@
 extends SceneTree
 
-## The 4x4 sector grid must stand on one continuous ground plane. Per-sector
-## floor slabs left seams at the borders and, worse, punched holes in the world
-## whenever a sector streamed out. This pins both halves of that rule: sectors
-## carry no floor of their own, and the arena's ground covers every sector.
+## Terrain3D is the continuous ground for the 8 x 8 world. Generated sectors
+## must carry no slab of their own, and the hidden arena box is only a low
+## physics fallback outside Terrain3D's dynamic collision radius.
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const SECTOR_GENERATOR := "res://scripts/systems/sector_generator.gd"
 const WORLD_STREAMER := "res://scripts/systems/world_streamer.gd"
+const TERRAIN_DESIGN := preload("res://scripts/systems/terrain3d_world_design.gd")
 
 var _passed := 0
 var _failed := 0
@@ -50,14 +50,44 @@ func _run() -> void:
 	for _frame in 30:
 		await process_frame
 
+	var terrain_world := get_first_node_in_group(&"terrain3d_world") as Node3D
+	_check("ground: the arena has a Terrain3D world", terrain_world != null)
+	if terrain_world == null:
+		_report()
+		return
+	if not bool(terrain_world.get(&"is_ready")):
+		await Signal(terrain_world, &"world_ready")
+	var terrain := terrain_world.call(&"get_terrain") as Terrain3D
+	_check(
+		"ground: nine persistent regions cover the map",
+		terrain != null
+			and terrain.data.get_region_count() == TERRAIN_DESIGN.EXPECTED_REGION_COUNT
+	)
+	var uncovered_terrain := 0
+	for grid_x in range(grid_min.x, grid_max.x + 1):
+		for grid_y in range(grid_min.y, grid_max.y + 1):
+			var point := Vector3(
+				float(grid_x) * sector_size,
+				0.0,
+				float(grid_y) * sector_size
+			)
+			var height := float(terrain_world.call(&"get_terrain_height", point))
+			if is_nan(height) or height <= TERRAIN_DESIGN.OUTSIDE_HEIGHT + 0.1:
+				uncovered_terrain += 1
+	_check(
+		"ground: all 64 sector centres are on Terrain3D (%d off)"
+			% uncovered_terrain,
+		uncovered_terrain == 0
+	)
+
 	var ground := current_scene.get_node_or_null("Floor") as StaticBody3D
-	_check("ground: the arena has a Floor body", ground != null)
+	_check("fallback: the arena keeps a hidden Floor body", ground != null)
 	if ground == null:
 		_report()
 		return
 	var collision := ground.get_node_or_null("Collision") as CollisionShape3D
 	var box := collision.shape as BoxShape3D if collision != null else null
-	_check("ground: floor collision is a box", box != null)
+	_check("fallback: collision is a box", box != null)
 	if box == null:
 		_report()
 		return
@@ -67,13 +97,13 @@ func _run() -> void:
 	var ground_min := centre - half
 	var ground_max := centre + half
 	_check(
-		"ground: covers the west/north edge (%.0f,%.0f <= %.0f,%.0f)" % [
+		"fallback: covers the west/north edge (%.0f,%.0f <= %.0f,%.0f)" % [
 			ground_min.x, ground_min.y, world_min.x, world_min.y
 		],
 		ground_min.x <= world_min.x + 0.01 and ground_min.y <= world_min.y + 0.01
 	)
 	_check(
-		"ground: covers the east/south edge (%.0f,%.0f >= %.0f,%.0f)" % [
+		"fallback: covers the east/south edge (%.0f,%.0f >= %.0f,%.0f)" % [
 			ground_max.x, ground_max.y, world_max.x, world_max.y
 		],
 		ground_max.x >= world_max.x - 0.01 and ground_max.y >= world_max.y - 0.01
@@ -99,13 +129,21 @@ func _run() -> void:
 					or point.y < ground_min.y - 0.01 or point.y > ground_max.y + 0.01
 				):
 					uncovered += 1
-	_check("ground: all 16 sectors sit on it (%d points off)" % uncovered, uncovered == 0)
+	_check("fallback: all 64 sectors sit on it (%d points off)" % uncovered,
+		uncovered == 0)
+	var fallback_top := ground.global_position.y + box.size.y * 0.5
+	_check("fallback: stays below the playable terrain (%.2f)" % fallback_top,
+		fallback_top < TERRAIN_DESIGN.MINIMUM_PLAYABLE_HEIGHT)
+	_check("fallback: has no visible mesh",
+		ground.get_node_or_null("Mesh") == null)
 
 	# A generated sector must not bring a floor of its own.
 	var generator: GDScript = load(SECTOR_GENERATOR)
 	var sector: Node3D = generator.call(&"build_sector", {
 		"id": "test_sector",
 		"seed": 12345,
+		"position": Vector3(128.0, 0.0, 64.0),
+		"terrain_profile": &"world",
 		"collected_caches": [],
 		"ammo_collected": false,
 		"weapon_collected": false,

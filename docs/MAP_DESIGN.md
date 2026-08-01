@@ -169,14 +169,13 @@ Com Forward+ há folga (140 inimigos a 143 FPS), mas o mapa deve ajudar:
 
 ## 7. Decisões tomadas
 
-1. **Autoria:** peças pintadas em **GridMap** dentro do Godot (célula 8×4×8 m).
-2. **Assets:** packs CC0 — Kenney (City Commercial/Industrial, Factory,
-   Graveyard, Car, Mini Forest), KayKit City Builder Bits, Quaternius Zombie
-   Apocalypse. Personagens mantêm-se as atuais.
-3. **Escala:** 8×8 setores de 64 m, sobre **um solo único** de 512×512 m.
-4. **Renderer:** Forward+ (era GL Compatibility) — 8,7× mais rápido.
-
-Por decidir: interiores praticáveis para além dos armazéns.
+1. **Base do mapa:** Terrain3D persistente, não uma grelha plana visível.
+2. **Escala:** 8×8 setores de 64 m, numa área jogável de 512×512 m.
+3. **Renderer:** Forward+.
+4. **Passagem atual:** apenas terreno fora do acampamento. Os modelos antigos
+   não definem a futura composição do mapa.
+5. **Regresso de conteúdo:** caminhos primeiro; landmarks, POIs e dressing
+   depois, em lotes pequenos e medidos.
 
 ---
 
@@ -187,39 +186,27 @@ Por decidir: interiores praticáveis para além dos armazéns.
 | Passo | Detalhe |
 |---|---|
 | **Demolição** | gerador procedural de estradas, `city_layout_generator`, `road_graph`, `sector_edge_contract`, `city_layout_rules` e o debug overlay removidos (863 linhas) |
-| **Solo único** | 512×512 m sob a grelha 8×8 (−224..288, centro em 32,32); setores deixaram de ter chão próprio |
-| **Renderer** | Forward+: 140 inimigos passaram de 16,5 para 143,9 FPS |
-| **Camadas GridMap** | `MapRoads`, `MapStructures`, `MapProps` na arena, célula 8×4×8 m, grupo `map_gridmap` |
-| **Navegação** | `GridMapObstacles` converte células pintadas em obstáculos; lê as formas por peça, por isso o armazém continua praticável por dentro |
+| **Terrain3D integral** | 9 regiões persistentes cobrem os 64 setores e substituem o chão plano visível |
+| **Renderer** | Forward+: 140 inimigos com Terrain3D medidos a 123,2 FPS |
+| **Camadas GridMap** | `MapRoads`, `MapStructures`, `MapProps` mantidas vazias apenas como pontos de extensão |
+| **Navegação** | vértices dos setores seguem a mesma função de altura do terreno; sem bloqueios invisíveis |
 | **Gerador** | passou a colocar **só conteúdo** (caches, munições, arma, spawns); 894 → 339 linhas |
 | **Assets** | 448 modelos importados, só glTF, com `SOURCE.md` e licença por pack |
 | **Escala dos packs** | Kenney e KayKit vêm em miniatura (edifício ≈ 1 m); escalados no `build_tile_library.gd` — cidade ×6, fábrica/cemitério/KayKit ×4, carros ×1,8 |
-| **Mundo pintado** | 64 setores: 4096 células de estrada, 1283 estruturas, 259 props |
-
-### ⏸️ Playtest de 2026-07-26
-
-O utilizador jogou o mapa 8×8 e considerou-o aceitável para avançar:
-*"parece-me haver algumas inconsistências, mas para já vamos deixar assim"*.
-As inconsistências não foram catalogadas — quando se voltar a este assunto,
-começar por identificá-las em jogo antes de mexer no gerador de layout.
+| **Limpeza visual** | casas, estradas, props, dressing natural e POIs antigos retirados; acampamento preservado |
 
 ### ❌ Falta
 
-- **Afinar o mapa** — está todo pintado, mas por rever à mão.
-- ~~Skyboxes~~ — feito: um céu por nível de ameaça.
-- **Atmosfera Forward+** — nevoeiro volumétrico, SSAO e SSIL passaram a estar
-  disponíveis e ainda não foram configurados.
-- **Spawns em `Marker3D`** colocados à mão (atrás de coberturas, becos).
-- **POIs** — o POI procedural saiu com o gerador; os pontos de interesse passam
-  a ser pintados (a peça `ind_building_*` é a indicada).
-- **Coerência visual** — Kenney e Quaternius têm estilos diferentes; usar por
-  zona em vez de intercalar, e rever depois de pintar.
-- **Densidade** — o setor exemplo ficou com edifícios demasiado juntos.
+- **Playtest do relevo** — declives, pés, rotas de fuga e visibilidade.
+- **Caminhos terrain-native** — definir ligações macro antes de adicionar meshes.
+- **Biomas e landmarks** — estabelecer linguagem visual e orçamento por setor.
+- **POIs** — reintroduzir apenas depois dos percursos estarem aprovados.
 
 ### Ferramentas
 
 ```
 tools/build_tile_library.gd    packs → resources/map_tiles_pack.meshlib (+ mede módulos)
-tools/paint_world.gd           pinta todos os setores
+tools/paint_world.gd           limpa as três camadas legadas da arena
+tools/build_terrain3d_world_data.gd  regenera as 9 regiões Terrain3D
 tools/apply_skyboxes.gd        liga os céus aos presets de atmosfera
 ```

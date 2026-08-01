@@ -2,13 +2,13 @@
 
 ## Estado
 
-Sincronizado com o jogo real a 2026-07-22. Substitui a versão antiga baseada em
+Sincronizado com o jogo real a 2026-08-01. Substitui a versão antiga baseada em
 rondas; o histórico detalhado vive em `docs/PROGRESS.md`.
 
 ## Visão do jogo
 
 Horde shooter 3D na terceira pessoa, single-player, para Windows. O jogador
-explora um **mundo aberto compacto** (4 × 4 setores, 256 × 256 m) enquanto uma
+explora um **mundo aberto compacto** (8 × 8 setores, 512 × 512 m) enquanto uma
 **horda contínua** nasce à sua volta e escala com o tempo. O acampamento central
 é o porto seguro: zona de reabastecimento, depósito de Scrap e melhorias da
 base. Todo o texto do jogo está em **inglês**; a documentação em português.
@@ -69,18 +69,19 @@ desaparece pouco depois.
 
 ## Mundo aberto
 
-- Grelha 4 × 4 de setores 64 × 64 m: acampamento (0,0) persistente, setor este
-  feito à mão (1,0), os restantes **gerados por seed** em worker threads.
+- Grelha 8 × 8 de setores 64 × 64 m sobre um Terrain3D contínuo. O acampamento
+  persistente ocupa `(-1,-1)`; os restantes setores carregam conteúdo por seed
+  em worker threads.
 - **O seed do mundo é fixo por perfil** (guardado no save): o layout mantém-se
   entre partidas. Loot volta a cada partida — decisão de design: mundo familiar,
   exploração sempre recompensada.
-- Setores gerados têm estradas, marcos, props CC0, caches de Scrap, caixa de
-  munições, ~1/3 com caixa de arma e ~1/2 com **POI explorável** (edifício
-  graybox com porta única e cache de 50 Scrap no interior).
+- Nesta passagem o exterior do acampamento mostra **apenas o terreno**. Casas,
+  estradas, props e POIs autorados foram retirados para reconstruir o mapa sobre
+  uma base limpa; caches, munições, caixas de arma e spawns continuam ativos.
 - **Emboscadas por setor** ao aproximar, re-armadas a cada ciclo.
 - Setores **visitados persistem no save** (memória do mapa tático).
-- POIs feitos à mão na arena: hospital, armazém, posto militar, estação de
-  combustível — com interiores, loot e encontros por ciclo.
+- Os POIs antigos (hospital, armazém, posto militar, combustível e variantes)
+  estão temporariamente fora da arena até existir um passe terrain-native.
 
 ## Acampamento
 
@@ -125,16 +126,16 @@ desaparece pouco depois.
 
 ## Direção visual
 
-Low-poly CC0 (Quaternius, Kenney e KayKit) + primitivas apenas onde ainda são
-necessárias para colisão ou prototipagem. O acampamento reutiliza cercas,
+Low-poly CC0 (Quaternius, Kenney e KayKit) + Terrain3D. Fora do acampamento, a
+passagem atual mostra apenas o relevo, sem cidade nem dressing. O acampamento reutiliza cercas,
 contentores, paletes, máquinas, tenda, ambulância, armas e props destes kits em
-vez de volumes graybox visíveis. Os acessos exteriores usam estradas partidas,
-barreiras, veículos e marcos verticais para ligar visualmente a base à cidade.
+vez de volumes graybox visíveis.
 Céu procedural de entardecer, nevoeiro subtil. **Decisão:** manter
 Quaternius para modelos e animações (cobre todos os movimentos necessários);
 Mixamo parqueado. As armas visíveis continuam a ser as malhas embutidas nos
 modelos; armas externas só serão reconsideradas com `BoneAttachment3D`. O
-próximo passo de arte é melhorar os edifícios/POIs quando houver assets aprovados.
+próximo passo de arte é desenhar caminhos, biomas e POIs sobre o novo relevo sem
+reintroduzir a antiga cidade como um bloco monolítico.
 
 ## Interface
 

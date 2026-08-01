@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/terrain3d_world.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/systems/terrain3d_persistent_mount.gd" id="2_mount"]
+[ext_resource type="Terrain3DAssets" path="res://data/terrain3d_prototype/assets/terrain_assets.tres" id="3_assets"]
+
+[node name="Terrain3DWorld" type="Node3D" groups=["terrain3d_world"]]
+script = ExtResource("1_world")
+
+[node name="TerrainMount" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_mount")
+data_directory = "res://data/terrain3d_world/regions"
+terrain_assets = ExtResource("3_assets")
+select_in_editor = false

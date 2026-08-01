@@ -1,19 +1,11 @@
 extends SceneTree
 
-## Paints every sector of the world into the arena's GridMap layers.
+## Clears the arena's three legacy GridMap layers for the terrain-only pass.
 ##
 ## Run:  <godot> --headless --path . --script res://tools/paint_world.gd
 ##
-## Density follows the rings in docs/MAP_DESIGN.md: an open plaza at the centre,
-## low suburbs around it, and dense urban plus industrial corners further out.
-## Everything written is ordinary GridMap cell data — open the scene and edit it.
-##
-## Tiles are not all one cell wide. Six of the ones used here measure between
-## 9.8 m and 12.6 m against an 8 m cell (the industrial blocks worst of all), so
-## painting neighbouring cells drove them through each other and out over the
-## pavement. Structures are therefore placed against an occupancy map that
-## reserves the cells a tile actually covers, seeded with the road network before
-## anything is built and shared across sector borders so the seams line up too.
+## The old painter helpers remain below as implementation history, but `_run()`
+## never calls them. Running this tool cannot restore roads, houses or props.
 
 const ARENA_PATH := "res://scenes/world/test_arena.tscn"
 const LIBRARY_PATH := "res://resources/map_tiles_pack.meshlib"
@@ -27,6 +19,10 @@ var _grid_max := Vector2i(4, 4)
 ## The camp sector: left open so the extraction zone stays readable. Must match
 ## world_streamer.CAMP_COORDS and place_camp.CAMP_COORDS.
 const CENTRE := Vector2i(-1, -1)
+## This remains the deliberately natural sector. Terrain3D now covers the whole
+## world, but this slice is kept out of the city layers to preserve its hills,
+## winding trail and editable natural dressing.
+const NATURAL_SECTOR := Vector2i(-1, -2)
 ## Road lane inside every sector. Fixed, so streets run unbroken across borders.
 const ROAD_COLUMN := 3
 const ROAD_ROW := 3
@@ -40,8 +36,6 @@ const ROAD_STRAIGHT := "kay_road_straight"
 const ROAD_JUNCTION := "kay_road_junction"
 const ROAD_TSPLIT := "kay_road_tsplit"
 const ROAD_CORNER := "kay_road_corner"
-const GROUND := "kay_base"
-
 const URBAN_BUILDINGS: Array[String] = [
 	"city_building_a", "city_building_d", "city_building_g",
 	"city_building_i", "city_building_j", "city_building_m",
@@ -163,26 +157,10 @@ func _run() -> void:
 	props.clear()
 	_occupied.clear()
 	_built.clear()
-
-	# Roads first, for the whole world: they decide where nothing may be built,
-	# and a building is only safe to place once every street is known.
-	for sx in range(_grid_min.x, _grid_max.x + 1):
-		for sy in range(_grid_min.y, _grid_max.y + 1):
-			_paint_roads(roads, Vector2i(sx, sy))
-	# The perimeter goes down before any random structure, so nothing can take a
-	# cell the boundary needs and leave a hole in the edge of the world.
+	# Terrain-only world: the old painter remains available as reference below,
+	# but running this tool can no longer restore houses, roads or map props.
 	var edge_cells := 0
-	for sx in range(_grid_min.x, _grid_max.x + 1):
-		for sy in range(_grid_min.y, _grid_max.y + 1):
-			edge_cells += _paint_world_edge(structures, Vector2i(sx, sy))
 	var poi_count := 0
-	for sx in range(_grid_min.x, _grid_max.x + 1):
-		for sy in range(_grid_min.y, _grid_max.y + 1):
-			var coords := Vector2i(sx, sy)
-			# Deterministic per sector, so repainting gives the same world.
-			_rng.seed = hash(coords) * 7919
-			if _paint_sector(structures, props, coords):
-				poi_count += 1
 
 	var scene := PackedScene.new()
 	_reown(arena, arena)
@@ -226,6 +204,8 @@ func _get_poi_kind(coords: Vector2i) -> String:
 
 
 func _paint_roads(roads: GridMap, coords: Vector2i) -> void:
+	if coords == NATURAL_SECTOR:
+		return
 	var origin := _get_sector_origin(coords)
 	for x in SECTOR_CELLS:
 		for z in SECTOR_CELLS:
@@ -236,8 +216,8 @@ func _paint_roads(roads: GridMap, coords: Vector2i) -> void:
 				_place(roads, cell, ROAD_STRAIGHT)
 			elif z == ROAD_ROW:
 				_place(roads, cell, ROAD_STRAIGHT, ROT_90)
-			else:
-				_place(roads, cell, GROUND)
+			# Terrain3D is the ground between streets. The old base tile covered
+			# almost the complete terrain and multiplied persistent GridMap cells.
 			# The street and the cells flanking it stay clear: that is the
 			# pavement, and it is where the player runs with the horde behind.
 			if (
@@ -287,6 +267,8 @@ func _paint_world_edge(structures: GridMap, coords: Vector2i) -> int:
 
 ## Paints one sector's structures and props. Returns true if it holds a POI.
 func _paint_sector(structures: GridMap, props: GridMap, coords: Vector2i) -> bool:
+	if coords == NATURAL_SECTOR:
+		return false
 	var origin := _get_sector_origin(coords)
 	var ring := _get_ring(coords)
 	if ring == 0:

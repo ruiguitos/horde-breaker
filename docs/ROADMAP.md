@@ -49,36 +49,22 @@ concluída demasiado cedo, mantendo as malhas embutidas nos rigs Quaternius.
   ARMORY, com as malhas embutidas SMG/Axe e ícones gerados.
 - [x] Alcance de auto-fire por arma (AR 6 m, Pistol 5,5 m, Shotgun 4,5 m, SMG 7 m).
 
-## Milestone 24 — Cidade e caminhos (protótipo a substituir)
+## Milestone 24 — Terrain3D e reconstrução do mapa (em curso)
 
-O passe atual com o Downtown MegaKit permanece apenas como protótipo funcional.
-A cidade, as estradas e os caminhos serão refeitos a partir de um grafo contínuo
-entre setores; não investir mais em polish do gerador atual. O plano técnico vivia em `docs/CITY_REBUILD_PLAN.md`
-(removido na consolidação da documentação; ver histórico git).
+O protótipo de cidade foi retirado da arena. A base atual é um Terrain3D
+contínuo e limpo; casas, estradas, props e POIs só regressam depois de o relevo,
+os percursos e o desempenho estarem validados.
 
-- [x] Pack CC0 importado (`assets/models/city_test_model`, glTF); fonte/licença
-  documentadas em `SOURCE.md`.
-- [x] Edifícios completos (Small/Medium/Large) substituem os cubos graybox como
-  `navigation_blocker`, colocados pela geração por seed (2–3 por setor); planters
-  de passeio adicionados. Navegação e worker-thread intactos.
-- [x] Mais props de cidade: bollards e tampas de esgoto (decoração sem colisão)
-  + mais planters, para encher os quarteirões.
-- [x] Fase 1+2 do grafo contínuo: contrato de aresta determinístico por
-  setor, grafo de nós/arestas com validação, e overlay de debug com
-  verificação das 24 fronteiras internas e de determinismo (aditivo, não
-  substitui ainda os quadrantes de estrada atuais). Ver histórico git.
-- [ ] Substituir os quadrantes de estrada atuais por geometria real gerada
-  a partir desse grafo (fases 3+ do plano da cidade, no histórico git), com
-  ligações garantidas nas fronteiras dos setores.
-- [x] Mais edifícios por setor (3–6) com lote de betão que corrige os prédios
-  sobre as passadeiras.
-- [x] Mais props: AC nas coberturas, drenos, veículos abandonados e lixo, com limites de densidade configuráveis e seed estável.
-- [x] POIs gerados com três fachadas temáticas; interior simples e loot mantidos.
-- [x] Atmosfera dinâmica com quatro presets de luz, céu e nevoeiro ligados ao nível de ameaça.
-- [ ] Derivar quarteirões, passeios, lotes, entradas de edifícios e navegação do
-  mesmo grafo, evitando edifícios sobre passadeiras e caminhos interrompidos.
-- [ ] Refazer a composição visual da cidade e dos POIs depois da nova malha de
-  circulação estar validada em jogo.
+- [x] Terrain3D 1.0.2 autorizado e integrado sem assets externos do demo.
+- [x] Nove regiões persistentes cobrem os 512 × 512 m dos 64 setores.
+- [x] Plataforma nivelada do acampamento, relevo ondulado e corredor natural.
+- [x] `MapRoads`, `MapStructures` e `MapProps` esvaziados; POIs autorados removidos.
+- [x] Forward+ restaurado e colisão otimizada para hordas: jogador usa colisão
+  dinâmica, zombies usam consulta de altura.
+- [ ] Playtest do relevo completo, declives, visibilidade e leitura espacial.
+- [ ] Desenhar caminhos terrain-native antes de colocar novos modelos.
+- [ ] Reintroduzir landmarks/POIs em pequenos lotes, com orçamento de render e
+  navegação medido por etapa.
 - [ ] Melhorar o mapa tático e avaliar a criação de um minimapa dedicado.
   Estudar referências de outros jogos antes de decidir escala, orientação,
   fog of war, marcadores, filtros, zoom, objetivos e relação entre minimapa,

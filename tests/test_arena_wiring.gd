@@ -66,13 +66,13 @@ func _run() -> void:
 	# group rather than by path.
 	var painted := get_nodes_in_group(&"map_gridmap")
 	_check("map layers are grouped (%d)" % painted.size(), painted.size() >= 3)
-	var with_library := 0
+	var painted_cells := 0
 	for value in painted:
 		var grid := value as GridMap
-		if grid != null and grid.mesh_library != null and not grid.get_used_cells().is_empty():
-			with_library += 1
-	_check("map layers are painted (%d of %d)" % [with_library, painted.size()],
-		with_library >= 2)
+		if grid != null:
+			painted_cells += grid.get_used_cells().size()
+	_check("legacy map layers are empty (%d cells)" % painted_cells,
+		painted_cells == 0)
 	_test_atmosphere()
 	_report()
 

@@ -2,9 +2,10 @@
 
 ## Estado atual
 
-Fase: survivors-like no combate (cartas de upgrade, orbes de XP) sobre um
-mundo aberto 4x4 com cidade procedural, base construível e progressão
-permanente. Última atualização: 2026-07-24.
+Fase: survivors-like no combate sobre um mundo aberto 8×8 com Terrain3D,
+base construível e progressão permanente. O exterior está intencionalmente
+reduzido ao terreno enquanto o mapa é reconstruído. Última atualização:
+2026-08-01.
 
 > Histórico anterior ao Milestone 19 (rondas, protótipos iniciais, primeira
 > arte) foi podado para manter este ficheiro legível — vive no histórico git.
@@ -1011,3 +1012,79 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   não são editáveis no viewport. O aviso de compatibilidade
   `instance_reset_physics_interpolation()` vem do addon oficial. O Terrain3D
   permanece numa cena piloto e não substitui ainda a arena principal.
+
+## Primeiro setor Terrain3D no mapa principal (2026-08-01)
+
+- [x] A arena principal instancia `terrain3d_world_pilot.tscn`. O setor
+  `(-1, -2)`, imediatamente a norte do acampamento, deixou de ser pintado nas
+  três camadas GridMap e passou a mostrar relevo Terrain3D, um trilho sinuoso e
+  16 elementos de dressing editáveis. O resto da cidade mantém o chão e o
+  streaming anteriores.
+- [x] O terreno usa uma única região persistente de 256 × 256 m. Só os 64 × 64 m
+  do setor piloto sobem acima do chão de segurança; a restante superfície fica
+  a -0,45 m sob a cidade. A tentativa de usar `holes` fora do setor foi rejeitada
+  porque Terrain3D 1.0.2 enviava blocos vazios para a física, gerando milhares
+  de erros `min_height > max_height`.
+- [x] A colisão passou de `Full / Game` para `Dynamic / Game`, com raio de 96 m.
+  O primeiro ensaio com colisão total custava cerca de 4,2 s no arranque
+  headless; a captura final preparou o piloto em 680,6 ms. O chão plano contínuo
+  permanece por baixo como fallback e evita quedas fora da área Terrain3D.
+- [x] `WorldStreamer` marca apenas este setor com o perfil `world_pilot`.
+  `SectorGenerator` usa a mesma função determinística do heightmap para colocar
+  loot e spawns e para elevar os vértices do NavMesh. O teste mediu 2,75 m de
+  variação vertical na navegação e o jogador assentou na colina com erro de
+  0,00 m nos pés.
+- [x] `tools/paint_world.gd` preserva a janela Terrain3D ao repintar o mundo;
+  `tools/build_terrain3d_world_pilot_data.gd` substitui com segurança apenas os
+  recursos gerados da pasta do piloto e valida que fica exatamente uma região.
+- [x] Validação: 19/19 verificações específicas e 206 verificações de regressão
+  passaram. Incluem protótipo Terrain3D, mapa pintado, grelhas de navegação,
+  acampamento, arena, chão, conteúdo dos setores e as cinco fases de extração.
+  O benchmark de arranque headless mediu 6,99 s até ao mundo jogável, incluindo
+  importação da arena, montagem Terrain3D e streaming de quatro setores.
+- [x] Benchmark OpenGL Compatibility, RX 590, 1152 × 648: 50 zombies = 13,3 FPS,
+  100 = 6,9 FPS e 140 = 5,7 FPS. Com 50 zombies, desligar o Terrain3D durante a
+  amostra mudou a mediana de 71,39 para 70,47 ms, cerca de 1,3%; o piloto
+  acrescenta 263 draw calls e ~602 mil primitivas, mas o custo dominante continua
+  no mapa/modelos animados existentes. Estes números não são comparáveis aos
+  benchmarks antigos em Forward+.
+- Limitações: é ainda uma única faixa natural rodeada pela cidade; o trilho é
+  reconstruído no arranque, embora o relevo e o dressing estejam editáveis. A
+  expansão para outros setores fica bloqueada até ao playtest visual deste
+  encaixe e ao passe de profiling/otimização já planeado.
+
+## Terrain3D em todo o mapa e passagem terrain-only (2026-08-01)
+
+- [x] O piloto foi promovido para `terrain3d_world.tscn`: nove recursos
+  `Terrain3DRegion` persistentes cobrem os 512 × 512 m jogáveis e a margem de
+  amostragem dos 64 setores. `tools/build_terrain3d_world_data.gd` regenera o
+  heightmap de forma determinística e valida que ficam exatamente nove regiões.
+- [x] O relevo é contínuo e ondulado no mundo inteiro, mantém uma plataforma
+  exata a 0 m para o acampamento e preserva o corredor sinuoso no setor natural.
+  Loot, spawns e vértices da navegação usam a mesma função de altura.
+- [x] O exterior do acampamento ficou intencionalmente **apenas com terreno**.
+  `MapRoads`, `MapStructures` e `MapProps` têm zero células; as seis instâncias
+  de POI autoradas, casas, estradas, props, rochas, árvores, cercas e etiquetas
+  de setor foram retiradas. O acampamento e os nós invisíveis de gameplay
+  mantêm-se para a run continuar funcional.
+- [x] Os ficheiros do antigo `terrain3d_world_pilot` e a respetiva região foram
+  removidos por terem sido substituídos pelo mapa integral. O protótipo isolado
+  `terrain3d_prototype.tscn` permanece como referência técnica.
+- [x] Forward+ voltou a ser a configuração do projeto. O runtime usa shader
+  leve de terreno, quatro clipmap LODs, patches de 32 vértices e colisão dinâmica
+  a 48 m em redor da câmara. O chão plano sem mesh fica apenas como fallback.
+- [x] Os zombies deixaram de colidir com cada faceta do Terrain3D: mantêm a
+  colisão com o jogador e seguem a altura determinística do terreno. Na RX 590,
+  1152 × 648, o benchmark com 140 zombies e Terrain3D visível passou de
+  27,6 FPS antes desta correção para **123,2 FPS** (8,12 ms médios; mediana
+  8,08 ms; p95 11,81 ms).
+- [x] Arranque final em Forward+: terreno pronto em 410,0 ms; quatro setores
+  residentes; mundo jogável em 4,08 s. O teste dedicado passou 23/23 e a suite
+  relacionada passou **243 verificações** sem falhas: terreno, chãos, mapa
+  limpo, arena, acampamento, navegação, conteúdo, minimapa, extração, pickups e
+  orçamento da horda.
+- Limitações: esta é deliberadamente uma base visual vazia. Ainda faltam
+  caminhos, texturas finais, biomas, landmarks e POIs terrain-native. O addon
+  oficial continua a emitir o aviso de depreciação
+  `instance_reset_physics_interpolation()` no Godot 4.7; não impede o arranque
+  nem os testes.
