@@ -13,6 +13,9 @@ signal intermission_started(next_level: int, duration: float)
 signal preparation_time_changed(seconds_remaining: int)
 signal enemy_defeated(xp_reward: int)
 signal cycle_completed(cycle_number: int)
+## The clock ran out: no more spawns, and what is left on the map is all there
+## is. The run objective drives this and waits for the count to reach zero.
+signal final_phase_started(remaining_enemies: int)
 
 const PLAYER_GROUP := &"player"
 const ENEMY_GROUP := &"enemy"
@@ -73,6 +76,8 @@ const SPAWN_INTERVAL_DECAY := 0.65
 var current_wave: int = 0
 var alive_enemy_count: int = 0
 var _spawning_enabled: bool = false
+## Last stand: the horde is finite and no longer replaced.
+var _final_phase: bool = false
 var _spawn_cooldown: float = 0.0
 var _level_time_remaining: float = 0.0
 var _last_reported_seconds: int = -1
@@ -88,6 +93,14 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not _spawning_enabled:
 		return
+	if _final_phase:
+		# Nothing new is coming, but the horde already out there still has to be
+		# herded back to the player or the last few strays are unfindable.
+		_recycle_time -= delta
+		if _recycle_time <= 0.0:
+			_recycle_time = RECYCLE_INTERVAL
+			_recycle_distant_enemies()
+		return
 	_advance_level_timer(delta)
 	_drain_spawn_queue()
 	_recycle_time -= delta
@@ -101,10 +114,43 @@ func _physics_process(delta: float) -> void:
 	_spawn_travel_batch()
 
 
+## Closes the tap. The threat level stops climbing, the queue is dropped and
+## nothing new is born — from here the horde is a finite number that can be
+## brought to zero, which is what the run's last stand is built on.
+func begin_final_phase() -> void:
+	if _final_phase:
+		return
+	_final_phase = true
+	_surge_active = false
+	_spawn_queue.clear()
+	final_phase_started.emit(get_living_enemy_count())
+
+
+func end_final_phase() -> void:
+	_final_phase = false
+
+
+func is_final_phase() -> bool:
+	return _final_phase
+
+
+## Every enemy alive anywhere, not just the ones this director spawned: sector
+## ambushes and POI encounters make their own, and "clear the horde" means all
+## of them. Corpses leave the group as they die, so this counts the living.
+func get_living_enemy_count() -> int:
+	# The director is also queried by tests and tools before it enters a tree.
+	# Calling get_tree() in that state already logs an engine error, so check the
+	# node state first instead of testing the returned value afterwards.
+	if not is_inside_tree():
+		return 0
+	return get_tree().get_nodes_in_group(ENEMY_GROUP).size()
+
+
 func is_preparation_active() -> bool:
-	# Building, repairing and exploration encounters are always available in
-	# the continuous mode; the method is kept for compatibility.
-	return true
+	# Gates sector ambushes and POI encounters. They are always available in the
+	# continuous mode — except during the last stand, where a POI spawning a
+	# fresh pack would make the map impossible to clear.
+	return not _final_phase
 
 
 func get_maximum_alive_enemies() -> int:

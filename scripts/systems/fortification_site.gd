@@ -116,13 +116,22 @@ func _destroy_barricade() -> void:
 
 func _apply_collision_state(enabled: bool) -> void:
 	collision.disabled = not enabled
-	var arena_navigation := get_tree().get_first_node_in_group(
-		ARENA_NAVIGATION_GROUP
-	)
-	if arena_navigation != null and arena_navigation.has_method(
-		&"build_navigation_mesh"
-	):
-		arena_navigation.call(&"build_navigation_mesh")
+	# Rebuild the streamed navigation region that owns this defense point. The
+	# arena can have several regions active, so the first group member is not a
+	# reliable choice.
+	for navigation in get_tree().get_nodes_in_group(ARENA_NAVIGATION_GROUP):
+		if not navigation.has_method(&"build_navigation_mesh"):
+			continue
+		var region := navigation as Node3D
+		if region == null:
+			continue
+		var local_site_position := region.to_local(global_position)
+		var half_extent := float(region.get(&"navigation_half_extent"))
+		if (
+			absf(local_site_position.x) <= half_extent
+			and absf(local_site_position.z) <= half_extent
+		):
+			navigation.call(&"build_navigation_mesh")
 
 
 func _request_insufficient_scrap_feedback(

@@ -8,11 +8,12 @@ const CAMP_ECONOMY_GROUP := &"camp_economy"
 const UPGRADE_STATION_SCENE := preload("res://scenes/world/camp_upgrade_station.tscn")
 const RESUPPLY_VISUAL_SCENE := preload("res://scenes/structures/camp_upgrade_visuals/resupply_station_lv2.tscn")
 const SCAVENGING_VISUAL_SCENE := preload("res://scenes/structures/camp_upgrade_visuals/scavenging_depot.tscn")
-# Pedestal layout around the core; each buys one CampEconomy upgrade track.
+# Pedestals now form the interactive counter of the north workshop instead of
+# competing with the resupply core and the free-construction grid.
 const UPGRADE_STATION_LAYOUT: Dictionary[StringName, Vector3] = {
-	&"resupply_rate": Vector3(-3.2, 0.0, 2.6),
-	&"resupply_range": Vector3(0.0, 0.0, 4.0),
-	&"scavenging": Vector3(3.2, 0.0, 2.6),
+	&"resupply_rate": Vector3(3.2, 0.0, -16.2),
+	&"resupply_range": Vector3(7.2, 0.0, -16.2),
+	&"scavenging": Vector3(11.2, 0.0, -16.2),
 }
 
 @export_range(1.0, 5000.0, 1.0) var maximum_health: float = 500.0
@@ -114,12 +115,12 @@ func _on_upgrade_purchased(upgrade_id: StringName, new_level: int) -> void:
 		&"resupply_rate":
 			if new_level >= 2:
 				_install_upgrade_visual(
-					&"ResupplyStationLv2", RESUPPLY_VISUAL_SCENE, Vector3(-5.2, 0.0, -2.4)
+					&"ResupplyStationLv2", RESUPPLY_VISUAL_SCENE, Vector3(19.0, 0.0, 8.4)
 				)
 		&"scavenging":
 			if new_level >= 1:
 				_install_upgrade_visual(
-					&"ScavengingDepot", SCAVENGING_VISUAL_SCENE, Vector3(5.0, 0.0, -2.2)
+					&"ScavengingDepot", SCAVENGING_VISUAL_SCENE, Vector3(-8.2, 0.0, -19.0)
 				)
 
 

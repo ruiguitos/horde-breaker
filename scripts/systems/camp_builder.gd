@@ -344,9 +344,22 @@ func _set_player_build_mode(active: bool) -> void:
 
 
 func _rebuild_navigation() -> void:
-	var navigation := get_tree().get_first_node_in_group(ARENA_NAVIGATION_GROUP)
-	if navigation != null and navigation.has_method(&"build_navigation_mesh"):
-		navigation.call(&"build_navigation_mesh")
+	# Several streamed sectors can have their own navigation region. Rebuild only
+	# the one that contains the camp grid instead of whichever region registered
+	# first (or every loaded sector).
+	for navigation in get_tree().get_nodes_in_group(ARENA_NAVIGATION_GROUP):
+		if not navigation.has_method(&"build_navigation_mesh"):
+			continue
+		var region := navigation as Node3D
+		if region == null:
+			continue
+		var local_grid_position := region.to_local(build_grid.global_position)
+		var half_extent := float(region.get(&"navigation_half_extent"))
+		if (
+			absf(local_grid_position.x) <= half_extent
+			and absf(local_grid_position.z) <= half_extent
+		):
+			navigation.call(&"build_navigation_mesh")
 
 
 func _request_feedback(message: String) -> void:
