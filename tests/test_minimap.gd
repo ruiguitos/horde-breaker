@@ -69,6 +69,15 @@ func _test_tactical_map_bounds() -> void:
 		"map spans the whole world (%.0f m)" % span,
 		is_equal_approx(span, sectors * sector_size)
 	)
+	_check("tactical map has a detailed coastline",
+		int(map.call(&"get_coastline_point_count")) >= 128)
+	_check("tactical map includes both loops and their connectors",
+		int(map.call(&"get_route_count")) >= 5)
+	_check("tactical map includes terrain landmarks",
+		int(map.call(&"get_terrain_landmark_count")) >= 4)
+	_check("tactical map distinguishes sea from the camp",
+		not bool(map.call(&"is_land_at_world_position", Vector2(-220.0, -220.0)))
+		and bool(map.call(&"is_land_at_world_position", Vector2(-64.0, -64.0))))
 	map.queue_free()
 
 

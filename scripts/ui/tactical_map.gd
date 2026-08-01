@@ -14,6 +14,9 @@ const WORLD_STREAMER_GROUP := &"world_streamer"
 ## to 8x8 and the camp moved: the map was still drawing a 4x4, 256 m world with
 ## its base at the origin.
 const STREAMER_PATH := "res://scripts/systems/world_streamer.gd"
+const TERRAIN_DESIGN := preload(
+	"res://scripts/systems/terrain3d_world_design.gd"
+)
 
 var SECTOR_SIZE: float = 64.0
 var SECTOR_HALF_SIZE: float = 32.0
@@ -41,8 +44,9 @@ func _read_world_bounds() -> void:
 		float(GRID_MAX.x) * SECTOR_SIZE + SECTOR_HALF_SIZE,
 		float(GRID_MAX.y) * SECTOR_SIZE + SECTOR_HALF_SIZE
 	)
+	_read_terrain_layout()
 const PANEL_COLOR := Color(0.025, 0.039, 0.055, 0.96)
-const MAP_COLOR := Color(0.045, 0.067, 0.086, 1.0)
+const MAP_COLOR := Color(0.025, 0.11, 0.15, 1.0)
 const SECTOR_COLOR := Color(0.075, 0.11, 0.135, 1.0)
 const LOADED_SECTOR_COLOR := Color(0.16, 0.24, 0.28, 1.0)
 const CAMP_SECTOR_COLOR := Color(0.31, 0.20, 0.09, 1.0)
@@ -59,6 +63,9 @@ const HEALTH_COLOR := Color(0.93, 0.45, 0.5, 1.0)
 const WEAPON_COLOR := Color(1.0, 0.78, 0.32, 1.0)
 const OBJECTIVE_COLOR := Color(1.0, 0.5, 0.16, 1.0)
 const VISITED_SECTOR_COLOR := Color(0.11, 0.16, 0.19, 1.0)
+const COAST_COLOR := Color(0.70, 0.78, 0.62, 0.95)
+const ROUTE_COLOR := Color(0.57, 0.36, 0.18, 0.92)
+const LANDMARK_COLOR := Color(0.78, 0.69, 0.42, 1.0)
 const SCRAP_GROUP := &"scrap_pickup"
 const AMMO_GROUP := &"ammo_pickup"
 const HEALTH_GROUP := &"health_pickup"
@@ -70,6 +77,9 @@ var _player: Node3D
 var _world_streamer: Node
 var _visited_sectors: Dictionary[Vector2i, bool] = {}
 var _open_tween: Tween
+var _coastline_world := PackedVector2Array()
+var _route_lines_world: Array[PackedVector2Array] = []
+var _terrain_landmarks: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -80,6 +90,12 @@ func _ready() -> void:
 	# across runs.
 	for coords in SaveManager.get_visited_sector_coords():
 		_visited_sectors[Vector2i(coords)] = true
+
+
+func _read_terrain_layout() -> void:
+	_coastline_world = TERRAIN_DESIGN.create_coastline_points(192)
+	_route_lines_world = TERRAIN_DESIGN.create_route_polylines(128)
+	_terrain_landmarks = TERRAIN_DESIGN.get_landmarks()
 
 
 # _input instead of _unhandled_input: Tab is also the built-in ui_focus_next
@@ -189,6 +205,9 @@ func _draw() -> void:
 	)
 	draw_rect(_map_rect, MAP_COLOR)
 	_draw_sectors()
+	_draw_routes()
+	_draw_coastline_outline()
+	_draw_terrain_landmarks()
 	_draw_loot()
 	_draw_points_of_interest()
 	_draw_objectives()
@@ -219,21 +238,21 @@ func _draw_sectors() -> void:
 	for grid_z in range(GRID_MIN.y, GRID_MAX.y + 1):
 		for grid_x in range(GRID_MIN.x, GRID_MAX.x + 1):
 			var coords := Vector2i(grid_x, grid_z)
-			var top_left := _world_to_map(
-				Vector3(
+			var world_rect := Rect2(
+				Vector2(
 					grid_x * SECTOR_SIZE - SECTOR_HALF_SIZE,
-					0.0,
 					grid_z * SECTOR_SIZE - SECTOR_HALF_SIZE
-				)
+				),
+				Vector2(SECTOR_SIZE, SECTOR_SIZE)
 			)
-			var bottom_right := _world_to_map(
-				Vector3(
-					grid_x * SECTOR_SIZE + SECTOR_HALF_SIZE,
-					0.0,
-					grid_z * SECTOR_SIZE + SECTOR_HALF_SIZE
-				)
+			var land_polygon := _clip_polygon_to_rect(
+				_coastline_world, world_rect
 			)
-			var sector_rect := Rect2(top_left, bottom_right - top_left)
+			if land_polygon.size() < 3:
+				continue
+			var map_polygon := PackedVector2Array()
+			for point in land_polygon:
+				map_polygon.append(_world_point_to_map(point))
 			var fill_color := SECTOR_COLOR
 			if coords == CAMP_COORDS:
 				fill_color = CAMP_SECTOR_COLOR
@@ -241,24 +260,64 @@ func _draw_sectors() -> void:
 				fill_color = LOADED_SECTOR_COLOR
 			elif _visited_sectors.has(coords):
 				fill_color = VISITED_SECTOR_COLOR
-			draw_rect(sector_rect.grow(-2.0), fill_color)
+			draw_colored_polygon(map_polygon, fill_color)
+			var outline := map_polygon.duplicate()
+			outline.append(map_polygon[0])
 			if coords == player_coords:
-				draw_rect(sector_rect.grow(-1.0), ACCENT_COLOR, false, 2.0)
-				draw_rect(
-					sector_rect.grow(-5.0),
-					Color(ACCENT_COLOR.r, ACCENT_COLOR.g, ACCENT_COLOR.b, 0.42),
-					false,
-					1.0
-				)
+				draw_polyline(outline, ACCENT_COLOR, 2.0, true)
 			else:
-				draw_rect(sector_rect, BORDER_COLOR, false, 0.75)
+				draw_polyline(outline, BORDER_COLOR, 0.75, true)
+			var sector_center_world := Vector2(
+				grid_x * SECTOR_SIZE, grid_z * SECTOR_SIZE
+			)
+			if not TERRAIN_DESIGN.is_walkable_land(sector_center_world):
+				continue
+			var label_position := _world_point_to_map(sector_center_world)
 			var sector_label := "BASE" if coords == CAMP_COORDS else "%d · %d" % [grid_x, grid_z]
 			_draw_text(
 				sector_label,
-				sector_rect.position + Vector2(6.0, 17.0),
+				label_position + Vector2(-24.0, 4.0),
 				11,
-				MUTED_TEXT_COLOR
+				MUTED_TEXT_COLOR,
+				HORIZONTAL_ALIGNMENT_CENTER,
+				48.0
 			)
+
+
+func _draw_routes() -> void:
+	for route in _route_lines_world:
+		var mapped_route := PackedVector2Array()
+		for point in route:
+			mapped_route.append(_world_point_to_map(point))
+		if mapped_route.size() >= 2:
+			draw_polyline(mapped_route, ROUTE_COLOR, 3.0, true)
+
+
+func _draw_coastline_outline() -> void:
+	if _coastline_world.size() < 3:
+		return
+	var outline := PackedVector2Array()
+	for point in _coastline_world:
+		outline.append(_world_point_to_map(point))
+	outline.append(outline[0])
+	draw_polyline(outline, COAST_COLOR, 2.0, true)
+
+
+func _draw_terrain_landmarks() -> void:
+	for landmark in _terrain_landmarks:
+		var world_position: Vector2 = landmark["position"]
+		var center := _world_point_to_map(world_position)
+		draw_colored_polygon(PackedVector2Array([
+			center + Vector2(0.0, -6.0),
+			center + Vector2(5.5, 5.0),
+			center + Vector2(-5.5, 5.0),
+		]), LANDMARK_COLOR)
+		_draw_text(
+			String(landmark["name"]),
+			center + Vector2(8.0, 4.0),
+			10,
+			LANDMARK_COLOR
+		)
 
 
 func _draw_loot() -> void:
@@ -495,6 +554,69 @@ func _world_to_map(world_position: Vector3) -> Vector2:
 		inverse_lerp(WORLD_MIN.y, WORLD_MAX.y, world_position.z)
 	)
 	return _map_rect.position + normalized * _map_rect.size
+
+
+func _world_point_to_map(world_position: Vector2) -> Vector2:
+	return _world_to_map(Vector3(world_position.x, 0.0, world_position.y))
+
+
+func _clip_polygon_to_rect(
+	polygon: PackedVector2Array, rectangle: Rect2
+) -> PackedVector2Array:
+	var result := polygon
+	result = _clip_polygon_axis(result, 0, rectangle.position.x, true)
+	result = _clip_polygon_axis(result, 0, rectangle.end.x, false)
+	result = _clip_polygon_axis(result, 1, rectangle.position.y, true)
+	result = _clip_polygon_axis(result, 1, rectangle.end.y, false)
+	return result
+
+
+func _clip_polygon_axis(
+	polygon: PackedVector2Array,
+	axis: int,
+	boundary: float,
+	keep_greater: bool
+) -> PackedVector2Array:
+	var result := PackedVector2Array()
+	if polygon.is_empty():
+		return result
+	var previous := polygon[polygon.size() - 1]
+	var previous_value := previous.x if axis == 0 else previous.y
+	var previous_inside := (
+		previous_value >= boundary if keep_greater else previous_value <= boundary
+	)
+	for current in polygon:
+		var current_value := current.x if axis == 0 else current.y
+		var current_inside := (
+			current_value >= boundary if keep_greater else current_value <= boundary
+		)
+		if current_inside != previous_inside:
+			var difference := current_value - previous_value
+			if not is_zero_approx(difference):
+				var progress := (boundary - previous_value) / difference
+				result.append(previous.lerp(current, progress))
+		if current_inside:
+			result.append(current)
+		previous = current
+		previous_value = current_value
+		previous_inside = current_inside
+	return result
+
+
+func get_coastline_point_count() -> int:
+	return _coastline_world.size()
+
+
+func get_route_count() -> int:
+	return _route_lines_world.size()
+
+
+func get_terrain_landmark_count() -> int:
+	return _terrain_landmarks.size()
+
+
+func is_land_at_world_position(world_position: Vector2) -> bool:
+	return TERRAIN_DESIGN.is_walkable_land(world_position)
 
 
 func _is_inside_world(world_position: Vector3) -> bool:

@@ -52,7 +52,6 @@ static var _budget_distance_squared: float = INF
 var _animation_player: AnimationPlayer
 var _movement_body: CharacterBody3D
 var _embedded_weapon_meshes: Dictionary[StringName, GeometryInstance3D] = {}
-var _active_weapon: Node3D
 var _action_animation: StringName = &""
 var _is_dead: bool = false
 var _next_hit_react_msec: int = 0
@@ -170,27 +169,18 @@ func _connect_weapon_controller() -> void:
 
 
 func _on_active_weapon_changed(active_weapon: Node3D, _slot: int) -> void:
-	_disconnect_active_weapon()
-	_active_weapon = active_weapon
 	_action_animation = &""
 	for weapon_mesh in _embedded_weapon_meshes.values():
 		weapon_mesh.visible = false
 	if active_weapon == null:
 		return
-	if active_weapon.has_signal(&"attack_performed"):
-		active_weapon.connect(&"attack_performed", _play_melee_attack)
 	var weapon_id := StringName(active_weapon.get(&"weapon_id"))
 	var embedded_weapon_name := _get_embedded_weapon_name(weapon_id)
 	if _embedded_weapon_meshes.has(embedded_weapon_name):
 		_embedded_weapon_meshes[embedded_weapon_name].visible = true
-	if weapon_id in [&"worn_sword", &"spear", &"fire_axe", &"cleaver"]:
-		idle_animation = &"Idle"
-		move_animation = &"Walk"
-		run_animation = &"Run_Stab"
-	else:
-		idle_animation = &"Idle_Gun"
-		move_animation = &"Walk_Gun"
-		run_animation = &"Run_Gun"
+	idle_animation = &"Idle_Gun"
+	move_animation = &"Walk_Gun"
+	run_animation = &"Run_Gun"
 	_set_animation_loop(idle_animation)
 	_set_animation_loop(move_animation)
 	_set_animation_loop(run_animation)
@@ -206,17 +196,17 @@ func _get_embedded_weapon_name(weapon_id: StringName) -> StringName:
 		return &"Shotgun"
 	if weapon_id in [&"smg", &"hornet"]:
 		return &"SMG"
-	if weapon_id in [&"worn_sword", &"cleaver"]:
-		return &"Knife"
-	if weapon_id == &"spear":
-		return &"Spear"
-	if weapon_id == &"fire_axe":
-		return &"Axe"
 	return &""
 
 
 func _get_locomotion_animation() -> StringName:
-	if not _movement_body.is_on_floor():
+	var is_grounded := _movement_body.is_on_floor()
+	if (
+		not is_grounded
+		and _movement_body.has_method(&"uses_terrain_height_grounding")
+	):
+		is_grounded = bool(_movement_body.call(&"uses_terrain_height_grounding"))
+	if not is_grounded:
 		return airborne_animation
 	if (
 		_movement_body.has_method(&"is_crouching")
@@ -303,30 +293,9 @@ func _play_action(action_name: StringName) -> bool:
 	return true
 
 
-func _play_melee_attack(_hit_count: int) -> void:
-	var attack_name := &"Slash"
-	if _active_weapon != null:
-		var configured_animation := StringName(_active_weapon.get(&"attack_animation"))
-		if configured_animation != &"":
-			attack_name = configured_animation
-	if not _animation_player.has_animation(attack_name):
-		return
-	_action_animation = attack_name
-	_animation_player.play(_action_animation)
-
-
 func _on_animation_finished(animation_name: StringName) -> void:
 	if animation_name == _action_animation:
 		_action_animation = &""
-
-
-func _disconnect_active_weapon() -> void:
-	if (
-		_active_weapon != null
-		and _active_weapon.has_signal(&"attack_performed")
-		and _active_weapon.is_connected(&"attack_performed", _play_melee_attack)
-	):
-		_active_weapon.disconnect(&"attack_performed", _play_melee_attack)
 
 
 func _find_movement_body() -> CharacterBody3D:
