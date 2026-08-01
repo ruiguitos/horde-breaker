@@ -2,6 +2,7 @@ extends SceneTree
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const ZOMBIE_SCENE := preload("res://scenes/enemies/normal_zombie.tscn")
+const SECTOR_GENERATOR := preload("res://scripts/systems/sector_generator.gd")
 const DESIGN := preload("res://scripts/systems/terrain3d_world_design.gd")
 const NATURAL_SECTOR_ID := &"sector_-1_-2"
 
@@ -42,6 +43,8 @@ func _run() -> void:
 	_check("the lightweight world shader is enabled",
 		terrain.material.shader_override_enabled)
 	_test_world_coverage(world)
+	_test_water_plane()
+	_test_coastal_sector_filtering()
 	_test_legacy_map_removed()
 	await _test_streamed_sectors()
 	await _test_player_floor(world)
@@ -55,9 +58,9 @@ func _test_world_coverage(world: Node3D) -> void:
 		for z in range(DESIGN.GRID_MIN.y, DESIGN.GRID_MAX.y + 1):
 			var point := Vector3(x * DESIGN.SECTOR_SIZE, 0.0, z * DESIGN.SECTOR_SIZE)
 			var height := float(world.call(&"get_terrain_height", point))
-			if is_nan(height) or height <= DESIGN.OUTSIDE_HEIGHT + 0.1:
+			if is_nan(height):
 				invalid_centres += 1
-	_check("Terrain3D covers all 64 sector centres (%d invalid)" % invalid_centres,
+	_check("Terrain3D stores all 64 sector centres (%d invalid)" % invalid_centres,
 		invalid_centres == 0)
 	var camp_height := float(world.call(
 		&"get_terrain_height", Vector3(-64.0, 0.0, -64.0)
@@ -72,14 +75,64 @@ func _test_world_coverage(world: Node3D) -> void:
 		&"get_terrain_height",
 		Vector3(DESIGN.trail_center_x(-128.0), 0.0, -128.0)
 	))
+	var sea_height := float(world.call(
+		&"get_terrain_height", Vector3(-192.0, 0.0, -192.0)
+	))
 	_check("the camp platform remains level (%.2f)" % camp_height,
 		absf(camp_height - DESIGN.CAMP_HEIGHT) < 0.02)
-	_check("the wider world has rolling relief (%.2f)" % city_height,
+	_check("the island interior has rolling relief (%.2f)" % city_height,
 		city_height > DESIGN.MINIMUM_PLAYABLE_HEIGHT)
+	_check("the north-west corner is below sea level (%.2f)" % sea_height,
+		sea_height < DESIGN.WATER_HEIGHT)
 	_check("the natural lookout still rises above 2 m (%.2f)" % lookout_height,
 		lookout_height > 2.0)
 	_check("the winding trail remains gently graded (%.2f)" % trail_height,
 		trail_height < 0.8)
+	_check("coastal water is excluded from zombie navigation",
+		DESIGN.is_navigation_blocked(Vector2(-192.0, -192.0)))
+	_check("the camp remains valid navigation land",
+		not DESIGN.is_navigation_blocked(Vector2(-64.0, -64.0)))
+
+
+func _test_water_plane() -> void:
+	var water := get_first_node_in_group(&"terrain3d_water") as MeshInstance3D
+	_check("the island has a dedicated water plane", water != null)
+	if water == null:
+		return
+	_check("the water plane matches the design height (%.2f)" % water.global_position.y,
+		absf(water.global_position.y - DESIGN.WATER_HEIGHT) < 0.01)
+	var plane := water.mesh as PlaneMesh
+	_check("the water plane covers all persistent regions",
+		plane != null
+		and plane.size.x >= DESIGN.TERRAIN_SIZE
+		and plane.size.y >= DESIGN.TERRAIN_SIZE)
+
+
+func _test_coastal_sector_filtering() -> void:
+	var sea_sector := SECTOR_GENERATOR.build_sector({
+		"id": "test_sea_sector",
+		"seed": 24680,
+		"position": Vector3(-192.0, 0.0, -192.0),
+		"terrain_profile": &"world",
+		"collected_caches": [],
+		"ammo_collected": false,
+		"weapon_collected": false,
+		"outer_walls": [],
+		"label": "SEA",
+	})
+	var spawn_root := sea_sector.get_node_or_null("SpawnPoints")
+	var cache_root := sea_sector.get_node_or_null("ScrapCaches")
+	var navigation := sea_sector.get_node_or_null(
+		"NavigationRegion3D"
+	) as NavigationRegion3D
+	var navigation_mesh := navigation.navigation_mesh if navigation != null else null
+	_check("sea sectors do not create enemy spawn markers",
+		spawn_root != null and spawn_root.get_child_count() == 0)
+	_check("sea sectors do not create scrap caches",
+		cache_root != null and cache_root.get_child_count() == 0)
+	_check("sea sectors have no walkable navigation polygons",
+		navigation_mesh != null and navigation_mesh.get_polygon_count() == 0)
+	sea_sector.free()
 
 
 func _test_legacy_map_removed() -> void:
@@ -147,12 +200,14 @@ func _test_enemy_height_query() -> void:
 	enemy.global_position = Vector3(128.0, 10.0, 64.0)
 	for _frame in 6:
 		await physics_frame
-	var expected_y := DESIGN.height_at(
-		enemy.global_position.x, enemy.global_position.z
-	) + 1.0
+	var terrain_world := get_first_node_in_group(&"terrain3d_world") as Node3D
+	var expected_y := float(terrain_world.call(
+		&"get_terrain_height", enemy.global_position
+	)) + 1.0
 	_check(
-		"zombies use the Terrain3D height query",
+		"zombies cache the active Terrain3D world",
 		bool(enemy.get(&"_uses_terrain_height_query"))
+		and enemy.get(&"_terrain_world") == terrain_world
 	)
 	_check(
 		"zombies do not collide with terrain facets",

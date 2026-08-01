@@ -108,7 +108,7 @@ static func _add_caches(
 	# Positions are always resolved so the layout stays deterministic even when
 	# previously collected caches are skipped.
 	var placements := _get_placements(
-		_get_authored(config, &"scrap_caches"), cache_count, rng, blocked_areas
+		_get_authored(config, &"scrap_caches"), cache_count, rng, blocked_areas, config
 	)
 	for cache_index in placements.size():
 		var placement := placements[cache_index]
@@ -136,7 +136,7 @@ static func _add_ammo_box(
 	blocked_areas: Array[Rect2]
 ) -> void:
 	var placements := _get_placements(
-		_get_authored(config, &"ammunition_boxes"), 1, rng, blocked_areas
+		_get_authored(config, &"ammunition_boxes"), 1, rng, blocked_areas, config
 	)
 	var placement: Vector2 = placements[0] if not placements.is_empty() else Vector2.INF
 	if placement == Vector2.INF or bool(config.get("ammo_collected", false)):
@@ -181,7 +181,7 @@ static func _add_weapon_crate(
 	var authored := _get_authored(config, &"weapon_crates")
 	# An authored crate is a decision, not a roll: it is always there.
 	var offers_weapon := rng.randf() < 0.34 or not authored.is_empty()
-	var placements := _get_placements(authored, 1, rng, blocked_areas)
+	var placements := _get_placements(authored, 1, rng, blocked_areas, config)
 	var placement: Vector2 = placements[0] if not placements.is_empty() else Vector2.INF
 	if (
 		not offers_weapon
@@ -216,12 +216,18 @@ static func _add_spawn_markers(
 	spawns_root.name = "SpawnPoints"
 	sector.add_child(spawns_root)
 	var placements := _get_placements(
-		_get_authored(config, &"enemy_spawns"), SPAWN_MARKER_COUNT, rng, blocked_areas
+		_get_authored(config, &"enemy_spawns"),
+		SPAWN_MARKER_COUNT,
+		rng,
+		blocked_areas,
+		config
 	)
 	for spawn_index in placements.size():
 		var placement := placements[spawn_index]
 		if placement == Vector2.INF:
-			placement = _find_fallback_spawn(spawn_index, blocked_areas)
+			placement = _find_fallback_spawn(spawn_index, blocked_areas, config)
+		if placement == Vector2.INF:
+			continue
 		var marker := Marker3D.new()
 		marker.name = "Spawn%d" % spawn_index
 		marker.add_to_group(&"enemy_spawn_point")
@@ -414,18 +420,22 @@ static func _get_placements(
 	authored: Array,
 	count: int,
 	rng: RandomNumberGenerator,
-	blocked_areas: Array[Rect2]
+	blocked_areas: Array[Rect2],
+	config: Dictionary
 ) -> Array[Vector2]:
 	var placements: Array[Vector2] = []
 	if not authored.is_empty():
 		for position: Vector2 in authored:
+			if not _is_walkable_terrain(config, position):
+				placements.append(Vector2.INF)
+				continue
 			# Reserved so anything still being scattered keeps away from it.
 			blocked_areas.append(Rect2(position - Vector2.ONE, Vector2(2.0, 2.0)))
 			placements.append(position)
 		return placements
 	for index in count:
 		placements.append(
-			_find_free_position(rng, CONTENT_SIZE, blocked_areas)
+			_find_free_position(rng, CONTENT_SIZE, blocked_areas, config)
 		)
 	return placements
 
@@ -449,7 +459,8 @@ static func _get_painted_blocked_areas(painted_obstacles: Array) -> Array[Rect2]
 static func _find_free_position(
 	rng: RandomNumberGenerator,
 	size: Vector3,
-	blocked_areas: Array[Rect2]
+	blocked_areas: Array[Rect2],
+	config: Dictionary
 ) -> Vector2:
 	for attempt in 20:
 		var candidate := Vector2(
@@ -457,6 +468,8 @@ static func _find_free_position(
 		)
 		# Keep the sector centre clear so there is always a way through.
 		if absf(candidate.x) < 6.0 and absf(candidate.y) < 6.0:
+			continue
+		if not _is_walkable_terrain(config, candidate):
 			continue
 		var footprint := Rect2(
 			candidate - Vector2(size.x, size.z) * 0.5, Vector2(size.x, size.z)
@@ -474,16 +487,30 @@ static func _find_free_position(
 ## painted geometry. Walking the ring beats the old fixed offsets, which were
 ## chosen before the map existed and could sit inside a building.
 static func _find_fallback_spawn(
-	spawn_index: int, blocked_areas: Array[Rect2]
+	spawn_index: int, blocked_areas: Array[Rect2], config: Dictionary
 ) -> Vector2:
 	var count := SPAWN_FALLBACK_POSITIONS.size()
 	for offset in count:
 		var candidate := SPAWN_FALLBACK_POSITIONS[(spawn_index + offset) % count]
+		if not _is_walkable_terrain(config, candidate):
+			continue
 		var footprint := Rect2(candidate - Vector2(1.0, 1.0), Vector2(2.0, 2.0))
 		if _is_area_free(footprint.grow(2.0), blocked_areas):
 			blocked_areas.append(footprint)
 			return candidate
-	return SPAWN_FALLBACK_POSITIONS[spawn_index % count]
+	return Vector2.INF
+
+
+static func _is_walkable_terrain(
+	config: Dictionary, local_position: Vector2
+) -> bool:
+	if StringName(config.get("terrain_profile", &"")) != &"world":
+		return true
+	var sector_position: Vector3 = config.get("position", Vector3.ZERO)
+	return TERRAIN_WORLD_DESIGN.is_walkable_land(Vector2(
+		sector_position.x + local_position.x,
+		sector_position.z + local_position.y
+	))
 
 
 static func _is_area_free(area: Rect2, blocked_areas: Array[Rect2]) -> bool:

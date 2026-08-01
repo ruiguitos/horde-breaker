@@ -176,6 +176,9 @@ Com Forward+ há folga (140 inimigos a 143 FPS), mas o mapa deve ajudar:
    não definem a futura composição do mapa.
 5. **Regresso de conteúdo:** caminhos primeiro; landmarks, POIs e dressing
    depois, em lotes pequenos e medidos.
+6. **Forma de protótipo:** ilha grande, com costa navegável recortada pelo mar.
+   As alternativas e os critérios de decisão estão em
+   `docs/TERRAIN_MAP_OPTIONS.md`.
 
 ---
 

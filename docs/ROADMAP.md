@@ -58,6 +58,10 @@ os percursos e o desempenho estarem validados.
 - [x] Terrain3D 1.0.2 autorizado e integrado sem assets externos do demo.
 - [x] Nove regiões persistentes cobrem os 512 × 512 m dos 64 setores.
 - [x] Plataforma nivelada do acampamento, relevo ondulado e corredor natural.
+- [x] Primeira ilha integral: costa irregular, plano de água, fundo marinho e
+  massas de relevo macro; opções registadas em `docs/TERRAIN_MAP_OPTIONS.md`.
+- [x] Spawns, loot e navegação excluídos do mar; zombies consultam a altura real
+  dos recursos Terrain3D carregados em vez de repetirem a fórmula procedural.
 - [x] `MapRoads`, `MapStructures` e `MapProps` esvaziados; POIs autorados removidos.
 - [x] Forward+ restaurado e colisão otimizada para hordas: jogador usa colisão
   dinâmica, zombies usam consulta de altura.

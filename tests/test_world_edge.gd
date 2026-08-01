@@ -7,14 +7,15 @@ extends SceneTree
 ## it measured the tiles instead of asking the physics engine where the player
 ## actually gets stopped.
 ##
-## So that is what this does. It walks the player out to each of the four edges,
-## sweeps outward with a shape query, and requires that the first thing hit is
-## something with a mesh on it. The invisible collider is still there as a
-## backstop; it just must never be what the player meets first.
+## The island pass replaces the old ring of visible buildings with coastline.
+## This test now requires the terrain to enter the visible sea before the hidden
+## backstop is reached. The backstop remains a last safety measure, not the map's
+## visual explanation for why the player should turn around.
 ##
 ## Run:  <godot> --headless --path . --script res://tests/test_world_edge.gd
 
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
+const TERRAIN_DESIGN := preload("res://scripts/systems/terrain3d_world_design.gd")
 const SECTOR_SIZE := 64.0
 const WORLD_LAYER := 1
 ## Roughly the player's girth, so the probe stops where the player would.
@@ -23,16 +24,11 @@ const PROBE_HEIGHT := 1.0
 const STEP := 0.5
 ## How far past the last sector centre to keep probing.
 const OVERSHOOT := 48.0
-## A mesh that ends this close to the probe still counts as the thing you see.
-const VISIBLE_TOLERANCE := 0.6
 ## Frames to let the streamer build and attach the edge sectors.
 const SETTLE_FRAMES := 200
 
 var _passed := 0
 var _failed := 0
-var _visible_boxes: Array[AABB] = []
-
-
 func _initialize() -> void:
 	_run.call_deferred()
 
@@ -51,6 +47,9 @@ func _run() -> void:
 	var player := get_first_node_in_group(&"player") as Node3D
 	_check("the world streamer is present", streamer != null)
 	_check("the player is present", player != null)
+	var water := get_first_node_in_group(&"terrain3d_water") as MeshInstance3D
+	_check("the world edge is represented by a visible sea",
+		water != null and water.visible)
 	if streamer == null or player == null:
 		_report()
 		return
@@ -76,11 +75,10 @@ func _test_edge(player: Node3D, edge: Dictionary) -> void:
 	player.global_position = start
 	for _frame in SETTLE_FRAMES:
 		await process_frame
-	_collect_visible_boxes()
 
 	# Three lines across the edge, so a single lucky gap cannot pass for a wall.
 	var across := Vector3(direction.z, 0.0, direction.x)
-	var buried: Array[String] = []
+	var dry_backstops: Array[String] = []
 	var unstopped := 0
 	for offset: float in [-18.0, 0.0, 18.0]:
 		var origin: Vector3 = start + across * offset
@@ -88,8 +86,8 @@ func _test_edge(player: Node3D, edge: Dictionary) -> void:
 		if hit.is_empty():
 			unstopped += 1
 			continue
-		if not _is_visible(hit["position"]):
-			buried.append("%s at %.0f m (%s)" % [
+		if not _crosses_visible_water(origin, direction, float(hit["distance"])):
+			dry_backstops.append("%s at %.0f m (%s)" % [
 				edge["name"], hit["distance"], hit["name"]
 			])
 	_check(
@@ -99,10 +97,11 @@ func _test_edge(player: Node3D, edge: Dictionary) -> void:
 		unstopped == 0
 	)
 	_check(
-		"the %s edge is something you can see: %s" % [
-			edge["name"], "yes" if buried.is_empty() else ", ".join(buried)
+		"the %s edge crosses visible water before its backstop: %s" % [
+			edge["name"],
+			"yes" if dry_backstops.is_empty() else ", ".join(dry_backstops)
 		],
-		buried.is_empty()
+		dry_backstops.is_empty()
 	)
 
 
@@ -130,39 +129,15 @@ func _find_first_collision(origin: Vector3, direction: Vector3) -> Dictionary:
 		travelled += STEP
 	return {}
 
-
-## Every painted cell's mesh, in world space. A GridMap draws through the
-## rendering server without making nodes, so there is nothing to look up.
-func _collect_visible_boxes() -> void:
-	_visible_boxes.clear()
-	for value in get_nodes_in_group(&"map_gridmap"):
-		var grid := value as GridMap
-		if grid == null or grid.mesh_library == null:
-			continue
-		var library := grid.mesh_library
-		for cell in grid.get_used_cells():
-			var item := grid.get_cell_item(cell)
-			if item == GridMap.INVALID_CELL_ITEM:
-				continue
-			var mesh := library.get_item_mesh(item)
-			if mesh == null:
-				continue
-			var orientation := grid.get_cell_item_orientation(cell)
-			var transform := (
-				grid.global_transform
-				* Transform3D(
-					grid.get_basis_with_orthogonal_index(orientation),
-					grid.map_to_local(cell)
-				)
-				* library.get_item_mesh_transform(item)
-			)
-			_visible_boxes.append(transform * mesh.get_aabb())
-
-
-func _is_visible(point: Vector3) -> bool:
-	for box in _visible_boxes:
-		if box.grow(VISIBLE_TOLERANCE).has_point(point):
+func _crosses_visible_water(
+	origin: Vector3, direction: Vector3, maximum_distance: float
+) -> bool:
+	var travelled := 0.0
+	while travelled <= maximum_distance:
+		var point := origin + direction * travelled
+		if TERRAIN_DESIGN.height_at(point.x, point.z) < TERRAIN_DESIGN.WATER_HEIGHT:
 			return true
+		travelled += STEP
 	return false
 
 

@@ -1088,3 +1088,47 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   oficial continua a emitir o aviso de depreciação
   `instance_reset_physics_interpolation()` no Godot 4.7; não impede o arranque
   nem os testes.
+
+## Primeira ilha Terrain3D e opções de mapa (2026-08-01)
+
+- [x] O terreno integral deixou de ser um retângulo ondulado e passou a formar
+  uma ilha grande com costa irregular, praia, fundo marinho a `Y = -6 m`, água
+  a `Y = -3 m`, cordilheira norte, planalto leste e elevação oeste. O acampamento
+  mantém a plataforma exata a 0 m e o corredor natural continua transitável.
+- [x] Um único `WaterPlane` cobre as nove regiões e usa um shader leve, sem
+  colisão nem sombras. O shader do Terrain3D distingue agora a faixa de areia
+  junto à água. O piso invisível de segurança desceu para `Y = -7 m`, abaixo do
+  fundo marinho, para não criar uma superfície física a flutuar sobre o mar.
+- [x] O gerador de setores rejeita posições submersas para caches, munições,
+  caixas de arma e spawns. A navegação não cria polígonos abaixo da costa; um
+  setor totalmente marítimo fica sem loot, spawns ou área navegável.
+- [x] Corrigida a base do contacto dos inimigos: `normal_zombie.gd` consulta a
+  altura dos recursos Terrain3D realmente carregados e volta a ajustar a altura
+  mesmo nos frames de simulação distante que são saltados. Deixa de depender da
+  fórmula procedural, portanto escultura e heightmaps importados não criam uma
+  segunda interpretação do solo. O teste mediu erro de 0,00 m nos pés.
+- [x] `docs/TERRAIN_MAP_OPTIONS.md` regista ilha, península, vale/cratera,
+  arquipélago, continente e DEM real, bem como geração procedural, escultura,
+  importação EXR/R16, GLB para landmarks e mapas existentes. Inclui riscos,
+  critérios, layout recomendado e referências oficiais do Terrain3D. O asset
+  `3134` foi identificado como o plugin Terrain3D 1.0.0, não como pack de mapas;
+  o projeto mantém a versão 1.0.2 já integrada e não descarregou assets.
+- [x] Validação: importação headless concluída; `test_terrain3d_world` passou
+  32/32 e a regressão de terreno, chão, mapa vazio, arena, acampamento,
+  navegação, conteúdo, minimapa, extração, pickups, bordas e horda passou **263
+  verificações** sem falhas, além do teste integrado do protótipo Terrain3D. O
+  teste das bordas exige agora mar visível antes das paredes físicas de segurança
+  e passou 11/11 nas quatro direções.
+- [x] Forward+ na RX 590, 1152 × 648, 140 zombies: **124,4 FPS**, 8,04 ms de
+  média, mediana 8,05 ms, p95 11,83 ms, 1982 draw calls e 5 200 907 primitivas.
+  A referência anterior era 123,2 FPS; a consulta real de altura e o plano de
+  água não introduziram regressão material. Arranque headless: terreno pronto
+  em 465,6 ms e mundo jogável em 2,93 s, com quatro setores residentes.
+- [x] Duas capturas Forward+ foram inspecionadas: vista ortogonal confirmou a
+  silhueta costeira contínua; vista ao nível do terreno confirmou a transição
+  entre relva, areia e água sem modelos antigos no exterior.
+- Limitações: a água é apenas visual — ainda não existe natação, dano, retorno
+  à margem nem barreira costeira para o jogador. O mapa tático continua a mostrar
+  a grelha quadrada e não desenha a costa. Faltam caminhos terrain-native,
+  texturas/espuma finais, biomas, landmarks e playtest dos declives. O aviso de
+  depreciação do addon oficial no Godot 4.7 mantém-se.

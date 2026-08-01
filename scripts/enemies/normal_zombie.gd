@@ -7,9 +7,6 @@ signal died(enemy: Node)
 const ALIVE_TARGET_GROUP := &"enemy_target"
 const WORLD_COLLISION_LAYER := 1
 const TERRAIN_WORLD_GROUP := &"terrain3d_world"
-const TERRAIN_WORLD_DESIGN := preload(
-	"res://scripts/systems/terrain3d_world_design.gd"
-)
 const TERRAIN_FEET_OFFSET := 1.0
 const TARGET_REPATH_DISTANCE := 0.25
 const TARGET_SCAN_INTERVAL := 0.75
@@ -89,6 +86,7 @@ var _hit_flash_active := false
 var _scrap_drop_attempted := false
 var _ammo_drop_attempted := false
 var _uses_terrain_height_query := false
+var _terrain_world: Node3D
 
 
 func _ready() -> void:
@@ -96,9 +94,8 @@ func _ready() -> void:
 	# Terrain3D physics is reserved for the player. A large horde colliding its
 	# capsules with the terrain facets is substantially more expensive than one
 	# deterministic height lookup per simulated zombie.
-	_uses_terrain_height_query = (
-		get_tree().get_first_node_in_group(TERRAIN_WORLD_GROUP) != null
-	)
+	_terrain_world = get_tree().get_first_node_in_group(TERRAIN_WORLD_GROUP) as Node3D
+	_uses_terrain_height_query = _terrain_world != null
 	if _uses_terrain_height_query:
 		collision_mask &= ~WORLD_COLLISION_LAYER
 	_setup_hit_flash()
@@ -129,6 +126,7 @@ func _physics_process(delta: float) -> void:
 	if _horizontal_distance_to_target() > SIM_FAR_DISTANCE:
 		_skipped_physics_frames += 1
 		if _skipped_physics_frames <= FAR_PHYSICS_FRAME_SKIP:
+			_snap_to_terrain()
 			return
 		delta *= float(_skipped_physics_frames)
 		_skipped_physics_frames = 0
@@ -388,10 +386,14 @@ func _apply_gravity(delta: float) -> void:
 
 func _move_on_ground() -> void:
 	move_and_slide()
-	if not _uses_terrain_height_query:
+	_snap_to_terrain()
+
+
+func _snap_to_terrain() -> void:
+	if not _uses_terrain_height_query or not is_instance_valid(_terrain_world):
 		return
-	var terrain_height := TERRAIN_WORLD_DESIGN.height_at(
-		global_position.x, global_position.z
+	var terrain_height := float(
+		_terrain_world.call(&"get_terrain_height", global_position)
 	)
 	global_position.y = terrain_height + TERRAIN_FEET_OFFSET
 	velocity.y = 0.0

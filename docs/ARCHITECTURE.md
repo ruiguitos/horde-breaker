@@ -33,9 +33,15 @@ Forward+), GDScript tipado, sem C#.
   `SaveManager`.
 - `terrain3d_world.gd` — monta nove regiões Terrain3D persistentes para cobrir
   os 512 × 512 m, aplica o shader leve, quatro LODs e colisão dinâmica a 48 m.
+  A cena contém também um único plano de água; o mar não altera os recursos de
+  altura nem cria uma segunda superfície física.
 - `sector_generator.gd` — não constrói geometria visível: coloca caches, caixa
   de munições, caixa de arma (~1/3), spawn markers, limites e navegação sobre a
-  altura determinística do Terrain3D.
+  altura determinística do Terrain3D. Na ilha, rejeita colocações submersas e
+  não gera polígonos de navegação abaixo da linha costeira.
+- `normal_zombie.gd` — no mapa principal consulta `Terrain3DWorld` e usa a altura
+  dos dados realmente carregados; não repete a fórmula do gerador. Isto permite
+  esculpir ou importar um heightmap sem fazer os inimigos flutuar.
 - `arena_navigation.gd` — grelha de navegação em runtime que exclui células
   ocupadas por `navigation_blocker`. **Decisão:** navmesh de editor não se
   aplica — os setores são gerados em runtime; a grelha é construída na worker

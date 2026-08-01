@@ -72,10 +72,14 @@ desaparece pouco depois.
 - Grelha 8 × 8 de setores 64 × 64 m sobre um Terrain3D contínuo. O acampamento
   persistente ocupa `(-1,-1)`; os restantes setores carregam conteúdo por seed
   em worker threads.
+- O protótipo atual assume uma ilha grande: costa irregular, água a `Y = -3 m`,
+  fundo marinho a `Y = -6 m` e três massas de relevo usadas como orientação.
+  Spawns, loot e navegação são excluídos das zonas submersas. As alternativas e
+  critérios estão registados em `docs/TERRAIN_MAP_OPTIONS.md`.
 - **O seed do mundo é fixo por perfil** (guardado no save): o layout mantém-se
   entre partidas. Loot volta a cada partida — decisão de design: mundo familiar,
   exploração sempre recompensada.
-- Nesta passagem o exterior do acampamento mostra **apenas o terreno**. Casas,
+- Nesta passagem o exterior do acampamento mostra **apenas terreno e água**. Casas,
   estradas, props e POIs autorados foram retirados para reconstruir o mapa sobre
   uma base limpa; caches, munições, caixas de arma e spawns continuam ativos.
 - **Emboscadas por setor** ao aproximar, re-armadas a cada ciclo.

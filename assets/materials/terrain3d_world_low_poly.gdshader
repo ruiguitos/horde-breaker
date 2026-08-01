@@ -26,6 +26,8 @@ uniform highp sampler2DArray _height_maps : repeat_disable;
 
 uniform vec3 grass_color : source_color = vec3(0.20, 0.30, 0.13);
 uniform vec3 soil_color : source_color = vec3(0.25, 0.15, 0.07);
+uniform vec3 sand_color : source_color = vec3(0.50, 0.40, 0.22);
+uniform float water_height = -3.0;
 uniform float slope_start : hint_range(0.0, 1.0) = 0.08;
 uniform float slope_end : hint_range(0.0, 1.0) = 0.42;
 
@@ -107,6 +109,10 @@ void fragment() {
 	float soil_weight = smoothstep(slope_start, slope_end, slope);
 	float macro_variation =
 		sin(v_world_position.x * 0.055) * cos(v_world_position.z * 0.043) * 0.035;
-	ALBEDO = mix(grass_color, soil_color, soil_weight) + vec3(macro_variation);
+	float beach_weight = 1.0 - smoothstep(
+		water_height + 0.2, water_height + 2.2, v_world_position.y
+	);
+	vec3 inland_color = mix(grass_color, soil_color, soil_weight);
+	ALBEDO = mix(inland_color, sand_color, beach_weight) + vec3(macro_variation);
 	ROUGHNESS = 0.96;
 }

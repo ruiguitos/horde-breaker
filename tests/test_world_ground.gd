@@ -72,10 +72,10 @@ func _run() -> void:
 				float(grid_y) * sector_size
 			)
 			var height := float(terrain_world.call(&"get_terrain_height", point))
-			if is_nan(height) or height <= TERRAIN_DESIGN.OUTSIDE_HEIGHT + 0.1:
+			if is_nan(height):
 				uncovered_terrain += 1
 	_check(
-		"ground: all 64 sector centres are on Terrain3D (%d off)"
+		"ground: all 64 sector centres are stored by Terrain3D (%d off)"
 			% uncovered_terrain,
 		uncovered_terrain == 0
 	)
@@ -132,8 +132,8 @@ func _run() -> void:
 	_check("fallback: all 64 sectors sit on it (%d points off)" % uncovered,
 		uncovered == 0)
 	var fallback_top := ground.global_position.y + box.size.y * 0.5
-	_check("fallback: stays below the playable terrain (%.2f)" % fallback_top,
-		fallback_top < TERRAIN_DESIGN.MINIMUM_PLAYABLE_HEIGHT)
+	_check("fallback: stays below the seabed (%.2f)" % fallback_top,
+		fallback_top < TERRAIN_DESIGN.SEABED_HEIGHT)
 	_check("fallback: has no visible mesh",
 		ground.get_node_or_null("Mesh") == null)
 

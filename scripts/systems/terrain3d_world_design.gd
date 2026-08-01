@@ -21,8 +21,13 @@ const NATURAL_CENTER := Vector2(
 const SECTOR_HALF_SIZE := SECTOR_SIZE * 0.5
 
 const CAMP_HEIGHT := 0.0
-const OUTSIDE_HEIGHT := -1.0
+const ISLAND_CENTER := Vector2(32.0, 32.0)
+const BASE_ISLAND_RADIUS := 220.0
+const WATER_HEIGHT := -3.0
+const SEABED_HEIGHT := -6.0
+const OUTSIDE_HEIGHT := SEABED_HEIGHT
 const MINIMUM_PLAYABLE_HEIGHT := 0.10
+const NAVIGATION_MINIMUM_HEIGHT := WATER_HEIGHT + 0.45
 
 static func create_height_map() -> Image:
 	var height_map := Image.create_empty(
@@ -43,14 +48,22 @@ static func create_height_map() -> Image:
 static func height_at(world_x: float, world_z: float) -> float:
 	var coords := sector_at(world_x, world_z)
 	if not is_playable_sector(coords):
-		return OUTSIDE_HEIGHT
+		return SEABED_HEIGHT
+	var world_position := Vector2(world_x, world_z)
 	var shaped_height := _rolling_height(world_x, world_z)
+	shaped_height += _regional_relief(world_position)
 	if coords == NATURAL_SECTOR:
 		shaped_height = _natural_height(world_x, world_z, shaped_height)
+	var island_local := world_position - ISLAND_CENTER
+	var island_angle := atan2(island_local.y, island_local.x)
+	var island_radius := _island_radius(island_angle)
+	var shore_distance := island_radius - island_local.length()
+	var coast_blend := smoothstep(-20.0, 26.0, shore_distance)
+	shaped_height = lerpf(SEABED_HEIGHT, shaped_height, coast_blend)
 	# The camp, gates and construction grid need one dependable datum. Blend
 	# back into the hills outside the perimeter instead of cutting a hard ledge.
 	var camp_center := Vector2(CAMP_SECTOR) * SECTOR_SIZE
-	var camp_distance := Vector2(world_x, world_z).distance_to(camp_center)
+	var camp_distance := world_position.distance_to(camp_center)
 	var camp_blend := smoothstep(48.0, 70.0, camp_distance)
 	return lerpf(CAMP_HEIGHT, shaped_height, camp_blend)
 
@@ -78,10 +91,26 @@ static func is_natural_sector(coords: Vector2i) -> bool:
 	return coords == NATURAL_SECTOR
 
 
-static func is_navigation_blocked(_world_position: Vector2) -> bool:
-	# This terrain-only pass contains no rocks, houses or other solid dressing.
-	# Keeping the old prototype footprints would create invisible nav blockers.
-	return false
+static func is_navigation_blocked(world_position: Vector2) -> bool:
+	# Water is visual rather than a physics body, so the generated navigation
+	# mesh must be clipped at the coast. This keeps zombies on dry land without
+	# introducing invisible geometry or a square navigation boundary.
+	return height_at(world_position.x, world_position.y) < NAVIGATION_MINIMUM_HEIGHT
+
+
+static func is_walkable_land(world_position: Vector2) -> bool:
+	return not is_navigation_blocked(world_position)
+
+
+static func _island_radius(angle: float) -> float:
+	# Several low-frequency waves avoid a mathematically round shoreline while
+	# remaining deterministic and cheap to rebuild.
+	return (
+		BASE_ISLAND_RADIUS
+		+ sin(angle * 3.0 + 0.4) * 18.0
+		+ cos(angle * 5.0 - 0.6) * 10.0
+		+ sin(angle * 7.0 + 0.8) * 5.0
+	)
 
 
 static func _rolling_height(world_x: float, world_z: float) -> float:
@@ -94,6 +123,23 @@ static func _rolling_height(world_x: float, world_z: float) -> float:
 		+ crossing * 1.6
 		+ diagonal * 1.2
 	)
+
+
+static func _regional_relief(world_position: Vector2) -> float:
+	# Broad, recognisable masses give the player landmarks at a distance: a
+	# northern ridge, an eastern highland and a softer western rise. Smaller
+	# dressing can later follow these shapes instead of defining the map itself.
+	var northern_ridge := 8.5 * exp(
+		-pow(world_position.x - 38.0, 2.0) / 9200.0
+		-pow(world_position.y + 84.0, 2.0) / 1500.0
+	)
+	var eastern_highland := 10.5 * exp(
+		-(world_position - Vector2(108.0, 42.0)).length_squared() / 5200.0
+	)
+	var western_rise := 5.0 * exp(
+		-(world_position - Vector2(-126.0, 68.0)).length_squared() / 4300.0
+	)
+	return northern_ridge + eastern_highland + western_rise
 
 
 static func _natural_height(
