@@ -4,7 +4,7 @@ extends Node
 ## and its weapons once, at the start of the run. Scrap and XP multipliers are
 ## read directly by CampEconomy and CharacterProgression. When the class
 ## variant is active, its base overrides land before the skill bonuses and its
-## runtime hooks (lifesteal, heal on kill, tint) are wired afterwards.
+## runtime hooks (damage, fire rate, heal on kill, tint) are wired afterwards.
 
 const PLAYER_GROUP := &"player"
 const WEAPON_CONTROLLER_GROUP := &"weapon_controller"
@@ -83,19 +83,16 @@ func _apply_variant_hooks(variant: Dictionary) -> void:
 	if player == null:
 		return
 	var fire_rate_mult := float(variant.get("fire_rate_mult", 1.0))
-	var lifesteal := float(variant.get("melee_lifesteal", 0.0))
+	var damage_mult := float(variant.get("damage_mult", 1.0))
 	for weapon in _get_loadout_weapons():
+		if damage_mult != 1.0:
+			var damage: Variant = weapon.get(&"damage")
+			if damage != null:
+				weapon.set(&"damage", float(damage) * damage_mult)
 		if fire_rate_mult != 1.0:
 			var fire_rate: Variant = weapon.get(&"fire_rate")
 			if fire_rate != null:
 				weapon.set(&"fire_rate", float(fire_rate) * fire_rate_mult)
-		if lifesteal > 0.0 and weapon.has_signal(&"attack_performed"):
-			weapon.connect(
-				&"attack_performed",
-				func(hit_count: int) -> void:
-					if hit_count > 0 and is_instance_valid(player):
-						player.call(&"heal", lifesteal * hit_count)
-			)
 	var heal_on_kill := float(variant.get("heal_on_kill", 0.0))
 	if heal_on_kill > 0.0:
 		var wave_manager := get_tree().get_first_node_in_group(WAVE_MANAGER_GROUP)

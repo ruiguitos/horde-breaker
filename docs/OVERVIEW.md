@@ -165,7 +165,7 @@ Definições: `user://horde_breaker_settings.cfg`. No Windows: `%APPDATA%/Godot/
 autoload/         Autoloads (singletons): settings, save, game manager, fps overlay
 data/
   characters/     recruit/renegade/medic .tres (CharacterData)
-  weapons/        assault_rifle, pistol, shotgun, smg, worn_sword, spear, fire_axe (WeaponData)
+  weapons/        9 armas de fogo ativas + 4 Resources melee legados fora do catálogo
   waves/          WaveData legado (não usado pelo diretor contínuo)
   sectors/        SectorData por setor, à mão — criado por tools/new_sector_data.gd
                   (não existe até se autorar o primeiro; sem ficheiro = disperso)
@@ -175,14 +175,14 @@ scenes/
   menus/          main_menu, character_selection, armory_screen, settings, skill_tree
   pickups/        scrap/ammo/health/weapon
   ui/             hud, tactical_map, damage_number, painéis
-  weapons/        cenas das 7 armas (lógica + malhas invisíveis; visual = embutido no rig)
+  weapons/        cenas das armas (lógica + malhas invisíveis; visual = embutido no rig)
   world/          test_arena (o mapa vive nas 3 camadas de GridMap desta cena)
                   camp_sector, poi_warehouse/military_outpost/fuel_station
                   exploration_pois.tscn = graybox antigo, já não usado
 scripts/
   characters/     player, third_person_camera, imported_model_animation
   enemies/        normal_zombie (base), boss_breaker, damage_hitbox, spit_projectile
-  weapons/        weapon_controller, hitscan_weapon, melee_weapon
+  weapons/        weapon_controller, hitscan_weapon; melee_weapon é legado inativo
   systems/        (ver secção 4 — o coração do jogo)
   ui/             ecrãs e helpers (armory, selection, hud, mapa, animações)
   pickups/        scrap/ammo/health/weapon
@@ -235,7 +235,7 @@ lê de `paint_world` onde ficaram os pátios):
 
 | Sistema | Função |
 |---|---|
-| `wave_manager.gd` | **Diretor de horda contínuo**: threat level sobe **por tempo** (75 s/nível), spawns em lotes nos 6 pontos mais próximos (≥12 m), pesos por tipo, boss a cada 5 níveis, `cycle_completed` a cada 3. |
+| `wave_manager.gd` | **Diretor de horda contínuo**: threat level sobe **por tempo** (75 s/nível), spawns nos 6 pontos mais próximos (≥12 m), boss a cada 5 níveis e `cycle_completed` a cada 3; teto global 90, guarda absoluta 120, fila 12 e 2 instâncias/frame. |
 | `world_streamer.gd` | Grelha 8×8 (512 m); setores gerados em **worker threads**; carga 72 m / descarga 96 m; estado por setor; seed e setores visitados persistidos no save. |
 | `sector_generator.gd` | **Só conteúdo, nunca geometria**: caches, munições, caixa de arma (~⅓), marcadores de spawn, paredes de limite e o bake de navegação. Coloca **sobre** o mapa pintado — recebe os obstáculos do GridMap e nunca larga loot dentro de paredes. Um `SectorData.tres` substitui a dispersão, lista a lista. |
 | `gridmap_obstacles.gd` | Converte células pintadas do GridMap na lista de obstáculos que a navegação usa; lê as **formas por peça**, por isso o armazém fica praticável por dentro. |
@@ -244,7 +244,7 @@ lê de `paint_world` onde ficaram os pátios):
 | `camp_core.gd` / `camp_upgrade_station.gd` | Núcleo, **zona de reabastecimento** (raio/valores crescem com upgrades), 3 pedestais de upgrade. |
 | `defense_tower_site.gd` | 3 torres exteriores automáticas com vida, reparação e 3 níveis dependentes de Scrap e nível da run. |
 | `character_progression.gd` | XP por kill/nível/ciclo, Credits por ciclo, **mastery** (kills/threat). |
-| `skill_tree.gd` / `character_skills.gd` | Árvore permanente (3 ramos × 5 tiers, níveis mín. 2/5/9/14/20) e aplicação dos bónus. |
+| `skill_tree.gd` / `character_skills.gd` | Árvore permanente (36 nós, 3 ramos × 7 tiers, níveis mín. 2/4/7/10/14/18/24) e aplicação dos bónus. |
 | `character_mastery.gd` | Objetivos de mastery (EXTERMINATOR/STORM RIDER/SCAVENGER). |
 | `character_variants.gd` | **Variantes de classe** (capstone da mastery): VETERAN/BERSERKER/COMBAT MEDIC. |
 | `weapon_catalog.gd` | Catálogo único das armas jogáveis (usado pelo controller e pelo ARMORY). |
@@ -259,7 +259,7 @@ lê de `paint_world` onde ficaram os pátios):
 
 ### Combate & Inimigos
 - Hitscan com dano por zonas (corpo 1× / cabeça 2×), auto-fire por proximidade
-  **por arma** (AR 6 / Pistol 5,5 / Shotgun 4,5 / SMG 7 m) + disparo manual, melee.
+  **por arma** (AR 6 / Pistol 5,5 / Shotgun 4,5 / SMG 7 m) + disparo manual.
 - 5 inimigos por função: Normal, Runner, Brute (knockback), Spitter (à distância), Boss.
 - **Animações completas** dos inimigos: ataque (`Idle_Attack`), dano (`HitReact`),
   morte (`Death` + cadáver sem colisão). **Drop de Scrap** ao morrer (por tipo).
@@ -268,10 +268,11 @@ lê de `paint_world` onde ficaram os pátios):
 
 ### Classes, Armas & Progressão
 - 2 classes jogáveis (Recruit/Renegade); Medic parqueado via `is_selectable`.
-- **13 armas** em 5 categorias (ASSAULT/SIDEARM/CLOSE RANGE/HEAVY/MELEE): AR,
-  Pistol, Shotgun, SMG, **Machine Gun** (−15% velocidade), Worn Sword, Spear,
-  Fire Axe, + 5 evoluções (Storm Rifle, Siege Breaker, Hornet, Cleaver,
-  **Minigun**). Visuais são **malhas embutidas nos rigs** (decisão firme).
+- **9 armas de fogo** em 4 categorias (ASSAULT/SIDEARM/CLOSE RANGE/HEAVY): AR,
+  Pistol, Shotgun, SMG, **Machine Gun** (−15% velocidade), + 4 evoluções
+  (Storm Rifle, Siege Breaker, Hornet, **Minigun**). Worn Sword, Spear, Fire Axe
+  e Cleaver estão retiradas do catálogo. Os visuais ativos são **malhas
+  embutidas nos rigs**.
 - **ARMORY:** comprar com Credits (nível+custo), slots 1/2 persistentes, agrupado
   por categoria. Evoluções **não aparecem à venda** antes de ganhas por abates.
 - **Skill tree** permanente: 3 árvores com bifurcação, **36 nós** em 7 tiers;

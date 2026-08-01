@@ -24,8 +24,10 @@ const MEDIC_ID := &"medic"
 const ASSAULT_RIFLE_ID := &"assault_rifle"
 const PISTOL_ID := &"pistol"
 const SHOTGUN_ID := &"shotgun"
-const WORN_SWORD_ID := &"worn_sword"
-const SPEAR_ID := &"spear"
+const SMG_ID := &"smg"
+const RETIRED_MELEE_IDS := [
+	"worn_sword", "cleaver", "spear", "fire_axe",
+]
 const RECRUIT_DATA: CharacterData = preload("res://data/characters/recruit.tres")
 const RENEGADE_DATA: CharacterData = preload("res://data/characters/renegade.tres")
 const MEDIC_DATA: CharacterData = preload("res://data/characters/medic.tres")
@@ -594,7 +596,7 @@ func _ensure_defaults() -> bool:
 		_set_default(
 			String(RENEGADE_ID),
 			"purchased_weapons",
-			PackedStringArray([String(SHOTGUN_ID), String(WORN_SWORD_ID)])
+			PackedStringArray([String(SHOTGUN_ID), String(SMG_ID)])
 		)
 		or defaults_added
 	)
@@ -606,7 +608,7 @@ func _ensure_defaults() -> bool:
 	)
 	defaults_added = (
 		_set_default(
-			String(RENEGADE_ID), "selected_secondary_weapon", String(WORN_SWORD_ID)
+			String(RENEGADE_ID), "selected_secondary_weapon", String(SMG_ID)
 		)
 		or defaults_added
 	)
@@ -617,7 +619,7 @@ func _ensure_defaults() -> bool:
 		_set_default(
 			String(MEDIC_ID),
 			"purchased_weapons",
-			PackedStringArray([String(PISTOL_ID), String(SPEAR_ID)])
+			PackedStringArray([String(PISTOL_ID), String(SMG_ID)])
 		)
 		or defaults_added
 	)
@@ -628,16 +630,10 @@ func _ensure_defaults() -> bool:
 		or defaults_added
 	)
 	defaults_added = (
-		_set_default(String(MEDIC_ID), "selected_secondary_weapon", String(SPEAR_ID))
+		_set_default(String(MEDIC_ID), "selected_secondary_weapon", String(SMG_ID))
 		or defaults_added
 	)
-	# Migrate the former empty/experimental Medic slot to the Spear without
-	# changing any other loadout choice already stored by a later profile.
-	if String(
-		_config.get_value(String(MEDIC_ID), "selected_secondary_weapon", "")
-	) in ["", "revolver"]:
-		_config.set_value(String(MEDIC_ID), "selected_secondary_weapon", String(SPEAR_ID))
-		defaults_added = true
+	defaults_added = _migrate_retired_melee_weapons() or defaults_added
 	defaults_added = (
 		_ensure_purchased_weapons(
 			RECRUIT_ID, PackedStringArray([String(ASSAULT_RIFLE_ID), String(PISTOL_ID)])
@@ -646,17 +642,66 @@ func _ensure_defaults() -> bool:
 	)
 	defaults_added = (
 		_ensure_purchased_weapons(
-			RENEGADE_ID, PackedStringArray([String(SHOTGUN_ID), String(WORN_SWORD_ID)])
+			RENEGADE_ID, PackedStringArray([String(SHOTGUN_ID), String(SMG_ID)])
 		)
 		or defaults_added
 	)
 	defaults_added = (
 		_ensure_purchased_weapons(
-			MEDIC_ID, PackedStringArray([String(PISTOL_ID), String(SPEAR_ID)])
+			MEDIC_ID, PackedStringArray([String(PISTOL_ID), String(SMG_ID)])
 		)
 		or defaults_added
 	)
 	return defaults_added
+
+
+func _migrate_retired_melee_weapons() -> bool:
+	var changed := false
+	var fallback_loadouts: Dictionary[StringName, Array] = {
+		RECRUIT_ID: [ASSAULT_RIFLE_ID, PISTOL_ID],
+		RENEGADE_ID: [SHOTGUN_ID, SMG_ID],
+		MEDIC_ID: [PISTOL_ID, SMG_ID],
+	}
+	for character_id in fallback_loadouts:
+		var purchased := get_purchased_weapons(character_id)
+		var filtered := PackedStringArray()
+		for weapon_id in purchased:
+			if (
+				weapon_id not in RETIRED_MELEE_IDS
+				and WeaponCatalog.get_weapon_data(StringName(weapon_id)) != null
+			):
+				filtered.append(weapon_id)
+		if filtered.size() != purchased.size():
+			_config.set_value(String(character_id), "purchased_weapons", filtered)
+			changed = true
+
+		var fallback: Array = fallback_loadouts[character_id]
+		var primary := StringName(_config.get_value(
+			String(character_id), "selected_primary_weapon", String(fallback[0])
+		))
+		var secondary := StringName(_config.get_value(
+			String(character_id), "selected_secondary_weapon", String(fallback[1])
+		))
+		if (
+			String(primary) in RETIRED_MELEE_IDS
+			or WeaponCatalog.get_weapon_data(primary) == null
+		):
+			primary = StringName(fallback[0])
+			changed = true
+		if (
+			String(secondary) in RETIRED_MELEE_IDS
+			or WeaponCatalog.get_weapon_data(secondary) == null
+		):
+			secondary = StringName(fallback[1])
+			changed = true
+		if primary == secondary:
+			secondary = StringName(fallback[1])
+			changed = true
+		_config.set_value(String(character_id), "selected_primary_weapon", String(primary))
+		_config.set_value(
+			String(character_id), "selected_secondary_weapon", String(secondary)
+		)
+	return changed
 
 
 func _ensure_purchased_weapons(

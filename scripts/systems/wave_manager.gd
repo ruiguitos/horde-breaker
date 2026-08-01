@@ -27,12 +27,19 @@ const SPAWN_POINT_GROUP := &"enemy_spawn_point"
 const MAX_ACTIVE_SPAWN_POINTS := 6
 const SPAWN_POSITION_JITTER := 1.5
 const MINIMUM_SPAWN_DISTANCE := 12.0
+const SPAWN_DEBUG_ROOT_NAME := &"SpawnDebug"
+const SPAWN_DEBUG_MARKER_RADIUS := 0.32
 const LEVELS_PER_CYCLE := 3
-const HARD_ENEMY_CAP := 140
+## Absolute guardrail: even an accidentally edited scene cannot ask the game to
+## simulate an unbounded horde. The normal play budget is lower and exported.
+const ABSOLUTE_ENEMY_CAP := 120
 const CAMP_ECONOMY_GROUP := &"camp_economy"
 # Instancing a whole batch in one frame costs ~10 ms with the bigger hordes, so
 # spawns are queued and drip-fed a few per physics frame.
-const SPAWNS_PER_FRAME := 3
+const SPAWNS_PER_FRAME := 2
+## A large threat-level batch is a design request, not permission to reserve
+## dozens of instances. A short queue keeps pressure steady and frame spikes low.
+const MAX_QUEUED_SPAWNS := 12
 # The extraction window turns the pressure up: faster spawns, bigger batches.
 const SURGE_INTERVAL_SCALE := 0.55
 const SURGE_BATCH_BONUS := 6
@@ -68,7 +75,13 @@ const SPAWN_INTERVAL_DECAY := 0.65
 ## is thinner; the run it grows into is not.
 @export_range(1, 200, 1) var base_max_alive: int = 5
 @export_range(0, 40, 1) var max_alive_per_level: int = 15
+## Global budget shared by the travelling horde, bosses and exploration
+## encounters. Difficulty beyond this point comes from enemy composition.
+@export_range(20, 120, 5) var max_simultaneous_enemies: int = 90
 @export_range(2, 20, 1) var boss_every_levels: int = 5
+## Editor/playtest aid. Shows every candidate marker and why the current
+## director selected or rejected it. Kept off in normal runs.
+@export var debug_spawn_points: bool = false
 
 @onready var enemy_spawns: Node3D = %EnemySpawns
 @onready var enemies: Node3D = %Enemies
@@ -82,8 +95,12 @@ var _spawn_cooldown: float = 0.0
 var _level_time_remaining: float = 0.0
 var _last_reported_seconds: int = -1
 var _spawn_queue: Array = []
+var _boss_pending: bool = false
 var _surge_active: bool = false
 var _recycle_time: float = 0.0
+var _spawn_debug_root: Node3D = null
+var _spawn_debug_mesh: SphereMesh = null
+var _spawn_debug_materials: Dictionary = {}
 
 
 func _ready() -> void:
@@ -102,6 +119,8 @@ func _physics_process(delta: float) -> void:
 			_recycle_distant_enemies()
 		return
 	_advance_level_timer(delta)
+	if _boss_pending:
+		_spawn_boss()
 	_drain_spawn_queue()
 	_recycle_time -= delta
 	if _recycle_time <= 0.0:
@@ -123,6 +142,7 @@ func begin_final_phase() -> void:
 	_final_phase = true
 	_surge_active = false
 	_spawn_queue.clear()
+	_boss_pending = false
 	final_phase_started.emit(get_living_enemy_count())
 
 
@@ -154,7 +174,21 @@ func is_preparation_active() -> bool:
 
 
 func get_maximum_alive_enemies() -> int:
-	return mini(base_max_alive + max_alive_per_level * current_wave, HARD_ENEMY_CAP)
+	return mini(
+		base_max_alive + max_alive_per_level * current_wave,
+		mini(max_simultaneous_enemies, ABSOLUTE_ENEMY_CAP)
+	)
+
+
+## Capacity is based on every living enemy in the scene, not only the director's
+## own counter. This prevents sector ambushes and POIs from exceeding the same
+## performance budget. Queued horde spawns reserve their slots before instancing.
+func get_available_spawn_slots(include_queue: bool = true) -> int:
+	var living_count := (
+		get_living_enemy_count() if is_inside_tree() else alive_enemy_count
+	)
+	var reserved_count := _spawn_queue.size() if include_queue else 0
+	return maxi(get_maximum_alive_enemies() - living_count - reserved_count, 0)
 
 
 func get_current_spawn_interval() -> float:
@@ -189,7 +223,10 @@ func spawn_exploration_enemies(
 		push_error("Exploration encounters require an enemy scene and spawn points.")
 		return spawned_enemies
 
+	var available_slots := get_available_spawn_slots()
 	for spawn_point in spawn_points:
+		if available_slots <= 0:
+			break
 		if spawn_point == null:
 			push_error("Exploration encounter spawn points must be Marker3D nodes.")
 			continue
@@ -205,6 +242,7 @@ func spawn_exploration_enemies(
 		enemy.global_position = spawn_point.global_position
 		enemy.connect(&"died", _on_exploration_enemy_died)
 		spawned_enemies.append(enemy)
+		available_slots -= 1
 	return spawned_enemies
 
 
@@ -247,8 +285,8 @@ func _spawn_travel_batch() -> void:
 	if normal_zombie_scene == null or runner_zombie_scene == null:
 		push_error("HordeDirector requires Normal Zombie and Runner scenes.")
 		return
-	var maximum_alive := get_maximum_alive_enemies()
-	if alive_enemy_count >= maximum_alive:
+	var available_slots := get_available_spawn_slots()
+	if available_slots <= 0:
 		return
 	var spawn_points := _gather_active_spawn_points()
 	if spawn_points.is_empty():
@@ -256,7 +294,7 @@ func _spawn_travel_batch() -> void:
 	spawn_points.shuffle()
 	var batch_size := mini(
 		5 + current_wave * 2 + (SURGE_BATCH_BONUS if _surge_active else 0),
-		maximum_alive - alive_enemy_count
+		mini(available_slots, MAX_QUEUED_SPAWNS - _spawn_queue.size())
 	)
 	for spawn_index in batch_size:
 		var spawn_point := spawn_points[spawn_index % spawn_points.size()]
@@ -277,7 +315,7 @@ func _drain_spawn_queue() -> void:
 		var marker: Marker3D = entry[1]
 		if scene == null or not is_instance_valid(marker):
 			continue
-		if alive_enemy_count >= get_maximum_alive_enemies():
+		if get_available_spawn_slots(false) <= 0:
 			_spawn_queue.clear()
 			break
 		if _spawn_enemy(scene, marker):
@@ -350,11 +388,16 @@ func _pick_enemy_scene() -> PackedScene:
 
 
 func _spawn_boss() -> void:
+	if get_available_spawn_slots(false) <= 0:
+		_boss_pending = true
+		return
 	var spawn_points := _gather_active_spawn_points()
 	if spawn_points.is_empty():
+		_boss_pending = true
 		return
 	spawn_points.shuffle()
 	if _spawn_enemy(boss_scene, spawn_points[0]):
+		_boss_pending = false
 		alive_enemy_count += 1
 		enemy_count_changed.emit(alive_enemy_count)
 		_announce("⚠  THE BREAKER HAS ARRIVED")
@@ -369,17 +412,10 @@ func _announce(message: String) -> void:
 func _gather_active_spawn_points() -> Array[Marker3D]:
 	# Hordes emerge from the spawn points closest to the player (but never on
 	# top of them), so streamed sector markers take over away from the camp.
-	var candidates: Array[Marker3D] = []
-	for child in enemy_spawns.get_children():
-		var marker := child as Marker3D
-		if marker != null:
-			candidates.append(marker)
-	for node in get_tree().get_nodes_in_group(SPAWN_POINT_GROUP):
-		var marker := node as Marker3D
-		if marker != null and marker not in candidates:
-			candidates.append(marker)
+	var candidates := _gather_all_spawn_points()
 	var player := get_tree().get_first_node_in_group(PLAYER_GROUP) as Node3D
 	if player == null:
+		_update_spawn_debug(candidates, candidates, null)
 		return candidates
 	var player_position := player.global_position
 	var distant_candidates: Array[Marker3D] = []
@@ -391,17 +427,138 @@ func _gather_active_spawn_points() -> Array[Marker3D]:
 			distant_candidates.append(candidate)
 	if not distant_candidates.is_empty():
 		candidates = distant_candidates
-	if candidates.size() <= MAX_ACTIVE_SPAWN_POINTS:
-		return candidates
-	candidates.sort_custom(
-		func(a: Marker3D, b: Marker3D) -> bool:
-			return (
-				a.global_position.distance_squared_to(player_position)
-				< b.global_position.distance_squared_to(player_position)
-			)
-	)
-	candidates.resize(MAX_ACTIVE_SPAWN_POINTS)
+	if candidates.size() > MAX_ACTIVE_SPAWN_POINTS:
+		candidates.sort_custom(
+			func(a: Marker3D, b: Marker3D) -> bool:
+				return (
+					a.global_position.distance_squared_to(player_position)
+					< b.global_position.distance_squared_to(player_position)
+				)
+		)
+		candidates.resize(MAX_ACTIVE_SPAWN_POINTS)
+	if debug_spawn_points:
+		_update_spawn_debug(_gather_all_spawn_points(), candidates, player)
+	else:
+		_clear_spawn_debug()
 	return candidates
+
+
+func _gather_all_spawn_points() -> Array[Marker3D]:
+	var spawn_points: Array[Marker3D] = []
+	for child in enemy_spawns.get_children():
+		var marker := child as Marker3D
+		if marker != null:
+			spawn_points.append(marker)
+	for node in get_tree().get_nodes_in_group(SPAWN_POINT_GROUP):
+		var marker := node as Marker3D
+		if marker != null and marker not in spawn_points:
+			spawn_points.append(marker)
+	return spawn_points
+
+
+func _update_spawn_debug(
+	all_candidates: Array[Marker3D],
+	selected_candidates: Array[Marker3D],
+	player: Node3D
+) -> void:
+	if not debug_spawn_points:
+		_clear_spawn_debug()
+		return
+	_clear_spawn_debug()
+	_spawn_debug_root = Node3D.new()
+	_spawn_debug_root.name = SPAWN_DEBUG_ROOT_NAME
+	add_child(_spawn_debug_root)
+	for index in all_candidates.size():
+		var marker := all_candidates[index]
+		if marker == null or not is_instance_valid(marker):
+			continue
+		var distance := (
+			marker.global_position.distance_to(player.global_position)
+			if player != null else 0.0
+		)
+		var state := &"available"
+		var label := "AVAILABLE"
+		if marker in selected_candidates:
+			state = &"active"
+			label = "ACTIVE"
+		elif player != null and distance < MINIMUM_SPAWN_DISTANCE:
+			state = &"rejected"
+			label = "REJECT: TOO CLOSE"
+		else:
+			state = &"inactive"
+			label = "INACTIVE: FARTHER"
+		_add_spawn_debug_point(index, marker.global_position, state, label, distance)
+
+
+func _add_spawn_debug_point(
+	index: int,
+	position: Vector3,
+	state: StringName,
+	label_text: String,
+	distance: float
+) -> void:
+	var point := Node3D.new()
+	point.name = "Point%d" % index
+	_spawn_debug_root.add_child(point)
+	point.global_position = position + Vector3.UP * 0.5
+
+	var marker_visual := MeshInstance3D.new()
+	marker_visual.name = "Marker"
+	marker_visual.mesh = _get_spawn_debug_mesh()
+	marker_visual.material_override = _get_spawn_debug_material(state)
+	point.add_child(marker_visual)
+
+	var label := Label3D.new()
+	label.name = "Reason"
+	label.position = Vector3.UP * 0.75
+	label.text = "%s  %.0f m" % [label_text, distance]
+	label.font_size = 22
+	label.outline_size = 6
+	label.modulate = Color.WHITE
+	label.outline_modulate = Color(0.02, 0.02, 0.02, 0.95)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	point.add_child(label)
+
+
+func _get_spawn_debug_mesh() -> SphereMesh:
+	if _spawn_debug_mesh == null:
+		_spawn_debug_mesh = SphereMesh.new()
+		_spawn_debug_mesh.radius = SPAWN_DEBUG_MARKER_RADIUS
+		_spawn_debug_mesh.height = SPAWN_DEBUG_MARKER_RADIUS * 2.0
+		_spawn_debug_mesh.radial_segments = 12
+		_spawn_debug_mesh.rings = 6
+	return _spawn_debug_mesh
+
+
+func _get_spawn_debug_material(state: StringName) -> StandardMaterial3D:
+	if _spawn_debug_materials.has(state):
+		return _spawn_debug_materials[state] as StandardMaterial3D
+	var colors: Dictionary = {
+		&"active": Color(0.12, 1.0, 0.32, 0.92),
+		&"rejected": Color(1.0, 0.12, 0.08, 0.92),
+		&"inactive": Color(1.0, 0.62, 0.08, 0.92),
+		&"available": Color(0.18, 0.68, 1.0, 0.92),
+	}
+	var color: Color = colors.get(state, Color.WHITE)
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = Color(color.r, color.g, color.b)
+	material.emission_energy_multiplier = 1.4
+	material.no_depth_test = true
+	_spawn_debug_materials[state] = material
+	return material
+
+
+func _clear_spawn_debug() -> void:
+	if _spawn_debug_root == null or not is_instance_valid(_spawn_debug_root):
+		_spawn_debug_root = null
+		return
+	_spawn_debug_root.free()
+	_spawn_debug_root = null
 
 
 func _spawn_enemy(enemy_scene: PackedScene, spawn_point: Marker3D) -> bool:

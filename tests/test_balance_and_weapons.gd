@@ -39,19 +39,18 @@ func _test_roster() -> void:
 	_check("roster: renegade selectable", renegade.is_selectable)
 	_check("roster: medic parked", not medic.is_selectable)
 	_check("roster: medic data intact", medic.character_scene != null)
-	# The Spear was Medic-only; with the Medic parked it has to stay reachable.
-	var spear := WeaponCatalog.get_weapon_data(&"spear")
-	_check("roster: spear no longer medic-only", spear.required_character_id == &"")
-	var recruit_weapons := WeaponCatalog.get_compatible_weapons(&"recruit")
-	var recruit_ids: Array[StringName] = []
-	for weapon_data in recruit_weapons:
-		recruit_ids.append(weapon_data.weapon_id)
-	_check("roster: recruit can buy the spear", recruit_ids.has(&"spear"))
+	_check("roster: Renegade is firearms-only", renegade.secondary_weapon_id == &"smg")
+	_check("roster: Medic is firearms-only", medic.secondary_weapon_id == &"smg")
+	for retired_id in [&"worn_sword", &"cleaver", &"spear", &"fire_axe"]:
+		_check(
+			"roster: %s retired from catalog" % retired_id,
+			WeaponCatalog.get_weapon_data(retired_id) == null
+		)
 
 
 func _test_categories() -> void:
 	var sections := WeaponCatalog.get_compatible_weapons_by_category(&"recruit")
-	_check("categories: every section is used", sections.size() == 5)
+	_check("categories: every section is used", sections.size() == 4)
 	var names: Array[String] = []
 	var listed := 0
 	for section in sections:
@@ -63,9 +62,9 @@ func _test_categories() -> void:
 		)
 	_check(
 		"categories: in display order",
-		names == ["ASSAULT", "SIDEARM", "CLOSE RANGE", "HEAVY", "MELEE"]
+		names == ["ASSAULT", "SIDEARM", "CLOSE RANGE", "HEAVY"]
 	)
-	# Shotgun and Worn Sword are Renegade-only, so the Recruit sees fewer than
+	# Shotgun is Renegade-only, so the Recruit sees fewer than
 	# the full catalog; nothing compatible may go missing though.
 	var compatible := WeaponCatalog.get_compatible_weapons(&"recruit").size()
 	_check(

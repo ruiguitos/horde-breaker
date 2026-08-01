@@ -4,14 +4,10 @@ extends RefCounted
 const ASSAULT_RIFLE: WeaponData = preload("res://data/weapons/assault_rifle.tres")
 const PISTOL: WeaponData = preload("res://data/weapons/pistol.tres")
 const SHOTGUN: WeaponData = preload("res://data/weapons/shotgun.tres")
-const WORN_SWORD: WeaponData = preload("res://data/weapons/worn_sword.tres")
-const SPEAR: WeaponData = preload("res://data/weapons/spear.tres")
 const SMG: WeaponData = preload("res://data/weapons/smg.tres")
-const FIRE_AXE: WeaponData = preload("res://data/weapons/fire_axe.tres")
 const STORM_RIFLE: WeaponData = preload("res://data/weapons/storm_rifle.tres")
 const SIEGE_BREAKER: WeaponData = preload("res://data/weapons/siege_breaker.tres")
 const HORNET: WeaponData = preload("res://data/weapons/hornet.tres")
-const CLEAVER: WeaponData = preload("res://data/weapons/cleaver.tres")
 const MACHINE_GUN: WeaponData = preload("res://data/weapons/machine_gun.tres")
 const MINIGUN: WeaponData = preload("res://data/weapons/minigun.tres")
 
@@ -21,25 +17,19 @@ const ALL_WEAPONS: Array[WeaponData] = [
 	SHOTGUN,
 	SMG,
 	MACHINE_GUN,
-	WORN_SWORD,
-	SPEAR,
-	FIRE_AXE,
 	STORM_RIFLE,
 	SIEGE_BREAKER,
 	HORNET,
-	CLEAVER,
 	MINIGUN,
 ]
 
 
-## Armory sections, in display order. A weapon whose category matches none of
-## these falls into the last group.
+## Armory sections, in display order. Unknown/retired categories stay hidden.
 const CATEGORIES: Array[Dictionary] = [
 	{"id": &"assault", "name": "ASSAULT"},
 	{"id": &"sidearm", "name": "SIDEARM"},
 	{"id": &"close_range", "name": "CLOSE RANGE"},
 	{"id": &"heavy", "name": "HEAVY"},
-	{"id": &"melee", "name": "MELEE"},
 ]
 
 
@@ -67,13 +57,12 @@ static func get_compatible_weapons_by_category(
 	# One entry per non-empty section, already in CATEGORIES order, so the
 	# armory can lay itself out without knowing the category rules.
 	var by_category: Dictionary[StringName, Array] = {}
-	var last_category: StringName = CATEGORIES[CATEGORIES.size() - 1]["id"]
 	for weapon_data in get_compatible_weapons(character_id):
 		if not weapon_data.is_playable:
 			continue
 		var category := weapon_data.category
 		if not _has_category(category):
-			category = last_category
+			continue
 		if not by_category.has(category):
 			by_category[category] = []
 		by_category[category].append(weapon_data)

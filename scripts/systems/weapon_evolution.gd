@@ -26,11 +26,6 @@ const EVOLUTIONS: Dictionary[StringName, Dictionary] = {
 		"name": "MINIGUN",
 		"kills_required": 400,
 	},
-	&"worn_sword": {
-		"evolved_id": &"cleaver",
-		"name": "CLEAVER",
-		"kills_required": 200,
-	},
 }
 
 

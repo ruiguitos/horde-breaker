@@ -16,9 +16,9 @@ const VARIANTS: Dictionary[StringName, Dictionary] = {
 	},
 	&"renegade": {
 		"name": "BERSERKER",
-		"description": "110 max health, but melee hits restore 2 health.",
+		"description": "110 max health, but all firearms deal 20% more damage.",
 		"max_health_override": 110.0,
-		"melee_lifesteal": 2.0,
+		"damage_mult": 1.20,
 		"tint": Color(0.95, 0.3, 0.22, 1.0),
 	},
 	&"medic": {

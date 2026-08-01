@@ -48,6 +48,7 @@ const LOW_AMMO_COLOR := Color(1.0, 0.68, 0.3, 1.0)
 
 var _weapon: Node
 var _weapon_controller: Node
+var _run_objective: Node
 var _last_player_health: float = -1.0
 var _displayed_health: float = -1.0
 var _target_health: float = 0.0
@@ -251,8 +252,6 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 		return
 	if _weapon.has_signal(&"shot_fired"):
 		_weapon.connect(&"shot_fired", _on_shot_fired)
-	if _weapon.has_signal(&"attack_performed"):
-		_weapon.connect(&"attack_performed", _on_melee_attack_performed)
 	if _weapon.has_signal(&"ammunition_changed"):
 		aim_point.show()
 		_weapon.connect(&"ammunition_changed", _update_ammunition)
@@ -263,9 +262,9 @@ func _show_weapon(active_weapon: Node3D, slot: int) -> void:
 			int(_weapon.get("reserve_ammunition"))
 		)
 	else:
-		aim_point.show()
+		aim_point.hide()
 		ammunition_label.add_theme_font_size_override(&"font_size", 18)
-		ammunition_label.text = "MELEE"
+		ammunition_label.text = "UNAVAILABLE"
 
 
 func _disconnect_weapon_signals() -> void:
@@ -276,11 +275,6 @@ func _disconnect_weapon_signals() -> void:
 		and _weapon.is_connected(&"shot_fired", _on_shot_fired)
 	):
 		_weapon.disconnect(&"shot_fired", _on_shot_fired)
-	if (
-		_weapon.has_signal(&"attack_performed")
-		and _weapon.is_connected(&"attack_performed", _on_melee_attack_performed)
-	):
-		_weapon.disconnect(&"attack_performed", _on_melee_attack_performed)
 	if _weapon.has_signal(&"ammunition_changed"):
 		if _weapon.is_connected(&"ammunition_changed", _update_ammunition):
 			_weapon.disconnect(&"ammunition_changed", _update_ammunition)
@@ -295,11 +289,6 @@ func _on_shot_fired(_hit_position: Vector3, hit_collider: Object) -> void:
 		hit_collider.has_method(&"get_damage_target")
 		or hit_collider.has_method(&"take_damage")
 	):
-		_flash_hit_marker()
-
-
-func _on_melee_attack_performed(hit_count: int) -> void:
-	if hit_count > 0:
 		_flash_hit_marker()
 
 
@@ -480,20 +469,45 @@ func _connect_run_objective() -> void:
 	if objective == null:
 		extraction_label.visible = false
 		return
+	_run_objective = objective
 	objective.connect(&"time_changed", _update_extraction_clock)
+	# Once the clock hits zero it stops being a clock: the same slot has to carry
+	# the kill count and then the order to extract, or the player is left staring
+	# at 0:00 with nothing telling them what the run wants.
+	for signal_name in [
+		&"last_stand_started", &"horde_remaining_changed", &"extraction_ready",
+	]:
+		if objective.has_signal(signal_name):
+			objective.connect(signal_name, _on_objective_stage_changed)
 	_update_extraction_clock(
 		float(objective.get(&"seconds_remaining")),
 		float(objective.get(&"survival_seconds"))
 	)
 
 
+func _on_objective_stage_changed(_value: Variant = null) -> void:
+	_refresh_objective_label()
+
+
 func _update_extraction_clock(
 	seconds_remaining: float, _total_seconds: float
 ) -> void:
-	var whole := int(ceil(seconds_remaining))
-	extraction_label.text = "%d:%02d" % [whole / 60, whole % 60]
+	_refresh_objective_label(seconds_remaining)
+
+
+func _refresh_objective_label(seconds_remaining: float = -1.0) -> void:
+	if _run_objective == null:
+		return
+	if seconds_remaining < 0.0:
+		seconds_remaining = float(_run_objective.get(&"seconds_remaining"))
+	extraction_label.text = String(_run_objective.call(&"get_objective_text"))
+	# Urgent for the last minute of the clock, and for the whole endgame: from
+	# the last stand on, every part of it is the part that can lose the run.
+	var urgent := (
+		seconds_remaining <= EXTRACTION_WARNING_SECONDS
+		or int(_run_objective.get(&"phase")) != 0
+	)
 	extraction_label.add_theme_color_override(
 		&"font_color",
-		LOW_AMMO_COLOR if seconds_remaining <= EXTRACTION_WARNING_SECONDS
-		else Color(0.965, 0.955, 0.94, 1.0)
+		LOW_AMMO_COLOR if urgent else Color(0.965, 0.955, 0.94, 1.0)
 	)

@@ -2,6 +2,12 @@
 
 ## Pendentes confirmados
 
+- [x] Limitar todos os spawns ao orçamento global de 90 zombies, com fila máxima
+  de 12 e instanciação de apenas 2 inimigos por frame de física.
+- [x] Retirar armas melee do jogo ativo e migrar loadouts/saves antigos para
+  armas de fogo sem apagar estatísticas históricas.
+- [ ] Implementar novas classes, armas e módulos de skills pela matriz de
+  papéis de `docs/CONTENT_EXPANSION_PLAN.md`, uma vertical slice de cada vez.
 - [x] Implementar pausa real com `Esc`, incluindo pausa da árvore, libertação do rato e painel próprio.
 - [ ] Integrar modelos e animações do Adobe Mixamo no Milestone 12, depois de o protótipo de combate estar funcional. Não descarregar assets sem autorização explícita. **Bloqueado: aguarda autorização para descarregar assets.**
 - [x] Integrar modelos CC0 de teste para as três classes, dois tipos de zombie e as três armas de fogo, preservando colisões e mecânicas.
@@ -106,9 +112,8 @@
   o design (stats/custos) fica no histórico git para quando houver modelos.
 - [x] Ecrã de compra de armas (`ARMORY` na seleção de classes): lista com estado
   possuída/comprável/bloqueada, compra com Credits e escolha persistente do slot.
-- [ ] Armas novas com as malhas **embutidas** nos modelos Quaternius (ficam bem
-  nas mãos, zero assets novos): **SMG** (cadência alta/dano baixo) e **Fire Axe**
-  (`Axe`, melee lento/forte). A **Spear** já foi implementada no Medic.
+- [x] SMG implementada com a malha embutida. Fire Axe e Spear foram prototipadas
+  nesta etapa histórica e depois retiradas do catálogo jogável.
 
 - [x] Adicionar drop de Scrap por tipo de inimigo ao morrer, com quantidades
   configuráveis, despawn após 25 segundos e limite de 40 pickups ativos.
@@ -134,13 +139,13 @@
   4×) com feedback "+N AMMO" no HUD.
 - [x] **Variantes de classe** desbloqueadas ao completar as 3 masteries da
   classe (capstone): VETERAN (Recruit, −recarga rápida/+15% cadência),
-  BERSERKER (Renegade, 110 HP + lifesteal melee 2), COMBAT MEDIC (Medic, regen
+  BERSERKER (Renegade, 110 HP/+20% dano de armas de fogo), COMBAT MEDIC (Medic, regen
   fraca + 5 HP por abate). Toggle persistido na seleção de classes, aplicação
   no arranque via `character_skills.gd`, tint subtil no modelo.
-- [ ] Rever os números das variantes após playtest (lifesteal, heal-on-kill,
+- [ ] Rever os números das variantes após playtest (dano do Berserker, heal-on-kill,
   cadência) e considerar variantes com loadouts próprios no futuro.
-- [x] SMG e Fire Axe compráveis no ARMORY com malhas embutidas (SMG/Axe) e
-  ícones gerados; auto-fire por arma afinado (SMG 7 m).
+- [x] SMG e Fire Axe chegaram a estar compráveis no ARMORY; a Fire Axe foi
+  posteriormente retirada. Auto-fire por arma afinado (SMG 7 m).
 - [ ] **Playtest e balanceamento (M22):** rever dano/cadência/regen das 3 classes
   e das variantes, e a curva do diretor de horda (intervalo, lotes, limite) —
   precisa de sessão de jogo real; não é implementável às cegas.

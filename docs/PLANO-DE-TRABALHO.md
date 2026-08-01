@@ -17,8 +17,8 @@ erratas no topo).
 
 ## 0. Onde estamos (2026-07-29)
 
-**Funciona e está validado por testes:** combate e hitscan, melee com auto-ataque,
-horda contínua com escalada temporal, 11 armas com evolução por abates, 2 classes,
+**Funciona e está validado por testes:** combate hitscan apenas com armas de fogo,
+horda contínua com escalada temporal e teto global, 9 armas com evolução por abates, 2 classes,
 skill tree de 36 nós, cartas de upgrade por run, orbes de XP, extração em 5 fases,
 streaming 8×8 em worker threads, navegação a ler GridMap, save com migrações,
 UI completa (menu, seleção, armory, skill tree, definições, HUD, mapa tático).

@@ -224,7 +224,12 @@ func _test_weapon_pool() -> void:
 		_check("pool: %s has a weight" % entry["id"], float(entry["weight"]) > 0.0)
 	_check("pool: more than the original three", ids.size() > 3)
 	_check("pool: includes the machine gun", ids.has(&"machine_gun"))
-	_check("pool: includes a melee option", ids.has(&"fire_axe"))
+	_check(
+		"pool: contains firearms only",
+		not ids.has(&"fire_axe")
+		and not ids.has(&"spear")
+		and not ids.has(&"worn_sword")
+	)
 	# The rare heavy must actually be reachable, and stay rare.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 99

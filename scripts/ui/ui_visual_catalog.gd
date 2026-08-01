@@ -14,9 +14,6 @@ const WEAPON_ICONS := {
 	# The Machine Gun carries the same embedded Rifle mesh the rifle icon was
 	# rendered from.
 	&"machine_gun": preload("res://assets/icons/weapon_assault_rifle.png"),
-	&"worn_sword": preload("res://assets/icons/weapon_worn_sword.png"),
-	&"spear": preload("res://assets/icons/weapon_spear.png"),
-	&"fire_axe": preload("res://assets/icons/weapon_fire_axe.png"),
 }
 
 
