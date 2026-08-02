@@ -225,6 +225,7 @@ func _configure_character(
 		character_data.health_regeneration_rate,
 	]
 	progress_label.text = _get_progress_text(character_data)
+	_build_identity_block(panel, character_data)
 	var character_id := character_data.character_id
 	var is_unlocked := SaveManager.is_character_unlocked(character_id)
 	var is_selected := SaveManager.get_selected_character() == character_id
@@ -247,6 +248,135 @@ func _configure_character(
 	button.disabled = not SaveManager.can_purchase_character(character_data)
 
 
+## Fills the empty middle of a class card with what actually distinguishes the
+## class: how far its skill tree has been taken, which capstone is running, and
+## the loadout it fights with.
+##
+## The card used to jump straight from the base profile to the level line, with
+## roughly a third of its height blank — so three operatives sitting side by side
+## showed almost nothing to choose between them.
+func _build_identity_block(panel: PanelContainer, character_data: CharacterData) -> void:
+	var content := panel.get_node_or_null("Margin/Content") as VBoxContainer
+	if content == null:
+		return
+	var spacer := content.get_node_or_null("Spacer") as Control
+	var existing := content.get_node_or_null("ClassIdentity")
+	if existing != null:
+		content.remove_child(existing)
+		existing.queue_free()
+
+	var character_id := character_data.character_id
+	var colour := UiVisualCatalog.get_character_color(character_id)
+	var block := VBoxContainer.new()
+	block.name = "ClassIdentity"
+	block.add_theme_constant_override(&"separation", 6)
+	content.add_child(block)
+	if spacer != null:
+		content.move_child(block, spacer.get_index())
+
+	block.add_child(_build_caption("SKILLS", colour))
+	block.add_child(_build_tier_pips(character_id, colour))
+	block.add_child(_build_body_label(_get_capstone_text(character_id)))
+
+	block.add_child(_build_caption("LOADOUT", colour))
+	block.add_child(_build_loadout_row(character_data))
+
+	# Mastery was only ever shown for the operative already selected, at the
+	# bottom of the page — which is the one case where you do not need it. Put
+	# on the cards it becomes the third thing you can compare across the roster.
+	block.add_child(_build_caption("MASTERY", colour))
+	block.add_child(_build_body_label(_get_mastery_objectives(character_id)))
+	# The spacer keeps doing its job — pushing the level and the button to the
+	# bottom — it just has far less room to give away now.
+	if spacer != null:
+		spacer.custom_minimum_size.y = 0.0
+		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+
+func _build_caption(text: String, colour: Color) -> Label:
+	var caption := Label.new()
+	caption.theme_type_variation = &"EyebrowLabel"
+	caption.add_theme_color_override(&"font_color", colour)
+	caption.text = text
+	return caption
+
+
+func _build_body_label(text: String) -> Label:
+	var label := Label.new()
+	label.theme_type_variation = &"MutedLabel"
+	label.add_theme_font_size_override(&"font_size", 13)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.text = text
+	return label
+
+
+## One mark per tier: filled when a side has been taken, outlined when the tier
+## is open and waiting, dark when the level for it has not been reached.
+func _build_tier_pips(character_id: StringName, colour: Color) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 6)
+	var level := SaveManager.get_character_level(character_id)
+	var chosen := Array(SaveManager.get_skill_choices(character_id))
+	for tier in range(1, SkillTree.TIER_COUNT + 1):
+		var pip := ColorRect.new()
+		pip.custom_minimum_size = Vector2(22.0, 5.0)
+		var is_open := level >= SkillTree.get_required_level_for_tier(tier)
+		var taken := SkillTree.get_choice_for_tier(chosen, character_id, tier) != &""
+		if taken:
+			pip.color = colour
+		elif is_open:
+			pip.color = colour * Color(1.0, 1.0, 1.0, 0.38)
+		else:
+			pip.color = Color(0.22, 0.25, 0.29, 1.0)
+		row.add_child(pip)
+	return row
+
+
+func _get_capstone_text(character_id: StringName) -> String:
+	if not SkillTree.has_tree(character_id):
+		return "No skill tree yet."
+	var chosen := Array(SaveManager.get_skill_choices(character_id))
+	var capstone := SkillTree.get_choice_for_tier(
+		chosen, character_id, SkillTree.TIER_COUNT
+	)
+	if capstone != &"":
+		var node := SkillTree.get_node_definition(capstone)
+		return "%s — %s" % [String(node["title"]).to_upper(), node["description"]]
+	var pending := SaveManager.get_pending_skill_choices(character_id)
+	if pending > 0:
+		return "%d %s waiting." % [
+			pending, "choice" if pending == 1 else "choices"
+		]
+	var required := SkillTree.get_required_level_for_tier(SkillTree.TIER_COUNT)
+	return "Defining skill unlocks at level %d." % required
+
+
+func _build_loadout_row(character_data: CharacterData) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 14)
+	for entry in [
+		{"slot": "1", "weapon": character_data.primary_weapon_id},
+		{"slot": "2", "weapon": character_data.secondary_weapon_id},
+	]:
+		var weapon_id := StringName(entry["weapon"])
+		var slot := HBoxContainer.new()
+		slot.add_theme_constant_override(&"separation", 6)
+		var icon := TextureRect.new()
+		icon.texture = UiVisualCatalog.get_weapon_icon(weapon_id)
+		icon.custom_minimum_size = Vector2(26.0, 26.0)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		slot.add_child(icon)
+		var label := Label.new()
+		label.theme_type_variation = &"MutedLabel"
+		label.add_theme_font_size_override(&"font_size", 13)
+		label.text = "[%s] %s" % [entry["slot"], _get_weapon_name(weapon_id)]
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		slot.add_child(label)
+		row.add_child(slot)
+	return row
+
+
 func _get_progress_text(character_data: CharacterData) -> String:
 	var level := SaveManager.get_character_level(character_data.character_id)
 	var xp := SaveManager.get_character_xp(character_data.character_id)
@@ -267,6 +397,12 @@ func _get_mastery_summary(character_id: StringName) -> String:
 
 
 func _get_mastery_detail(character_id: StringName) -> String:
+	return "MASTERY  ·  " + _get_mastery_objectives(character_id)
+
+
+## The objectives on their own, for the class cards, which put their own heading
+## above them and do not want the word twice.
+func _get_mastery_objectives(character_id: StringName) -> String:
 	var parts: PackedStringArray = []
 	for objective_id in CharacterMastery.OBJECTIVES:
 		var objective := CharacterMastery.get_objective(objective_id)
@@ -275,7 +411,7 @@ func _get_mastery_detail(character_id: StringName) -> String:
 			SaveManager.get_mastery_progress(character_id, objective_id),
 			int(objective["goal"]),
 		])
-	return "MASTERY  ·  " + "  ·  ".join(parts)
+	return "  ·  ".join(parts)
 
 
 func _get_weapon_name(weapon_id: StringName) -> String:
