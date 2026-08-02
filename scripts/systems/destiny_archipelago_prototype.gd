@@ -143,9 +143,12 @@ func _build_prototype() -> void:
 
 func _configure_player() -> void:
 	player.global_position = DESIGN.player_position_on_land(DESIGN.PLAYER_START)
+	# The tactical map was hidden while this was a terrain prototype with nothing
+	# to navigate towards. It is a playable run now, and Tab is how the player
+	# finds the island they have not cleared yet.
 	var tactical_map_layer := player.get_node_or_null("TacticalMapLayer") as CanvasLayer
 	if tactical_map_layer != null:
-		tactical_map_layer.visible = false
+		tactical_map_layer.visible = true
 
 
 func _build_shallow_reef() -> void:

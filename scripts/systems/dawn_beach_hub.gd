@@ -127,6 +127,10 @@ func _build_camp() -> void:
 
 	var core_body := StaticBody3D.new()
 	core_body.name = "RoutePowerCore"
+	# The run objective finds its extraction zone through this group, and the
+	# camp is where the plan sends the player back to. Without it the zone
+	# resolves to the world origin, out at sea.
+	core_body.add_to_group(&"camp_core")
 	core_body.collision_layer = 1
 	core_body.collision_mask = 0
 	core_body.position = _on_land(CAMP_CENTER)

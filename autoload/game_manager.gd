@@ -6,6 +6,9 @@ const SETTINGS_SCENE := "res://scenes/menus/settings_menu.tscn"
 const SKILL_TREE_SCENE := "res://scenes/menus/skill_tree_screen.tscn"
 const ARMORY_SCENE := "res://scenes/menus/armory_screen.tscn"
 const TEST_ARENA_SCENE := "res://scenes/world/test_arena.tscn"
+## The run the game actually starts. The arena stays in the project as the
+## older single-map build and is still what several tests load by path.
+const RUN_SCENE := "res://scenes/world/destiny_archipelago_prototype.tscn"
 const FADE_OUT_DURATION := 0.18
 const FADE_IN_DURATION := 0.3
 
@@ -39,7 +42,7 @@ func open_armory() -> void:
 
 
 func start_game() -> void:
-	_change_scene(TEST_ARENA_SCENE)
+	_change_scene(RUN_SCENE)
 
 
 func quit_game() -> void:

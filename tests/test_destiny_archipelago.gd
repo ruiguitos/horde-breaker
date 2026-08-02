@@ -164,6 +164,7 @@ func _run() -> void:
 	await _test_high_cliffs_objective(prototype, player)
 	_test_horde_director(prototype)
 	_test_world_label_legibility(prototype)
+	_test_playable_run(prototype)
 	await physics_frame
 
 	player.global_position = Vector3(120.0, 5.0, 265.0)
@@ -639,6 +640,46 @@ func _test_world_label_legibility(prototype: Node) -> void:
 		),
 		offenders.is_empty()
 	)
+
+
+## The archipelago has to be a run you can play, not a scene only the test can
+## reach. It was the latter for a while: terrain, islands and objectives, but no
+## economy, no clock, no HUD and nothing in the menus pointing at it.
+func _test_playable_run(prototype: Node) -> void:
+	_check(
+		"starting a game loads the archipelago",
+		String(GameManager.RUN_SCENE) == SCENE_PATH
+	)
+	for entry in [
+		{"group": &"camp_economy", "method": &"add_carried_scrap"},
+		{"group": &"run_objective", "method": &"get_objective_text"},
+		{"group": &"run_progression", "method": &"add_run_xp"},
+		{"group": &"wave_manager", "method": &"get_living_enemy_count"},
+	]:
+		var node := get_first_node_in_group(entry["group"])
+		_check(
+			"%s is wired into the run" % entry["group"],
+			node != null and node.has_method(entry["method"])
+		)
+	for path in [
+		"HUDLayer/GameHUD", "PauseLayer/PauseMenu",
+		"UpgradeLayer/UpgradeChoicePanel", "GameOverLayer/GameOverPanel",
+	]:
+		_check(
+			"the run has its %s" % path.get_file(),
+			prototype.get_node_or_null(path) != null
+		)
+
+	# The extraction zone resolves through the camp_core group. Without the Dawn
+	# Beach core in it the zone silently becomes the world origin, out at sea.
+	var objective := get_first_node_in_group(&"run_objective")
+	if objective != null:
+		var zone: Vector3 = objective.call(&"get_extraction_position")
+		_check(
+			"the extraction zone is the camp, not the world origin (%s)" % zone,
+			zone.distance_to(Vector3.ZERO) > 1.0
+				and zone.y > DESIGN.WATER_HEIGHT
+		)
 
 
 func _report() -> void:

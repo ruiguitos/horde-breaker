@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/destiny_archipelago_prototype.gd" id="1_prototype"]
 [ext_resource type="Resource" path="res://data/archipelagos/destiny_archipelago.tres" id="2_data"]
@@ -14,6 +14,20 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="23_brute"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="24_spitter"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="25_boss"]
+[ext_resource type="Script" path="res://scripts/systems/camp_economy.gd" id="30_economy"]
+[ext_resource type="Script" path="res://scripts/systems/character_skills.gd" id="31_skills"]
+[ext_resource type="Script" path="res://scripts/systems/run_objective.gd" id="32_objective"]
+[ext_resource type="Script" path="res://scripts/systems/run_progression.gd" id="33_progression"]
+[ext_resource type="Script" path="res://scripts/systems/character_progression.gd" id="34_character"]
+[ext_resource type="Theme" path="res://assets/themes/horde_breaker_theme.tres" id="35_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="36_hud_scene"]
+[ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="37_hud_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/upgrade_choice_panel.tscn" id="38_upgrade_scene"]
+[ext_resource type="Script" path="res://scripts/ui/upgrade_choice_panel.gd" id="39_upgrade_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_panel.tscn" id="40_over_scene"]
+[ext_resource type="Script" path="res://scripts/ui/game_over_panel.gd" id="41_over_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="42_pause_scene"]
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="43_pause_script"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 render_priority = -1
@@ -91,6 +105,81 @@ boss_scene = ExtResource("25_boss")
 [node name="Player" parent="." instance=ExtResource("4_player")]
 unique_name_in_owner = true
 position = Vector3(120, 20, 405)
+
+[node name="Gameplay" type="Node" parent="."]
+
+[node name="CampEconomy" type="Node" parent="Gameplay" groups=["camp_economy"]]
+script = ExtResource("30_economy")
+
+[node name="CharacterSkills" type="Node" parent="Gameplay"]
+script = ExtResource("31_skills")
+
+[node name="RunObjective" type="Node" parent="Gameplay" groups=["run_objective"]]
+script = ExtResource("32_objective")
+
+[node name="RunProgression" type="Node" parent="Gameplay" groups=["run_progression"]]
+script = ExtResource("33_progression")
+
+[node name="CharacterProgression" type="Node" parent="Gameplay"]
+script = ExtResource("34_character")
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="GameHUD" type="Control" parent="HUDLayer" instance=ExtResource("36_hud_scene")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("35_theme")
+script = ExtResource("37_hud_script")
+
+[node name="UpgradeLayer" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="UpgradeChoicePanel" type="Control" parent="UpgradeLayer" instance=ExtResource("38_upgrade_scene")]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("35_theme")
+script = ExtResource("39_upgrade_script")
+
+[node name="GameOverLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="GameOverPanel" type="Control" parent="GameOverLayer" instance=ExtResource("40_over_scene")]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("35_theme")
+script = ExtResource("41_over_script")
+
+[node name="PauseLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="PauseMenu" type="Control" parent="PauseLayer" instance=ExtResource("42_pause_scene")]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("35_theme")
+script = ExtResource("43_pause_script")
 
 [node name="PrototypeUI" type="CanvasLayer" parent="."]
 layer = 20
