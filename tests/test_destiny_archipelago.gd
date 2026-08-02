@@ -3,6 +3,7 @@ extends SceneTree
 const SCENE_PATH := "res://scenes/world/destiny_archipelago_prototype.tscn"
 const DATA_PATH := "res://data/archipelagos/destiny_archipelago.tres"
 const REGION_DIRECTORY := "res://data/destiny_archipelago/regions"
+const ASSET_PATH := "res://data/destiny_archipelago/assets/terrain_assets.tres"
 const DESIGN := preload("res://scripts/systems/destiny_archipelago_design.gd")
 const READY_TIMEOUT_FRAMES := 900
 
@@ -22,6 +23,7 @@ func _run() -> void:
 		return
 	_test_graph_data(data)
 	_test_height_design()
+	_test_surface_design()
 
 	var packed_scene := load(SCENE_PATH) as PackedScene
 	_check("Destiny Archipelago scene loads", packed_scene != null)
@@ -43,6 +45,43 @@ func _run() -> void:
 	_check("one Terrain3D node is mounted", terrain != null)
 	if terrain != null:
 		_check("four Terrain3D regions are loaded", terrain.data.get_region_count() == 4)
+		_check(
+			"archipelago mounts eight biome-specific Terrain3D surfaces",
+			terrain.assets.get_texture_count() == 8
+		)
+		for entry in [
+			{
+				"name": "Dawn Beach",
+				"position": DESIGN.DAWN_CENTER,
+				"base": DESIGN.SURFACE_SAND,
+				"overlay": DESIGN.SURFACE_COASTAL_GRASS,
+			},
+			{
+				"name": "Shadow Forest",
+				"position": DESIGN.FOREST_CENTER,
+				"base": DESIGN.SURFACE_SWAMP_MUD,
+				"overlay": DESIGN.SURFACE_SWAMP_MOSS,
+			},
+			{
+				"name": "High Cliffs",
+				"position": DESIGN.CLIFFS_CENTER,
+				"base": DESIGN.SURFACE_CLIFF_STONE,
+				"overlay": DESIGN.SURFACE_CLIFF_LICHEN,
+			},
+			{
+				"name": "Volcano Peak",
+				"position": DESIGN.VOLCANO_CENTER,
+				"base": DESIGN.SURFACE_VOLCANIC_ASH,
+				"overlay": DESIGN.SURFACE_OBSIDIAN,
+			},
+		]:
+			var position: Vector2 = entry["position"]
+			var sample := Vector3(position.x, 0.0, position.y)
+			_check(
+				"%s control map is persisted in Terrain3D" % entry["name"],
+				terrain.data.get_control_base_id(sample) == int(entry["base"])
+				and terrain.data.get_control_overlay_id(sample) == int(entry["overlay"])
+			)
 		_check("full player collision is enabled", terrain.collision.mode == Terrain3DCollision.FULL_GAME)
 		_check(
 			"the shallow reef is physically above water",
@@ -50,7 +89,23 @@ func _run() -> void:
 		)
 
 	_check("all four route implementations are built", int(prototype.get(&"route_count")) == 4)
-	_check("island dressing stays within a lightweight pilot budget", int(prototype.get(&"prop_count")) >= 120)
+	var prop_count := int(prototype.get(&"prop_count"))
+	_check(
+		"island dressing stays within a measured pilot budget (%d props)" % prop_count,
+		prop_count >= 150 and prop_count <= 180
+	)
+	for landmark_name in [
+		"DawnSignalBeacon",
+		"ForestSunkenCrypt",
+		"CliffWatchtower",
+		"VolcanoRitualGate",
+		"VolcanoLavaCracks",
+		"VolcanoSmoke",
+	]:
+		_check(
+			"%s gives its biome a unique landmark" % landmark_name,
+			prototype.get_node_or_null("Landmarks/" + landmark_name) != null
+		)
 	var boundary := prototype.get_node("ArchipelagoSafetyBoundary") as StaticBody3D
 	_check("four offshore safety walls protect the data edge", boundary.get_child_count() == 4)
 
@@ -208,6 +263,55 @@ func _test_height_design() -> void:
 		DESIGN.height_at(DESIGN.VOLCANO_CENTER.x, DESIGN.VOLCANO_CENTER.y)
 		> DESIGN.height_at(DESIGN.DAWN_CENTER.x, DESIGN.DAWN_CENTER.y) + 7.0
 	)
+	_check(
+		"Dawn Beach contains a water-filled crescent lagoon",
+		DESIGN.height_at(88.0, 404.0) < DESIGN.WATER_HEIGHT
+	)
+	_check(
+		"High Cliffs has a readable elevated mesa",
+		DESIGN.height_at(408.0, 378.0)
+		> DESIGN.height_at(DESIGN.FOREST_CENTER.x, DESIGN.FOREST_CENTER.y) + 6.0
+	)
+
+
+func _test_surface_design() -> void:
+	var assets := load(ASSET_PATH) as Terrain3DAssets
+	_check("archipelago terrain asset library loads", assets != null)
+	if assets != null:
+		_check("terrain asset library contains eight surfaces", assets.get_texture_count() == 8)
+	var expected_surfaces := [
+		{
+			"name": "Dawn Beach",
+			"position": DESIGN.DAWN_CENTER,
+			"base": DESIGN.SURFACE_SAND,
+			"overlay": DESIGN.SURFACE_COASTAL_GRASS,
+		},
+		{
+			"name": "Shadow Forest",
+			"position": DESIGN.FOREST_CENTER,
+			"base": DESIGN.SURFACE_SWAMP_MUD,
+			"overlay": DESIGN.SURFACE_SWAMP_MOSS,
+		},
+		{
+			"name": "High Cliffs",
+			"position": DESIGN.CLIFFS_CENTER,
+			"base": DESIGN.SURFACE_CLIFF_STONE,
+			"overlay": DESIGN.SURFACE_CLIFF_LICHEN,
+		},
+		{
+			"name": "Volcano Peak",
+			"position": DESIGN.VOLCANO_CENTER,
+			"base": DESIGN.SURFACE_VOLCANIC_ASH,
+			"overlay": DESIGN.SURFACE_OBSIDIAN,
+		},
+	]
+	for entry in expected_surfaces:
+		var position: Vector2 = entry["position"]
+		var surface := DESIGN.get_surface_pair_at(position.x, position.y)
+		_check(
+			"%s uses its own base and overlay surfaces" % entry["name"],
+			surface.x == int(entry["base"]) and surface.y == int(entry["overlay"])
+		)
 
 
 func _report() -> void:

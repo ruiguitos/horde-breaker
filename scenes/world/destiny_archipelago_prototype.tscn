@@ -5,13 +5,17 @@
 [ext_resource type="Environment" path="res://resources/atmosphere_presets/archipelago_day.tres" id="3_environment"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="4_player"]
 [ext_resource type="Script" path="res://scripts/systems/terrain3d_persistent_mount.gd" id="5_mount"]
-[ext_resource type="Terrain3DAssets" path="res://data/terrain3d_prototype/assets/terrain_assets.tres" id="6_assets"]
+[ext_resource type="Terrain3DAssets" path="res://data/destiny_archipelago/assets/terrain_assets.tres" id="6_assets"]
 [ext_resource type="Shader" path="res://assets/materials/terrain3d_water.gdshader" id="7_water_shader"]
 [ext_resource type="Script" path="res://scripts/ui/archipelago_graph_map.gd" id="8_graph"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 render_priority = -1
 shader = ExtResource("7_water_shader")
+shader_parameter/deep_color = Color(0.018, 0.105, 0.16, 0.94)
+shader_parameter/shallow_color = Color(0.055, 0.42, 0.47, 0.84)
+shader_parameter/wave_scale = 145.0
+shader_parameter/wave_speed = 0.42
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_water"]
 material = SubResource("ShaderMaterial_water")

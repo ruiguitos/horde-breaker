@@ -21,6 +21,15 @@ const PILLAR_SCENE := preload("res://assets/models/kenney_graveyard_kit/pillar-s
 const OBELISK_SCENE := preload("res://assets/models/kenney_graveyard_kit/pillar-obelisk.glb")
 const ALTAR_SCENE := preload("res://assets/models/kenney_graveyard_kit/altar-stone.glb")
 const FIRE_BASKET_SCENE := preload("res://assets/models/kenney_graveyard_kit/fire-basket.glb")
+const CRYPT_LARGE_SCENE := preload("res://assets/models/kenney_graveyard_kit/crypt-large.glb")
+const PINE_FALL_SCENE := preload("res://assets/models/kenney_graveyard_kit/pine-fall.glb")
+const COLUMN_LARGE_SCENE := preload("res://assets/models/kenney_graveyard_kit/column-large.glb")
+const BUILDING_STRUCTURE_SCENE := preload("res://assets/models/kenney_mini_forest/building-structure.glb")
+const BUILDING_PLATFORM_SCENE := preload("res://assets/models/kenney_mini_forest/building-platform.glb")
+const BUILDING_ROOF_SCENE := preload("res://assets/models/kenney_mini_forest/building-roof.glb")
+const WATER_TOWER_SCENE := preload(
+	"res://assets/models/quaternius_zombie_apocalypse/environment/WaterTower.gltf"
+)
 
 @export var archipelago_data: ArchipelagoData
 
@@ -249,11 +258,11 @@ func _build_ancient_ruins() -> void:
 func _build_island_dressing() -> void:
 	_add_prop(TENT_SCENE, Vector3(108.0, 0.0, 391.0), 0.4, 1.8, "DawnHubTent")
 	_add_prop(FLAG_SCENE, Vector3(124.0, 0.0, 382.0), -0.2, 2.2, "DawnHubFlag")
-	_scatter_scene(TREE_SCENE, DESIGN.DAWN_CENTER, DESIGN.DAWN_RADII, 7, 101, "DawnTree", 1.4, 2.0)
-	_scatter_scene(TREE_HIGH_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 22, 202, "ForestTree", 1.8, 2.8)
-	_scatter_scene(PINE_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 16, 203, "ForestPine", 1.7, 2.5)
+	_scatter_scene(TREE_SCENE, DESIGN.DAWN_CENTER, DESIGN.DAWN_RADII, 5, 101, "DawnTree", 1.4, 2.0)
+	_scatter_scene(TREE_HIGH_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 28, 202, "ForestTree", 1.8, 3.0)
+	_scatter_scene(PINE_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 20, 203, "ForestPine", 1.7, 2.7)
 	_scatter_scene(PINE_CROOKED_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 8, 204, "ForestCrookedPine", 1.5, 2.2)
-	_scatter_scene(PLANT_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 10, 205, "ForestPlant", 1.4, 2.1)
+	_scatter_scene(PLANT_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 14, 205, "ForestPlant", 1.4, 2.1)
 	_scatter_scene(ROCK_HIGH_SCENE, DESIGN.CLIFFS_CENTER, DESIGN.CLIFFS_RADII, 18, 303, "CliffRock", 1.7, 3.0)
 	_scatter_scene(ROCK_TALL_SCENE, DESIGN.CLIFFS_CENTER, DESIGN.CLIFFS_RADII, 12, 304, "CliffSpire", 1.8, 2.8)
 	_add_prop(OBELISK_SCENE, Vector3(405.0, 0.0, 374.0), 0.3, 2.5, "CliffsWindMarker")
@@ -266,7 +275,177 @@ func _build_island_dressing() -> void:
 			angle, 2.0, "VolcanoFire%02d" % (index + 1)
 		)
 	_add_prop(ALTAR_SCENE, Vector3(385.0, 0.0, 145.0), 0.0, 2.0, "BossAltar")
+	_build_dawn_signal_beacon()
+	_build_forest_sunken_crypt()
+	_build_cliff_watchtower()
+	_build_volcano_ritual_gate()
+	_build_volcano_lava_cracks()
+	_build_volcano_smoke()
 	_build_volcano_crater()
+
+
+func _build_dawn_signal_beacon() -> void:
+	var root := Node3D.new()
+	root.name = "DawnSignalBeacon"
+	landmarks.add_child(root)
+	var base_position := Vector3(149.0, 0.0, 414.0)
+	_add_landmark_model(root, WATER_TOWER_SCENE, base_position, -0.3, 0.75, "BeaconTower")
+	_add_landmark_model(
+		root, FLAG_SCENE, base_position + Vector3(3.0, 0.0, -1.0), 0.4, 2.8, "BeaconFlag"
+	)
+	var light := OmniLight3D.new()
+	light.name = "BeaconLight"
+	light.position = DESIGN.position_on_land(base_position) + Vector3.UP * 12.5
+	light.light_color = Color(1.0, 0.64, 0.25)
+	light.light_energy = 3.0
+	light.omni_range = 28.0
+	light.shadow_enabled = false
+	root.add_child(light)
+
+
+func _build_forest_sunken_crypt() -> void:
+	var root := Node3D.new()
+	root.name = "ForestSunkenCrypt"
+	landmarks.add_child(root)
+	_add_landmark_model(
+		root, CRYPT_LARGE_SCENE, Vector3(117.0, 0.0, 108.0), 0.25, 2.8, "AncientCrypt"
+	)
+	_add_landmark_model(
+		root, PINE_FALL_SCENE, Vector3(99.0, 0.0, 112.0), 0.7, 2.4, "FallenPineWest"
+	)
+	_add_landmark_model(
+		root, PINE_FALL_SCENE, Vector3(134.0, 0.0, 106.0), -0.9, 2.0, "FallenPineEast"
+	)
+	var light := OmniLight3D.new()
+	light.name = "CryptGlow"
+	light.position = DESIGN.position_on_land(Vector3(117.0, 0.0, 112.0)) + Vector3.UP * 2.0
+	light.light_color = Color(0.22, 0.68, 0.27)
+	light.light_energy = 1.35
+	light.omni_range = 21.0
+	light.shadow_enabled = false
+	root.add_child(light)
+
+
+func _build_cliff_watchtower() -> void:
+	var root := Node3D.new()
+	root.name = "CliffWatchtower"
+	landmarks.add_child(root)
+	var base_position := Vector3(408.0, 0.0, 378.0)
+	_add_landmark_model(
+		root, BUILDING_STRUCTURE_SCENE, base_position, 0.3, 3.4, "TowerFrame"
+	)
+	_add_landmark_model(
+		root,
+		BUILDING_PLATFORM_SCENE,
+		base_position + Vector3.UP * 7.2,
+		0.3,
+		3.4,
+		"TowerPlatform"
+	)
+	_add_landmark_model(
+		root, BUILDING_ROOF_SCENE, base_position + Vector3.UP * 9.0, 0.3, 3.4, "TowerRoof"
+	)
+	_add_landmark_model(
+		root, FLAG_SCENE, base_position + Vector3(0.0, 9.5, 0.0), 0.3, 2.2, "WarningFlag"
+	)
+	var light := OmniLight3D.new()
+	light.name = "WatchLight"
+	light.position = DESIGN.position_on_land(base_position) + Vector3.UP * 9.0
+	light.light_color = Color(0.34, 0.67, 1.0)
+	light.light_energy = 1.8
+	light.omni_range = 25.0
+	light.shadow_enabled = false
+	root.add_child(light)
+
+
+func _build_volcano_ritual_gate() -> void:
+	var root := Node3D.new()
+	root.name = "VolcanoRitualGate"
+	landmarks.add_child(root)
+	for side in [-1.0, 1.0]:
+		var position := Vector3(385.0 + side * 9.0, 0.0, 153.0)
+		_add_landmark_model(
+			root,
+			COLUMN_LARGE_SCENE,
+			position,
+			0.0,
+			2.8,
+			"GateColumn%s" % ("Left" if side < 0.0 else "Right")
+		)
+		_add_landmark_model(
+			root,
+			FIRE_BASKET_SCENE,
+			position + Vector3.UP * 6.2,
+			0.0,
+			2.1,
+			"GateFire%s" % ("Left" if side < 0.0 else "Right")
+		)
+
+
+func _build_volcano_lava_cracks() -> void:
+	var lava_material := StandardMaterial3D.new()
+	lava_material.albedo_color = Color(0.85, 0.045, 0.008)
+	lava_material.emission_enabled = true
+	lava_material.emission = Color(1.0, 0.08, 0.005)
+	lava_material.emission_energy_multiplier = 4.2
+	lava_material.roughness = 0.25
+	var crack_mesh := BoxMesh.new()
+	crack_mesh.size = Vector3.ONE
+	crack_mesh.material = lava_material
+	var crack_count := 18
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = crack_mesh
+	multimesh.instance_count = crack_count
+	for index in range(crack_count):
+		var angle := float(index) * TAU / float(crack_count) + sin(float(index) * 1.7) * 0.2
+		var length := 7.0 + float(index % 4) * 2.2
+		var radius := 12.0 + float(index % 3) * 6.0
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var position := Vector3(DESIGN.VOLCANO_CENTER.x, 0.0, DESIGN.VOLCANO_CENTER.y)
+		position += direction * (radius + length * 0.5)
+		position.y = DESIGN.height_at(position.x, position.z) + 0.16
+		var basis := Basis(Vector3.UP, -angle).scaled(Vector3(length, 0.12, 0.42))
+		multimesh.set_instance_transform(index, Transform3D(basis, position))
+	var cracks := MultiMeshInstance3D.new()
+	cracks.name = "VolcanoLavaCracks"
+	cracks.multimesh = multimesh
+	landmarks.add_child(cracks)
+
+
+func _build_volcano_smoke() -> void:
+	var smoke_material := StandardMaterial3D.new()
+	smoke_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	smoke_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	smoke_material.albedo_color = Color(0.09, 0.07, 0.065, 0.34)
+	var smoke_mesh := SphereMesh.new()
+	smoke_mesh.radius = 0.75
+	smoke_mesh.height = 1.5
+	smoke_mesh.radial_segments = 8
+	smoke_mesh.rings = 4
+	smoke_mesh.material = smoke_material
+	var process_material := ParticleProcessMaterial.new()
+	process_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	process_material.emission_sphere_radius = 4.0
+	process_material.direction = Vector3.UP
+	process_material.spread = 22.0
+	process_material.initial_velocity_min = 1.2
+	process_material.initial_velocity_max = 2.6
+	process_material.gravity = Vector3(0.0, 0.28, 0.0)
+	process_material.scale_min = 2.2
+	process_material.scale_max = 5.5
+	var smoke := GPUParticles3D.new()
+	smoke.name = "VolcanoSmoke"
+	smoke.position = DESIGN.position_on_land(
+		Vector3(DESIGN.VOLCANO_CENTER.x, 0.0, DESIGN.VOLCANO_CENTER.y)
+	) + Vector3.UP * 5.0
+	smoke.amount = 28
+	smoke.lifetime = 6.0
+	smoke.preprocess = 6.0
+	smoke.visibility_aabb = AABB(Vector3(-18.0, -5.0, -18.0), Vector3(36.0, 45.0, 36.0))
+	smoke.process_material = process_material
+	smoke.draw_pass_1 = smoke_mesh
+	landmarks.add_child(smoke)
 
 
 func _build_volcano_crater() -> void:
@@ -387,6 +566,28 @@ func _add_prop(
 	instance.rotation.y = y_rotation
 	instance.scale = Vector3.ONE * scale_factor
 	props.add_child(instance)
+	prop_count += 1
+
+
+func _add_landmark_model(
+	root: Node3D,
+	source: PackedScene,
+	horizontal_position: Vector3,
+	y_rotation: float,
+	scale_factor: float,
+	model_name: String
+) -> void:
+	var instance := source.instantiate() as Node3D
+	if instance == null:
+		return
+	instance.name = model_name
+	instance.position = (
+		DESIGN.position_on_land(horizontal_position)
+		+ Vector3.UP * horizontal_position.y
+	)
+	instance.rotation.y = y_rotation
+	instance.scale = Vector3.ONE * scale_factor
+	root.add_child(instance)
 	prop_count += 1
 
 

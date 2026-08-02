@@ -1323,3 +1323,29 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   usa cerca de 140 instâncias e ainda precisa de benchmark FPS/draw calls e
   playtest humano das travessias. Mantém-se o aviso conhecido de depreciação do
   Terrain3D 1.0.2 ao encerrar.
+
+## Destiny Archipelago: passe de identidade visual (2026-08-02)
+
+- [x] O arquipélago deixou de reutilizar as duas superfícies do primeiro
+  protótipo. A biblioteca própria contém oito superfícies procedurais:
+  areia/relva costeira, lama/musgo, pedra/líquen e cinza/obsidiana. O builder
+  gera também um control map Terrain3D manual e volta a gravar as quatro regiões.
+- [x] As silhuetas foram separadas por tema: Dawn Beach ganhou uma lagoa em
+  crescente e um banco de areia; Shadow Forest combina três massas baixas,
+  charcos e um canal; High Cliffs tornou-se uma mesa escalonada; Volcano Peak
+  recebeu cone mais alto, caldeira e cristas radiais.
+- [x] Cada ilha possui agora um landmark de leitura à distância: signal beacon,
+  sunken crypt, cliff watchtower e ritual gate. O vulcão acrescenta 18 fissuras
+  emissivas num único `MultiMesh` e um emissor de fumo com 28 partículas.
+- [x] O dressing ficou limitado a **168 modelos** e as fissuras continuam num
+  único draw submission lógico. Não foram descarregados assets; foram
+  reutilizados os kits CC0 existentes e texturas geradas localmente.
+- [x] `test_destiny_archipelago` passou **85 verificações, zero falhas**,
+  incluindo superfícies, control map, lagoa, mesa, landmarks, rotas, colisão e
+  orçamento de props. `test_shipwreck_rocks` manteve **31/31**. O editor e a
+  cena principal arrancaram sem erros de script; uma captura real confirmou
+  Vulkan Forward+ na RX 590 a 1280 × 720.
+- Limitações: continua a ser um protótipo separado da run principal, sem
+  streaming por ilha, zombies, boss ou save. A captura confirma a leitura macro,
+  mas ainda falta playtest humano ao nível do solo e benchmark formal de FPS,
+  draw calls e VRAM. Mantém-se o aviso de depreciação conhecido do Terrain3D.

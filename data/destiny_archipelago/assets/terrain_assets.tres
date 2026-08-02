@@ -1,0 +1,82 @@
+[gd_resource type="Terrain3DAssets" format=3]
+
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/dawn_sand_albedo.res" id="1_pvo5d"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/dawn_sand_normal_roughness.res" id="2_55334"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/coastal_grass_albedo.res" id="3_wmp81"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/coastal_grass_normal_roughness.res" id="4_h1744"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/swamp_mud_albedo.res" id="5_tuxq6"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/swamp_mud_normal_roughness.res" id="6_um80h"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/swamp_moss_albedo.res" id="7_8ik6t"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/swamp_moss_normal_roughness.res" id="8_dlpcp"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/cliff_stone_albedo.res" id="9_slicw"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/cliff_stone_normal_roughness.res" id="10_nrlwd"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/cliff_lichen_albedo.res" id="11_xfejc"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/cliff_lichen_normal_roughness.res" id="12_v427n"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/volcanic_ash_albedo.res" id="13_lr401"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/volcanic_ash_normal_roughness.res" id="14_cgifg"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/obsidian_albedo.res" id="15_0qin8"]
+[ext_resource type="Texture2D" path="res://data/destiny_archipelago/assets/obsidian_normal_roughness.res" id="16_va737"]
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_4a828"]
+name = "Dawn sand"
+albedo_texture = ExtResource("1_pvo5d")
+normal_texture = ExtResource("2_55334")
+uv_scale = 0.11
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_dq5r2"]
+name = "Coastal grass"
+id = 1
+albedo_texture = ExtResource("3_wmp81")
+normal_texture = ExtResource("4_h1744")
+uv_scale = 0.13
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_tmmyq"]
+name = "Swamp mud"
+id = 2
+albedo_texture = ExtResource("5_tuxq6")
+normal_texture = ExtResource("6_um80h")
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_vhus4"]
+name = "Swamp moss"
+id = 3
+albedo_texture = ExtResource("7_8ik6t")
+normal_texture = ExtResource("8_dlpcp")
+uv_scale = 0.15
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_e7gsv"]
+name = "Cliff stone"
+id = 4
+albedo_texture = ExtResource("9_slicw")
+normal_texture = ExtResource("10_nrlwd")
+uv_scale = 0.09
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_siuwi"]
+name = "Cliff lichen"
+id = 5
+albedo_texture = ExtResource("11_xfejc")
+normal_texture = ExtResource("12_v427n")
+uv_scale = 0.12
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_acivo"]
+name = "Volcanic ash"
+id = 6
+albedo_texture = ExtResource("13_lr401")
+normal_texture = ExtResource("14_cgifg")
+detiling_rotation = 0.14
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_afxwu"]
+name = "Obsidian"
+id = 7
+albedo_texture = ExtResource("15_0qin8")
+normal_texture = ExtResource("16_va737")
+uv_scale = 0.075
+detiling_rotation = 0.14
+
+[resource]
+texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_4a828"), SubResource("Terrain3DTextureAsset_dq5r2"), SubResource("Terrain3DTextureAsset_tmmyq"), SubResource("Terrain3DTextureAsset_vhus4"), SubResource("Terrain3DTextureAsset_e7gsv"), SubResource("Terrain3DTextureAsset_siuwi"), SubResource("Terrain3DTextureAsset_acivo"), SubResource("Terrain3DTextureAsset_afxwu")])
