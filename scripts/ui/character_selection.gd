@@ -54,6 +54,12 @@ func _ready() -> void:
 	SaveManager.variant_changed.connect(_on_variant_changed)
 	_build_variant_row()
 	_refresh()
+	# Every other menu page already does this; this one did not, and it showed.
+	# When the window is resized the cards get a new width, their wrapped text
+	# reflows to a new height, and the column that had already been laid out with
+	# the old height leaves the loadout bar sitting on top of the cards. Re-sorting
+	# after the viewport settles is what puts the two back in agreement.
+	get_viewport().size_changed.connect(_on_viewport_resized)
 	back_button.grab_focus()
 	UiAnimations.enhance_buttons(self)
 	$PageMargin/Content/TopBar.modulate.a = 0.0
@@ -69,6 +75,26 @@ func _ready() -> void:
 	UiAnimations.slide_fade_in(
 		$PageMargin/Content/LoadoutPanel, Vector2(0.0, 18.0), 0.16
 	)
+
+
+func _on_viewport_resized() -> void:
+	# Rebuild first, sort second. The cards carry wrapped text whose height
+	# depends on the width they were given, so rebuilding them at the new width
+	# is what produces the heights the column then has to place. Sorting first
+	# only arranges the old ones and the rebuild leaves the column stale again —
+	# which is how the loadout bar ended up drawn over the bottom of the cards.
+	if not is_inside_tree():
+		return
+	_refresh()
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	for path in [
+		"PageMargin/Content/Characters", "PageMargin/Content",
+	]:
+		var container := get_node_or_null(path) as Container
+		if container != null:
+			container.queue_sort()
 
 
 func _refresh() -> void:
@@ -275,8 +301,8 @@ func _build_identity_block(panel: PanelContainer, character_data: CharacterData)
 		content.move_child(block, spacer.get_index())
 
 	block.add_child(_build_caption("SKILLS", colour))
-	block.add_child(_build_tier_pips(character_id, colour))
-	block.add_child(_build_body_label(_get_capstone_text(character_id)))
+	block.add_child(_build_category_pips(character_id, colour))
+	block.add_child(_build_body_label(_get_skill_summary_text(character_id)))
 
 	block.add_child(_build_caption("LOADOUT", colour))
 	block.add_child(_build_loadout_row(character_data))
@@ -310,45 +336,51 @@ func _build_body_label(text: String) -> Label:
 	return label
 
 
-## One mark per tier: filled when a side has been taken, outlined when the tier
-## is open and waiting, dark when the level for it has not been reached.
-func _build_tier_pips(character_id: StringName, colour: Color) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 6)
-	var level := SaveManager.get_character_level(character_id)
-	var chosen := Array(SaveManager.get_skill_choices(character_id))
-	for tier in range(1, SkillTree.TIER_COUNT + 1):
-		var pip := ColorRect.new()
-		pip.custom_minimum_size = Vector2(22.0, 5.0)
-		var is_open := level >= SkillTree.get_required_level_for_tier(tier)
-		var taken := SkillTree.get_choice_for_tier(chosen, character_id, tier) != &""
-		if taken:
-			pip.color = colour
-		elif is_open:
-			pip.color = colour * Color(1.0, 1.0, 1.0, 0.38)
-		else:
-			pip.color = Color(0.22, 0.25, 0.29, 1.0)
-		row.add_child(pip)
-	return row
+## One row per category, showing how deep the operative has gone in it. Depth by
+## category is what a build looks like now that skills are bought and accumulate
+## — a Recruit who poured everything into FIREPOWER and a Recruit who spread the
+## same points across three categories are different characters, and this is the
+## only place on the roster where that difference shows.
+func _build_category_pips(
+	character_id: StringName, colour: Color
+) -> VBoxContainer:
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override(&"separation", 3)
+	var unlocked := Array(SaveManager.get_unlocked_skill_nodes(character_id))
+	for category in SkillTree.get_categories(character_id):
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", 6)
+		var label := Label.new()
+		label.theme_type_variation = &"MutedLabel"
+		label.add_theme_font_size_override(&"font_size", 11)
+		label.text = String(category["title"])
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		for node in SkillTree.get_category_nodes(character_id, category["id"]):
+			var pip := ColorRect.new()
+			pip.custom_minimum_size = Vector2(9.0, 9.0)
+			var owned: bool = (
+				node["id"] in unlocked or String(node["id"]) in unlocked
+			)
+			pip.color = colour if owned else Color(0.22, 0.25, 0.29, 1.0)
+			row.add_child(pip)
+		rows.add_child(row)
+	return rows
 
 
-func _get_capstone_text(character_id: StringName) -> String:
+func _get_skill_summary_text(character_id: StringName) -> String:
 	if not SkillTree.has_tree(character_id):
 		return "No skill tree yet."
-	var chosen := Array(SaveManager.get_skill_choices(character_id))
-	var capstone := SkillTree.get_choice_for_tier(
-		chosen, character_id, SkillTree.TIER_COUNT
-	)
-	if capstone != &"":
-		var node := SkillTree.get_node_definition(capstone)
-		return "%s — %s" % [String(node["title"]).to_upper(), node["description"]]
-	var pending := SaveManager.get_pending_skill_choices(character_id)
-	if pending > 0:
-		return "%d %s waiting." % [
-			pending, "choice" if pending == 1 else "choices"
+	var owned := SaveManager.get_unlocked_skill_nodes(character_id).size()
+	var total := SkillTree.get_class_nodes(character_id).size()
+	var points := SaveManager.get_available_skill_points(character_id)
+	if points > 0:
+		return "%d of %d skills  ·  %d %s to spend" % [
+			owned, total, points, "point" if points == 1 else "points"
 		]
-	var required := SkillTree.get_required_level_for_tier(SkillTree.TIER_COUNT)
-	return "Defining skill unlocks at level %d." % required
+	return "%d of %d skills  ·  next point at level %d" % [
+		owned, total, SaveManager.get_next_skill_point_level(character_id)
+	]
 
 
 func _build_loadout_row(character_data: CharacterData) -> HBoxContainer:
