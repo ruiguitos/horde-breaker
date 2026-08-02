@@ -41,7 +41,14 @@ func open_armory() -> void:
 	_change_scene(ARMORY_SCENE)
 
 
+## True once the player has pressed Play. Scenes that carry prototype-only
+## overlays use it to tell a real run from being opened straight in the
+## editor, where that scaffolding is the point.
+var started_from_menu := false
+
+
 func start_game() -> void:
+	started_from_menu = true
 	_change_scene(RUN_SCENE)
 
 

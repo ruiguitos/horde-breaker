@@ -534,9 +534,15 @@ func _pursue_target(delta: float) -> void:
 func _refresh_steering() -> bool:
 	var navigation_map := navigation_agent.get_navigation_map()
 	if NavigationServer3D.map_get_iteration_id(navigation_map) == 0:
-		_stop_horizontal_movement()
-		_cached_direction = Vector3.ZERO
-		return false
+		# No navmesh has ever been baked in this world. That is not a reason to
+		# stand still — it is a reason to walk straight at the target, which is
+		# what the horde already does beyond the navmesh band. Freezing here left
+		# every zombie in the archipelago rooted to the spot, because that world
+		# has no NavigationRegion3D at all.
+		var direct := _target.global_position - global_position
+		direct.y = 0.0
+		_cached_direction = direct.normalized()
+		return _cached_direction != Vector3.ZERO
 	if navigation_agent.is_navigation_finished():
 		_stop_horizontal_movement()
 		_cached_direction = Vector3.ZERO

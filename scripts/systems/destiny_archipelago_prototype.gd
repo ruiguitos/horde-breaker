@@ -47,6 +47,7 @@ const WATER_TOWER_SCENE := preload(
 @onready var landmarks: Node3D = %Landmarks
 @onready var status_label: Label = %StatusLabel
 @onready var graph_map: ArchipelagoGraphMap = %ArchipelagoMap
+@onready var prototype_ui: CanvasLayer = $PrototypeUI
 
 var terrain: Terrain3D
 var rope_bridge: DestructibleRouteBridge
@@ -132,6 +133,7 @@ func _build_prototype() -> void:
 	_build_horde_director()
 	_build_island_dressing()
 	_configure_player()
+	_configure_prototype_ui()
 	graph_map.configure(archipelago_data)
 	_enter_island(archipelago_data.starting_island_id)
 	await get_tree().physics_frame
@@ -139,6 +141,13 @@ func _build_prototype() -> void:
 	is_ready = true
 	status_label.text = "%s\nMouse 4 toggles debug noclip" % dawn_hub.get_objective_text()
 	prototype_ready.emit()
+
+
+## The status readout, the route graph and the key hints are scaffolding for
+## opening this scene straight in the editor. In a real run they cover a
+## quarter of the screen with information the HUD already carries.
+func _configure_prototype_ui() -> void:
+	prototype_ui.visible = not GameManager.started_from_menu
 
 
 func _configure_player() -> void:
