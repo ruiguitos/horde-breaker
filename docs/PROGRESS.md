@@ -1287,7 +1287,39 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   A captura real confirmou Forward+ na
   RX 590 a 1280 × 720 e a leitura visual das duas ilhas.
 - Limitações: o protótipo não está ligado ao menu, arena, mapa tático, save nem
-  diretor de horda; não cria `IslandData`; não tem zombies, navegação livre do
-  barco, física naval, espuma ou barreira marítima própria. Água profunda devolve
-  o jogador ao cais mais próximo. Mantém-se o aviso conhecido de depreciação
-  `instance_reset_physics_interpolation()` do Terrain3D 1.0.2.
+  diretor de horda; não tem zombies, navegação livre do barco, física naval,
+  espuma ou barreira marítima própria. Água profunda devolve o jogador ao cais
+  mais próximo. `IslandData` foi criado na etapa seguinte. Mantém-se o aviso
+  conhecido de depreciação `instance_reset_physics_interpolation()` do
+  Terrain3D 1.0.2.
+
+## Destiny Archipelago: quatro ilhas e rotas alternativas (2026-08-01)
+
+- [x] Criados `IslandData`, `IslandRouteData` e `ArchipelagoData` como Resources
+  estáticos. O grafo valida ids, destinos e existência das rotas antes de montar
+  a cena; Dawn Beach liga a Shadow Forest e High Cliffs, e ambas convergem em
+  Volcano Peak.
+- [x] `destiny_archipelago_prototype.tscn` monta quatro regiões Terrain3D
+  persistentes num oceano de 512 × 512 m. Dawn Beach tem areia/relva suave,
+  Shadow Forest combina pântanos com árvores densas, High Cliffs usa relevo e
+  rochedos, e Volcano Peak termina num cone com lava emissiva e marcador de boss.
+- [x] As quatro ligações são reconhecíveis e funcionais: Route A é um recife
+  Terrain3D com bancos de areia num único `MultiMesh`; Route B teleporta entre
+  bocas de gruta; Route C é uma ponte de corda física com 400 HP; Route D usa um
+  `MultiMesh` visual e 32 degraus físicos entre ruínas.
+- [x] O painel do arquipélago desenha em runtime o losango pedido, identifica
+  A–D, destaca a ilha atual e regista as visitadas. Quatro paredes offshore
+  protegem os limites dos dados e água profunda devolve o jogador à última ilha.
+- [x] Foram reutilizados apenas modelos CC0 já presentes e primitivas; não houve
+  downloads. O preset diurno próprio reduz o nevoeiro sem alterar a arena.
+- [x] `test_destiny_archipelago` passou **66 verificações, zero falhas**:
+  Resources, topologia, alturas, quatro regiões, colisão Terrain3D, interação,
+  travessia da gruta, descoberta, destruição/reset da ponte, degraus, boss marker,
+  recuperação da água e ficheiros persistentes. Duas capturas reais confirmaram
+  Forward+ na RX 590 a 1280 × 720.
+- Limitações: é uma cena de protótipo separada, ainda sem save, minimapa da run,
+  streaming por ilha, zombies, guardas ou boss real. A maré permanece baixa; a
+  gruta é uma transição instantânea; destruir a ponte não persiste. O dressing
+  usa cerca de 140 instâncias e ainda precisa de benchmark FPS/draw calls e
+  playtest humano das travessias. Mantém-se o aviso conhecido de depreciação do
+  Terrain3D 1.0.2 ao encerrar.

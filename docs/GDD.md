@@ -104,6 +104,11 @@ a animação de morte e o cadáver desaparece pouco depois.
   `Shipwreck Rocks` valida uma primeira micro-ilha sem zombies, ligada a uma
   margem de partida por ferry automático. A descoberta não entra ainda no save,
   no mapa tático nem na run principal.
+- Um segundo protótipo, **Destiny Archipelago**, valida uma progressão em
+  losango: Dawn Beach funciona como hub; Shallow Reef conduz a Shadow Forest e
+  Sea Cave conduz a High Cliffs; Rope Bridge e Ancient Ruins convergem em
+  Volcano Peak, a futura arena de boss. As quatro ilhas têm `IslandData` próprio
+  e um mapa esquemático em runtime, mas continuam fora da run principal.
 
 ## Acampamento
 

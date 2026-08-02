@@ -134,7 +134,10 @@ os modelos CC0 que já existem no projeto.
   exclusiva de demonstração.
 - [x] Implementar transporte automático entre os dois cais com um ferry low-poly,
   antes de considerar controlo livre ou física naval.
-- [ ] Criar `IslandData` antes de integrar uma segunda ilha ou persistir descoberta.
+- [x] Criar `IslandData`, `IslandRouteData` e `ArchipelagoData`, com validação do
+  grafo e quatro ilhas ligadas num protótipo Terrain3D separado.
+- [x] Validar duas escolhas no hub e convergência na ilha final: recife raso,
+  gruta inundada, ponte destrutível e ruínas físicas.
 - [ ] Adaptar mapa tático, persistência de descoberta e diretor de horda à ilha ativa.
 - [ ] Reintroduzir um único kit visual na ilha piloto e medir FPS/draw calls.
 

@@ -589,15 +589,15 @@ size = Vector3(0.52, 0.32, 0.52)
 [node name="CampVisuals" type="Node3D" unique_id=1573326518]
 
 [node name="CampFloor" type="MeshInstance3D" parent="." unique_id=577699567]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.046, 0)
 mesh = SubResource("CylinderMesh_oxsx8")
 
 [node name="RouteNorthSouth" type="MeshInstance3D" parent="." unique_id=484013679]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.105, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0235, 0)
 mesh = SubResource("BoxMesh_dy0e3")
 
 [node name="RouteEastWest" type="MeshInstance3D" parent="." unique_id=1818733243]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.026, 0)
 mesh = SubResource("BoxMesh_8ny12")
 
 [node name="FortifiedPerimeter" type="Node3D" parent="." unique_id=1210571035]
@@ -1072,7 +1072,7 @@ mesh = SubResource("BoxMesh_pey1y")
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -28)
 
 [node name="DamagedRoad" type="Node3D" parent="ExteriorApproaches/NorthApproach" unique_id=2072381510 instance=ExtResource("5_qtued")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.116, 0)
 
 [node name="ReflectorLeft" type="MeshInstance3D" parent="ExteriorApproaches/NorthApproach" unique_id=1037974601]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0.18, -4.2)
@@ -1121,7 +1121,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0, 0)
 
 [node name="DamagedRoad" type="Node3D" parent="ExteriorApproaches/WestApproach" unique_id=1632573446 instance=ExtResource("5_qtued")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.116, 0)
 
 [node name="ReflectorLeft" type="MeshInstance3D" parent="ExteriorApproaches/WestApproach" unique_id=1636053156]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0.18, -4.2)
@@ -1170,7 +1170,7 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, -
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, 0)
 
 [node name="DamagedRoad" type="Node3D" parent="ExteriorApproaches/EastApproach" unique_id=1919684973 instance=ExtResource("5_qtued")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.116, 0)
 
 [node name="ReflectorLeft" type="MeshInstance3D" parent="ExteriorApproaches/EastApproach" unique_id=1055914460]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0.18, -4.2)
@@ -1211,7 +1211,7 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.5,
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 28)
 
 [node name="DamagedRoad" type="Node3D" parent="ExteriorApproaches/SouthApproach" unique_id=579566613 instance=ExtResource("5_qtued")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.116, 0)
 
 [node name="ReflectorLeft" type="MeshInstance3D" parent="ExteriorApproaches/SouthApproach" unique_id=336009499]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0.18, -4.2)

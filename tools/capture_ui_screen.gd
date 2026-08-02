@@ -9,6 +9,7 @@ const MENU_SCENES := {
 }
 const ARENA_SCENE := "res://scenes/world/test_arena.tscn"
 const SHIPWRECK_SCENE := "res://scenes/world/shipwreck_rocks_prototype.tscn"
+const DESTINY_ARCHIPELAGO_SCENE := "res://scenes/world/destiny_archipelago_prototype.tscn"
 
 
 func _initialize() -> void:
@@ -39,11 +40,11 @@ func _capture() -> void:
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_size(capture_size)
-	var scene_path := (
-		SHIPWRECK_SCENE
-		if target == "shipwreck_rocks"
-		else String(MENU_SCENES.get(target, ARENA_SCENE))
-	)
+	var scene_path := String(MENU_SCENES.get(target, ARENA_SCENE))
+	if target == "shipwreck_rocks":
+		scene_path = SHIPWRECK_SCENE
+	elif target == "destiny_archipelago" or target == "destiny_archipelago_scenic":
+		scene_path = DESTINY_ARCHIPELAGO_SCENE
 	var scene_error := change_scene_to_file(scene_path)
 	if scene_error != OK:
 		push_error("UI capture could not load %s." % scene_path)
@@ -56,6 +57,10 @@ func _capture() -> void:
 	await _wait_frames(35 if MENU_SCENES.has(target) else 120)
 	if target == "shipwreck_rocks":
 		if not _prepare_shipwreck_rocks():
+			quit(1)
+			return
+	elif target == "destiny_archipelago" or target == "destiny_archipelago_scenic":
+		if not _prepare_destiny_archipelago(target == "destiny_archipelago_scenic"):
 			quit(1)
 			return
 	elif not MENU_SCENES.has(target):
@@ -220,6 +225,31 @@ func _prepare_shipwreck_rocks() -> bool:
 	overview_camera.position = Vector3(128.0, 58.0, 218.0)
 	current_scene.add_child(overview_camera)
 	overview_camera.look_at(Vector3(128.0, -0.5, 128.0), Vector3.UP)
+	overview_camera.current = true
+	return true
+
+
+func _prepare_destiny_archipelago(scenic_view: bool = false) -> bool:
+	if current_scene == null or not bool(current_scene.get(&"is_ready")):
+		push_error("Destiny Archipelago capture requires its persistent terrain data.")
+		return false
+	var player := get_first_node_in_group(&"player") as Node3D
+	if player != null:
+		player.visible = false
+	var overview_camera := Camera3D.new()
+	overview_camera.name = "DestinyArchipelagoOverviewCamera"
+	overview_camera.far = 900.0
+	if scenic_view:
+		overview_camera.fov = 62.0
+		overview_camera.position = Vector3(256.0, 112.0, 548.0)
+	else:
+		overview_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+		overview_camera.size = 550.0
+		overview_camera.position = Vector3(256.0, 520.0, 256.0)
+		overview_camera.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	current_scene.add_child(overview_camera)
+	if scenic_view:
+		overview_camera.look_at(Vector3(256.0, 0.0, 235.0), Vector3.UP)
 	overview_camera.current = true
 	return true
 

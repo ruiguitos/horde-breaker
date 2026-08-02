@@ -9,6 +9,15 @@ extends SceneTree
 const OUTPUT_PATH := "res://scenes/world/camp_visuals.tscn"
 const WALL_HEIGHT := 2.6
 const WALL_THICKNESS := 0.65
+## The arena's physical floor ends at Y = 0. Decorative walkable surfaces only
+## sit a few millimetres above it to avoid z-fighting without burying feet.
+const WALKABLE_SURFACE_Y := 0.004
+const CAMP_FLOOR_HEIGHT := 0.1
+const ROUTE_NORTH_SOUTH_HEIGHT := 0.055
+const ROUTE_EAST_WEST_HEIGHT := 0.06
+## Measured from Street_Straight_Crack1.gltf. Its authored origin is below the
+## visible surface, so placing the root at Y = 0 raised the road by about 12 cm.
+const DAMAGED_ROAD_LOCAL_TOP_Y := 0.12
 const MODEL_FENCE := preload("res://assets/models/kenney_graveyard_kit/fence.glb")
 const MODEL_FENCE_DAMAGED := preload("res://assets/models/kenney_graveyard_kit/fence-damaged.glb")
 const MODEL_LIGHTPOST := preload("res://assets/models/kenney_graveyard_kit/lightpost-single.glb")
@@ -128,23 +137,33 @@ func _add_ground(parent: Node3D) -> void:
 	var floor_mesh := CylinderMesh.new()
 	floor_mesh.top_radius = 23.6
 	floor_mesh.bottom_radius = 23.6
-	floor_mesh.height = 0.1
+	floor_mesh.height = CAMP_FLOOR_HEIGHT
 	floor_mesh.radial_segments = 32
 	floor_mesh.material = _materials[&"floor"]
 	var floor_visual := MeshInstance3D.new()
 	floor_visual.name = "CampFloor"
-	floor_visual.position.y = 0.045
+	floor_visual.position.y = WALKABLE_SURFACE_Y - CAMP_FLOOR_HEIGHT * 0.5
 	floor_visual.mesh = floor_mesh
 	parent.add_child(floor_visual)
 
 	# Clear axes make the four gates and the route back to the core readable.
 	_add_visual_box(
-		parent, "RouteNorthSouth", Vector3(0.0, 0.105, 0.0),
-		Vector3(6.2, 0.055, 46.0), _materials[&"route"]
+		parent, "RouteNorthSouth",
+		Vector3(
+			0.0,
+			WALKABLE_SURFACE_Y - ROUTE_NORTH_SOUTH_HEIGHT * 0.5,
+			0.0
+		),
+		Vector3(6.2, ROUTE_NORTH_SOUTH_HEIGHT, 46.0), _materials[&"route"]
 	)
 	_add_visual_box(
-		parent, "RouteEastWest", Vector3(0.0, 0.11, 0.0),
-		Vector3(46.0, 0.06, 6.2), _materials[&"route"]
+		parent, "RouteEastWest",
+		Vector3(
+			0.0,
+			WALKABLE_SURFACE_Y - ROUTE_EAST_WEST_HEIGHT * 0.5,
+			0.0
+		),
+		Vector3(46.0, ROUTE_EAST_WEST_HEIGHT, 6.2), _materials[&"route"]
 	)
 
 
@@ -316,7 +335,8 @@ func _add_approach_route(
 	parent.add_child(approach)
 	_add_model(
 		approach, "DamagedRoad", MODEL_ROAD_DAMAGED,
-		Vector3(0.0, 0.01, 0.0), Vector3.ZERO, Vector3.ONE
+		Vector3(0.0, WALKABLE_SURFACE_Y - DAMAGED_ROAD_LOCAL_TOP_Y, 0.0),
+		Vector3.ZERO, Vector3.ONE
 	)
 	for side in [-1.0, 1.0]:
 		_add_visual_box(

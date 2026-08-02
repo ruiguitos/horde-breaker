@@ -51,6 +51,19 @@ Forward+), GDScript tipado, sem C#.
   pontos. Durante 4,5 s, o passageiro acompanha um ferry low-poly gerado em
   runtime; input e colisão do jogador são repostos no ponto seguro de desembarque.
   Não existe ainda navegação livre nem física naval.
+- `IslandData`, `IslandRouteData` e `ArchipelagoData` — Resources que separam a
+  topologia do arquipélago da cena 3D: identidade, posição, dificuldade,
+  terreno, ligações dirigidas e mecânica de cada rota. `validate_graph()` deteta
+  ilhas, destinos ou rotas em falta antes de montar o mapa.
+- `destiny_archipelago_prototype.gd` — protótipo isolado de 512 × 512 m e quatro
+  regiões Terrain3D. Constrói Dawn Beach, Shadow Forest, High Cliffs e Volcano
+  Peak, acompanha descoberta em memória e expõe as rotas A–D sem tocar no save,
+  streaming ou diretor de horda da arena principal.
+- `archipelago_route_gate.gd` representa a travessia curta da gruta inundada;
+  `destructible_route_bridge.gd` fornece uma ponte física com 400 HP;
+  `archipelago_graph_map.gd` desenha o grafo dirigido e destaca ilhas visitadas.
+  O recife e as ruínas usam `MultiMesh`; só as superfícies atravessáveis recebem
+  colisão.
 - `sector_generator.gd` — não constrói geometria visível: coloca caches, caixa
   de munições, caixa de arma (~1/3), spawn markers e navegação sobre a altura
   determinística do Terrain3D. Na ilha, rejeita colocações submersas, não gera

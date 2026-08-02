@@ -85,22 +85,51 @@ As dimensões são alvos de protótipo, não uma grelha obrigatória. Cada ilha 
 ter costa própria, dois pontos de desembarque no máximo, uma silhueta reconhecível
 e uma razão concreta para ser visitada.
 
-### Dados necessários antes da segunda ilha
+### Dados do arquipélago
 
-Um futuro `IslandData` deve declarar `island_id`, tamanho/bounds, cena ou pasta
-Terrain3D, conteúdo visual, pontos de desembarque, tabela de loot, pesos de
-inimigos, requisito de desbloqueio e recompensa exclusiva. Descoberta, loot
-único e bosses derrotados ficam persistidos por `island_id`; zombies vivos e
-Scrap transportado continuam estado da run.
+O protótipo já usa `IslandData` para `island_id`, nome, terreno, dificuldade,
+descrição, posição 3D, posição no diagrama e destinos. `IslandRouteData` guarda
+origem, destino, nome e mecânica; `ArchipelagoData` valida o grafo completo.
+Continuam por acrescentar bounds detalhados, cena/pasta própria, tabela de loot,
+pesos de inimigos, requisito de desbloqueio e recompensa exclusiva. Descoberta,
+loot único e bosses derrotados só serão persistidos quando o sistema entrar na
+run principal.
+
+### Topologia jogável do protótipo Destiny Archipelago
+
+```text
+                         Route A: Shallow Reef
+                   ┌────────────────────────────► Shadow Forest
+                   │                                     │
+                   │                            Route C: Rope Bridge
+                   │                                     │
+            Dawn Beach                                    ▼
+            STARTING HUB                             Volcano Peak
+                   │                                 FINAL / BOSS
+                   │                                     ▲
+                   │                           Route D: Ancient Ruins
+                   │                                     │
+                   └────────────────────────────► High Cliffs
+                          Route B: Sea Cave
+```
+
+- Route A é um caminho Terrain3D contínuo com bancos de areia em `MultiMesh`;
+  a maré fica baixa e estática nesta versão.
+- Route B usa uma transição interativa entre duas bocas de gruta.
+- Route C é uma ponte física de corda com 400 HP e alternativa pela Route D se
+  for destruída.
+- Route D tem 32 degraus físicos e pilares; o encontro de guardas ainda é um
+  marcador de design.
 
 ### Ordem de implementação
 
 1. [x] manter a ilha principal e validar a nova barreira offshore;
 2. [x] criar **Shipwreck Rocks** como ilha piloto sem zombies e sem barco livre;
 3. [x] adicionar um transporte automático entre dois cais;
-4. [ ] adaptar mapa tático e save à descoberta da ilha;
-5. [ ] criar **Ironworks** com um único lote do Factory Kit e um encontro exclusivo;
-6. [ ] só depois tornar o barco controlável e acrescentar novas zonas marítimas.
+4. [x] validar `IslandData` e um grafo visual isolado com quatro ilhas;
+5. [ ] adaptar o mapa tático principal e save à descoberta da ilha;
+6. [ ] criar **Ironworks** com um único lote do Factory Kit e um encontro exclusivo;
+7. [ ] só depois tornar o barco controlável e acrescentar novas zonas marítimas.
 
 ## Layout recomendado para a ilha
 
