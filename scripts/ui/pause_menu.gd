@@ -290,7 +290,17 @@ func _build_summary_text() -> String:
 	if objective != null:
 		var elapsed := float(objective.get(&"_elapsed"))
 		parts.append("SURVIVED  %d:%02d" % [int(elapsed) / 60, int(elapsed) % 60])
-		if objective.has_method(&"get_time_text"):
+		# Phase-aware: once the clock runs out it no longer says anything useful,
+		# and the run is then about the kill count and the walk back to camp.
+		if objective.has_method(&"get_objective_text"):
+			var stage := int(objective.get(&"phase"))
+			var label := "LAST STAND" if stage == 1 else (
+				"EXTRACTION" if stage >= 2 else "LAST STAND IN"
+			)
+			parts.append("%s  %s" % [
+				label, String(objective.call(&"get_objective_text"))
+			])
+		elif objective.has_method(&"get_time_text"):
 			parts.append("EXTRACTION IN  %s" % String(objective.call(&"get_time_text")))
 		parts.append("KILLS  %d" % int(objective.get(&"kills")))
 	var wave_manager := get_tree().get_first_node_in_group(&"wave_manager")
