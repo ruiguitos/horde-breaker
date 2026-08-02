@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="ArchipelagoData" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/archipelago_data.gd" id="1_archipelago"]
+[ext_resource type="Script" path="res://scripts/data/island_route_data.gd" id="2_route"]
+[ext_resource type="Resource" path="res://data/islands/dawn_beach.tres" id="3_dawn"]
+[ext_resource type="Resource" path="res://data/islands/shadow_forest.tres" id="4_forest"]
+[ext_resource type="Resource" path="res://data/islands/high_cliffs.tres" id="5_cliffs"]
+[ext_resource type="Resource" path="res://data/islands/volcano_peak.tres" id="6_volcano"]
+
+[sub_resource type="Resource" id="Route_shallow_reef"]
+script = ExtResource("2_route")
+route_id = &"shallow_reef"
+source_island_id = &"dawn_beach"
+destination_island_id = &"shadow_forest"
+display_name = "Route A: Shallow Reef"
+traversal_type = "low_tide_causeway"
+mechanic_description = "A sand path exposed at low tide. Static low tide in this prototype."
+
+[sub_resource type="Resource" id="Route_sea_cave"]
+script = ExtResource("2_route")
+route_id = &"sea_cave"
+source_island_id = &"dawn_beach"
+destination_island_id = &"high_cliffs"
+display_name = "Route B: Sea Cave"
+traversal_type = "flooded_tunnel"
+mechanic_description = "An interactable flooded tunnel transition between cave mouths."
+
+[sub_resource type="Resource" id="Route_rope_bridge"]
+script = ExtResource("2_route")
+route_id = &"rope_bridge"
+source_island_id = &"shadow_forest"
+destination_island_id = &"volcano_peak"
+display_name = "Route C: Rope Bridge"
+traversal_type = "destructible_bridge"
+mechanic_description = "A physical crossing with 400 HP that can be destroyed by gunfire."
+
+[sub_resource type="Resource" id="Route_ancient_ruins"]
+script = ExtResource("2_route")
+route_id = &"ancient_ruins"
+source_island_id = &"high_cliffs"
+destination_island_id = &"volcano_peak"
+display_name = "Route D: Ancient Ruins"
+traversal_type = "guarded_stairs"
+mechanic_description = "A stone stairway prepared for a future guarded encounter."
+
+[resource]
+script = ExtResource("1_archipelago")
+map_name = "Destiny Archipelago"
+starting_island_id = &"dawn_beach"
+islands = [ExtResource("3_dawn"), ExtResource("4_forest"), ExtResource("5_cliffs"), ExtResource("6_volcano")]
+routes = [SubResource("Route_shallow_reef"), SubResource("Route_sea_cave"), SubResource("Route_rope_bridge"), SubResource("Route_ancient_ruins")]

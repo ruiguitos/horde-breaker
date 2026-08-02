@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="IslandData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/island_data.gd" id="1_island"]
+
+[resource]
+script = ExtResource("1_island")
+island_id = &"volcano_peak"
+display_name = "Volcano Peak"
+terrain_type = "Lava and black stone"
+difficulty = "Hard"
+description = "Final island and future boss arena, reachable by either intermediate route."
+world_position = Vector2(385, 130)
+map_position = Vector2(0.84, 0.5)
+connection_ids = Array[StringName]([])

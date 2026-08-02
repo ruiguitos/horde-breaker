@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="IslandData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/island_data.gd" id="1_island"]
+
+[resource]
+script = ExtResource("1_island")
+island_id = &"dawn_beach"
+display_name = "Dawn Beach"
+terrain_type = "Sand and soft grass"
+difficulty = "Tutorial"
+description = "Starting hub with open sight-lines and two routes into the archipelago."
+world_position = Vector2(120, 390)
+map_position = Vector2(0.1, 0.5)
+connection_ids = Array[StringName]([&"shadow_forest", &"high_cliffs"])

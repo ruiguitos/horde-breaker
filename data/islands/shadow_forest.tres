@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="IslandData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/island_data.gd" id="1_island"]
+
+[resource]
+script = ExtResource("1_island")
+island_id = &"shadow_forest"
+display_name = "Shadow Forest"
+terrain_type = "Swamp and dense trees"
+difficulty = "Easy"
+description = "A dark wetland reached through the shallow reef route."
+world_position = Vector2(120, 135)
+map_position = Vector2(0.46, 0.24)
+connection_ids = Array[StringName]([&"volcano_peak"])

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="IslandData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/island_data.gd" id="1_island"]
+
+[resource]
+script = ExtResource("1_island")
+island_id = &"high_cliffs"
+display_name = "High Cliffs"
+terrain_type = "Steep rock and strong wind"
+difficulty = "Medium"
+description = "An elevated rocky island reached through the flooded sea cave."
+world_position = Vector2(385, 390)
+map_position = Vector2(0.46, 0.76)
+connection_ids = Array[StringName]([&"volcano_peak"])

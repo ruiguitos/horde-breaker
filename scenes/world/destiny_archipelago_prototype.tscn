@@ -1,0 +1,122 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/destiny_archipelago_prototype.gd" id="1_prototype"]
+[ext_resource type="Resource" path="res://data/archipelagos/destiny_archipelago.tres" id="2_data"]
+[ext_resource type="Environment" path="res://resources/atmosphere_presets/archipelago_day.tres" id="3_environment"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="4_player"]
+[ext_resource type="Script" path="res://scripts/systems/terrain3d_persistent_mount.gd" id="5_mount"]
+[ext_resource type="Terrain3DAssets" path="res://data/terrain3d_prototype/assets/terrain_assets.tres" id="6_assets"]
+[ext_resource type="Shader" path="res://assets/materials/terrain3d_water.gdshader" id="7_water_shader"]
+[ext_resource type="Script" path="res://scripts/ui/archipelago_graph_map.gd" id="8_graph"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+render_priority = -1
+shader = ExtResource("7_water_shader")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_water"]
+material = SubResource("ShaderMaterial_water")
+size = Vector2(512, 512)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status"]
+bg_color = Color(0.025, 0.035, 0.04, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.44, 0.08, 0.92)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="DestinyArchipelagoPrototype" type="Node3D"]
+script = ExtResource("1_prototype")
+archipelago_data = ExtResource("2_data")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("3_environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -34, 0)
+light_color = Color(1, 0.9, 0.72, 1)
+light_energy = 1.25
+shadow_enabled = true
+directional_shadow_max_distance = 340.0
+
+[node name="TerrainMount" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_mount")
+data_directory = "res://data/destiny_archipelago/regions"
+terrain_assets = ExtResource("6_assets")
+select_in_editor = false
+
+[node name="WaterPlane" type="MeshInstance3D" parent="." groups=["terrain3d_water"]]
+position = Vector3(256, -3, 256)
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_water")
+
+[node name="Routes" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Props" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Landmarks" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+unique_name_in_owner = true
+position = Vector3(120, 20, 405)
+
+[node name="PrototypeUI" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="StatusPanel" type="PanelContainer" parent="PrototypeUI"]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 670.0
+offset_bottom = 104.0
+theme_override_styles/panel = SubResource("StyleBox_status")
+
+[node name="Margin" type="MarginContainer" parent="PrototypeUI/StatusPanel"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 11
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 11
+
+[node name="StatusLabel" type="Label" parent="PrototypeUI/StatusPanel/Margin"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.94, 0.95, 0.91, 1)
+theme_override_colors/font_outline_color = Color(0.01, 0.015, 0.02, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "Preparing Destiny Archipelago..."
+
+[node name="ArchipelagoMap" type="Control" parent="PrototypeUI"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -420.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 294.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("8_graph")
+
+[node name="Instructions" type="Label" parent="PrototypeUI"]
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -46.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.82, 0.84, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.01, 0.015, 0.02, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "WASD MOVE  //  F ENTER SEA CAVE  //  SHOOT ROPE BRIDGE  //  REACH VOLCANO PEAK"
+horizontal_alignment = 1
