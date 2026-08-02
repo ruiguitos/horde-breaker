@@ -44,6 +44,9 @@ const WATER_TOWER_SCENE := preload(
 var terrain: Terrain3D
 var rope_bridge: DestructibleRouteBridge
 var cave_gate: ArchipelagoRouteGate
+var dawn_hub: DawnBeachHub
+var shadow_forest_hub: ShadowForestHub
+var route_a_label: Label3D
 var is_ready := false
 var loaded_persistent_data := false
 var prop_count := 0
@@ -107,7 +110,11 @@ func _build_prototype() -> void:
 	_build_island_labels()
 	_build_shallow_reef()
 	_build_sea_cave()
+	_build_dawn_beach_hub()
 	_build_rope_bridge()
+	# After the bridge: the forest's winch repairs it, so it needs the bridge to
+	# already exist to hold on to.
+	_build_shadow_forest_hub()
 	_build_ancient_ruins()
 	_build_island_dressing()
 	_configure_player()
@@ -116,10 +123,7 @@ func _build_prototype() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	is_ready = true
-	status_label.text = (
-		"DESTINY ARCHIPELAGO // 4 ISLANDS // 4 ROUTES\n"
-		+ "Choose Route A north or Route B east // Reach the boss island"
-	)
+	status_label.text = "%s\nMouse 4 toggles debug noclip" % dawn_hub.get_objective_text()
 	prototype_ready.emit()
 
 
@@ -160,8 +164,8 @@ func _build_shallow_reef() -> void:
 	reef.name = "RouteA_ShallowReef"
 	reef.multimesh = multimesh
 	routes.add_child(reef)
-	_add_route_label(
-		"RouteALabel", "ROUTE A // SHALLOW REEF\nLOW TIDE // OPEN",
+	route_a_label = _add_route_label(
+		"RouteALabel", "ROUTE A // SHALLOW REEF\nLOCKED // RESTORE CAMP POWER",
 		Vector3(120.0, -0.2, 326.0), Color(0.92, 0.78, 0.38)
 	)
 	route_count += 1
@@ -185,6 +189,16 @@ func _build_sea_cave() -> void:
 	route_count += 1
 
 
+func _build_dawn_beach_hub() -> void:
+	dawn_hub = DawnBeachHub.new()
+	dawn_hub.name = "DawnBeachHub"
+	add_child(dawn_hub)
+	dawn_hub.configure(cave_gate)
+	dawn_hub.status_changed.connect(_on_dawn_status_changed)
+	dawn_hub.route_selected.connect(_on_dawn_route_selected)
+	prop_count += dawn_hub.visual_prop_count
+
+
 func _build_cave_mouth(position: Vector3, prefix: String, facing: float) -> void:
 	for index in range(5):
 		var angle := lerpf(-1.05, 1.05, float(index) / 4.0)
@@ -204,6 +218,14 @@ func _build_rope_bridge() -> void:
 	)
 	rope_bridge.destroyed.connect(_on_bridge_destroyed)
 	route_count += 1
+
+
+func _build_shadow_forest_hub() -> void:
+	shadow_forest_hub = ShadowForestHub.new()
+	shadow_forest_hub.name = "ShadowForestHub"
+	add_child(shadow_forest_hub)
+	shadow_forest_hub.configure(rope_bridge)
+	shadow_forest_hub.status_changed.connect(_on_dawn_status_changed)
 
 
 func _build_ancient_ruins() -> void:
@@ -256,8 +278,6 @@ func _build_ancient_ruins() -> void:
 
 
 func _build_island_dressing() -> void:
-	_add_prop(TENT_SCENE, Vector3(108.0, 0.0, 391.0), 0.4, 1.8, "DawnHubTent")
-	_add_prop(FLAG_SCENE, Vector3(124.0, 0.0, 382.0), -0.2, 2.2, "DawnHubFlag")
 	_scatter_scene(TREE_SCENE, DESIGN.DAWN_CENTER, DESIGN.DAWN_RADII, 5, 101, "DawnTree", 1.4, 2.0)
 	_scatter_scene(TREE_HIGH_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 28, 202, "ForestTree", 1.8, 3.0)
 	_scatter_scene(PINE_SCENE, DESIGN.FOREST_CENTER, DESIGN.FOREST_RADII, 20, 203, "ForestPine", 1.7, 2.7)
@@ -593,7 +613,7 @@ func _add_landmark_model(
 
 func _add_route_label(
 	label_name: String, text: String, position: Vector3, color: Color
-) -> void:
+) -> Label3D:
 	var label := Label3D.new()
 	label.name = label_name
 	label.text = text
@@ -605,6 +625,7 @@ func _add_route_label(
 	label.outline_size = 8
 	label.modulate = color
 	landmarks.add_child(label)
+	return label
 
 
 func _enter_island(island_id: StringName) -> void:
@@ -633,6 +654,21 @@ func _on_route_traversed(route_id: StringName, destination_id: StringName) -> vo
 		status_label.text = "%s COMPLETE // %s" % [
 			route_data.display_name.to_upper(), _current_island_name().to_upper()
 		]
+
+
+func _on_dawn_status_changed(message: String) -> void:
+	status_label.text = message
+
+
+func _on_dawn_route_selected(route_id: StringName) -> void:
+	if route_a_label == null:
+		return
+	if route_id == &"shallow_reef":
+		route_a_label.text = "ROUTE A // SHALLOW REEF\nTIDE BEACON ACTIVE // OPEN"
+		route_a_label.modulate = Color(0.28, 1.0, 0.5)
+	else:
+		route_a_label.text = "ROUTE A // SHALLOW REEF\nOFFLINE // ROUTE B ACTIVE"
+		route_a_label.modulate = Color(0.42, 0.44, 0.43)
 
 
 func _on_bridge_destroyed() -> void:

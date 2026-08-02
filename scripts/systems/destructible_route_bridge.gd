@@ -54,7 +54,12 @@ func reset_bridge() -> void:
 	if _ropes != null:
 		_ropes.visible = true
 	if _collision != null:
-		_collision.disabled = false
+		# Deferred, to match _collapse(). Setting it directly meant a bridge
+		# destroyed and repaired inside one frame ended the frame with the
+		# collapse's deferred "disabled = true" landing *after* this, so the
+		# bridge stood there looking whole with nothing to walk on — the soft-lock
+		# the archipelago plan forbids, wearing a repaired bridge as a disguise.
+		_collision.set_deferred(&"disabled", false)
 	_update_status_label()
 	health_changed.emit(current_health, maximum_health)
 
