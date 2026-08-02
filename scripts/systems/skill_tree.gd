@@ -1,281 +1,37 @@
 class_name SkillTree
 extends RefCounted
 
-## Static definition of the permanent, per-character skill tree. Three separate
-## trees — Offense, Survival, Expedition — each shaped as a trunk that forks
-## into two paths and rejoins at a capstone:
+## Permanent skill trees, one per class, in the shape Killing Floor 2 uses:
 ##
-##            tier 1          (trunk)
-##          /        \
-##      tier 2      tier 2    (fork: pick a side, or pay for both)
-##        |           |
-##      tier 3      tier 3
-##        |           |
-##       ...         ...      (tiers 4, 5 and 6 continue both paths)
-##          \        /
-##            tier 7          (capstone: either tier 6 opens it)
+##      tier 1     [ A ]  or  [ B ]     unlocked at character level 2
+##      tier 2     [ A ]  or  [ B ]     level 5
+##      tier 3     [ A ]  or  [ B ]     level 9
+##      tier 4     [ A ]  or  [ B ]     level 14
+##      tier 5     [ A ]  or  [ B ]     level 20   <- defines the class
 ##
-## 12 nodes per branch, 36 in total. Node ids from the original five-per-branch
-## layout are kept on the left path so existing saves keep every point they
-## have already spent.
+## Five choices, ten nodes, per class. It replaced a single shared tree of 36
+## nodes that every class walked identically — which meant the tree said nothing
+## about who you were playing, and that a third of it was always the obvious pick.
 ##
-## Each node contributes to an aggregate bonus dictionary applied at run start.
+## Two rules carry most of the design:
+##
+## * **One choice per tier.** Taking a side means giving up the other, so a build
+##   reads as a set of decisions rather than a total.
+## * **Choices are free to change between runs.** There is no currency and no
+##   respec cost. A tree you can rearrange is a loadout you experiment with; a
+##   tree you cannot is one you look up online and copy once. This is also what
+##   makes migrating old saves harmless — see SaveManager.
+##
+## Tiers unlock by character level alone. Each node contributes to the aggregate
+## bonus dictionary applied at run start, and only the keys in DEFAULT_BONUSES
+## do anything: character_skills.gd reads that dictionary and nothing else.
 
-const BRANCH_OFFENSE := &"offense"
-const BRANCH_SURVIVAL := &"survival"
-const BRANCH_EXPEDITION := &"expedition"
+const CLASS_RECRUIT := &"recruit"
+const CLASS_RENEGADE := &"renegade"
+const CLASS_MEDIC := &"medic"
 
-const REQUIRED_LEVEL_BY_TIER := {
-	1: 2,
-	2: 4,
-	3: 7,
-	4: 10,
-	5: 14,
-	6: 18,
-	7: 24,
-}
-
-const BRANCHES: Array[Dictionary] = [
-	{
-		"id": BRANCH_OFFENSE,
-		"title": "OFFENSE",
-		"tagline": "Kill faster, reload less.",
-	},
-	{
-		"id": BRANCH_SURVIVAL,
-		"title": "SURVIVAL",
-		"tagline": "Outlast the horde.",
-	},
-	{
-		"id": BRANCH_EXPEDITION,
-		"title": "EXPEDITION",
-		"tagline": "Move, loot and learn faster.",
-	},
-]
-
-# Each node: id, branch, tier (1..5), column (-1 left, 0 trunk, 1 right),
-# requires (any one of these unlocks it), title, description, effect.
-const NODES: Array[Dictionary] = [
-	# --- Offense ---
-	{
-		"id": &"off_1", "branch": BRANCH_OFFENSE, "tier": 1, "column": 0,
-		"requires": [],
-		"title": "Sharpshooter", "description": "+6% weapon damage.",
-		"effect": {"damage_mult": 1.06},
-	},
-	{
-		"id": &"off_2", "branch": BRANCH_OFFENSE, "tier": 2, "column": -1,
-		"requires": [&"off_1"],
-		"title": "Rapid Fire", "description": "+8% fire rate.",
-		"effect": {"fire_rate_mult": 1.08},
-	},
-	{
-		"id": &"off_2b", "branch": BRANCH_OFFENSE, "tier": 2, "column": 1,
-		"requires": [&"off_1"],
-		"title": "Extended Mags", "description": "+15% magazine size.",
-		"effect": {"magazine_mult": 1.15},
-	},
-	{
-		"id": &"off_3", "branch": BRANCH_OFFENSE, "tier": 3, "column": -1,
-		"requires": [&"off_2"],
-		"title": "Deadeye", "description": "+8% weapon damage.",
-		"effect": {"damage_mult": 1.08},
-	},
-	{
-		"id": &"off_3b", "branch": BRANCH_OFFENSE, "tier": 3, "column": 1,
-		"requires": [&"off_2b"],
-		"title": "Gun Oil", "description": "10% faster reloads.",
-		"effect": {"reload_mult": 0.90},
-	},
-	{
-		"id": &"off_4", "branch": BRANCH_OFFENSE, "tier": 4, "column": -1,
-		"requires": [&"off_3"],
-		"title": "Quick Hands", "description": "12% faster reloads.",
-		"effect": {"reload_mult": 0.88},
-	},
-	{
-		"id": &"off_4b", "branch": BRANCH_OFFENSE, "tier": 4, "column": 1,
-		"requires": [&"off_3b"],
-		"title": "Overclock", "description": "+10% fire rate.",
-		"effect": {"fire_rate_mult": 1.10},
-	},
-	{
-		"id": &"off_5", "branch": BRANCH_OFFENSE, "tier": 5, "column": -1,
-		"requires": [&"off_4"],
-		"title": "Executioner", "description": "+12% weapon damage.",
-		"effect": {"damage_mult": 1.12},
-	},
-	{
-		"id": &"off_5b", "branch": BRANCH_OFFENSE, "tier": 5, "column": 1,
-		"requires": [&"off_4b"],
-		"title": "Heavy Rounds", "description": "+10% weapon damage.",
-		"effect": {"damage_mult": 1.10},
-	},
-	{
-		"id": &"off_6", "branch": BRANCH_OFFENSE, "tier": 6, "column": -1,
-		"requires": [&"off_5"],
-		"title": "Trigger Discipline", "description": "+12% fire rate.",
-		"effect": {"fire_rate_mult": 1.12},
-	},
-	{
-		"id": &"off_6b", "branch": BRANCH_OFFENSE, "tier": 6, "column": 1,
-		"requires": [&"off_5b"],
-		"title": "Drum Mags", "description": "+20% magazine size.",
-		"effect": {"magazine_mult": 1.20},
-	},
-	{
-		"id": &"off_7", "branch": BRANCH_OFFENSE, "tier": 7, "column": 0,
-		"requires": [&"off_6", &"off_6b"],
-		"title": "Annihilator", "description": "+15% weapon damage.",
-		"effect": {"damage_mult": 1.15},
-	},
-	# --- Survival ---
-	{
-		"id": &"sur_1", "branch": BRANCH_SURVIVAL, "tier": 1, "column": 0,
-		"requires": [],
-		"title": "Toughness", "description": "+20 maximum health.",
-		"effect": {"max_health_add": 20.0},
-	},
-	{
-		"id": &"sur_2", "branch": BRANCH_SURVIVAL, "tier": 2, "column": -1,
-		"requires": [&"sur_1"],
-		"title": "Regeneration", "description": "+1.5 health regen per second.",
-		"effect": {"regen_add": 1.5},
-	},
-	{
-		"id": &"sur_2b", "branch": BRANCH_SURVIVAL, "tier": 2, "column": 1,
-		"requires": [&"sur_1"],
-		"title": "Padded Vest", "description": "4% damage reduction.",
-		"effect": {"damage_reduction": 0.04},
-	},
-	{
-		"id": &"sur_3", "branch": BRANCH_SURVIVAL, "tier": 3, "column": -1,
-		"requires": [&"sur_2"],
-		"title": "Vitality", "description": "+30 maximum health.",
-		"effect": {"max_health_add": 30.0},
-	},
-	{
-		"id": &"sur_3b", "branch": BRANCH_SURVIVAL, "tier": 3, "column": 1,
-		"requires": [&"sur_2b"],
-		"title": "Field Dressing", "description": "+2 health regen per second.",
-		"effect": {"regen_add": 2.0},
-	},
-	{
-		"id": &"sur_4", "branch": BRANCH_SURVIVAL, "tier": 4, "column": -1,
-		"requires": [&"sur_3"],
-		"title": "Armor Plating", "description": "8% damage reduction.",
-		"effect": {"damage_reduction": 0.08},
-	},
-	{
-		"id": &"sur_4b", "branch": BRANCH_SURVIVAL, "tier": 4, "column": 1,
-		"requires": [&"sur_3b"],
-		"title": "Second Wind", "description": "+40 maximum health.",
-		"effect": {"max_health_add": 40.0},
-	},
-	{
-		"id": &"sur_5", "branch": BRANCH_SURVIVAL, "tier": 5, "column": -1,
-		"requires": [&"sur_4"],
-		"title": "Juggernaut", "description": "+50 maximum health.",
-		"effect": {"max_health_add": 50.0},
-	},
-	{
-		"id": &"sur_5b", "branch": BRANCH_SURVIVAL, "tier": 5, "column": 1,
-		"requires": [&"sur_4b"],
-		"title": "Combat Stims", "description": "+2.5 health regen per second.",
-		"effect": {"regen_add": 2.5},
-	},
-	{
-		"id": &"sur_6", "branch": BRANCH_SURVIVAL, "tier": 6, "column": -1,
-		"requires": [&"sur_5"],
-		"title": "Hardened", "description": "10% damage reduction.",
-		"effect": {"damage_reduction": 0.10},
-	},
-	{
-		"id": &"sur_6b", "branch": BRANCH_SURVIVAL, "tier": 6, "column": 1,
-		"requires": [&"sur_5b"],
-		"title": "Bulwark", "description": "+60 maximum health.",
-		"effect": {"max_health_add": 60.0},
-	},
-	{
-		"id": &"sur_7", "branch": BRANCH_SURVIVAL, "tier": 7, "column": 0,
-		"requires": [&"sur_6", &"sur_6b"],
-		"title": "Immovable", "description": "+70 maximum health.",
-		"effect": {"max_health_add": 70.0},
-	},
-	# --- Expedition ---
-	{
-		"id": &"exp_1", "branch": BRANCH_EXPEDITION, "tier": 1, "column": 0,
-		"requires": [],
-		"title": "Fleet Footed", "description": "+6% movement speed.",
-		"effect": {"move_speed_mult": 1.06},
-	},
-	{
-		"id": &"exp_2", "branch": BRANCH_EXPEDITION, "tier": 2, "column": -1,
-		"requires": [&"exp_1"],
-		"title": "Scavenger", "description": "+25% Scrap collected.",
-		"effect": {"scrap_mult": 1.25},
-	},
-	{
-		"id": &"exp_2b", "branch": BRANCH_EXPEDITION, "tier": 2, "column": 1,
-		"requires": [&"exp_1"],
-		"title": "Magnetic Field", "description": "+50% pickup range.",
-		"effect": {"pickup_radius_mult": 1.50},
-	},
-	{
-		"id": &"exp_3", "branch": BRANCH_EXPEDITION, "tier": 3, "column": -1,
-		"requires": [&"exp_2"],
-		"title": "Fast Learner", "description": "+20% XP gained.",
-		"effect": {"xp_mult": 1.20},
-	},
-	{
-		"id": &"exp_3b", "branch": BRANCH_EXPEDITION, "tier": 3, "column": 1,
-		"requires": [&"exp_2b"],
-		"title": "Salvager", "description": "+30% Scrap collected.",
-		"effect": {"scrap_mult": 1.30},
-	},
-	{
-		"id": &"exp_4", "branch": BRANCH_EXPEDITION, "tier": 4, "column": -1,
-		"requires": [&"exp_3"],
-		"title": "Ammo Belt", "description": "+30% ammo reserve capacity.",
-		"effect": {"ammo_reserve_mult": 1.30},
-	},
-	{
-		"id": &"exp_4b", "branch": BRANCH_EXPEDITION, "tier": 4, "column": 1,
-		"requires": [&"exp_3b"],
-		"title": "Quick Study", "description": "+25% XP gained.",
-		"effect": {"xp_mult": 1.25},
-	},
-	{
-		"id": &"exp_5", "branch": BRANCH_EXPEDITION, "tier": 5, "column": -1,
-		"requires": [&"exp_4"],
-		"title": "Marathoner", "description": "+10% movement speed.",
-		"effect": {"move_speed_mult": 1.10},
-	},
-	{
-		"id": &"exp_5b", "branch": BRANCH_EXPEDITION, "tier": 5, "column": 1,
-		"requires": [&"exp_4b"],
-		"title": "Deep Pockets", "description": "+30% ammo reserve capacity.",
-		"effect": {"ammo_reserve_mult": 1.30},
-	},
-	{
-		"id": &"exp_6", "branch": BRANCH_EXPEDITION, "tier": 6, "column": -1,
-		"requires": [&"exp_5"],
-		"title": "Treasure Hunter", "description": "+35% Scrap collected.",
-		"effect": {"scrap_mult": 1.35},
-	},
-	{
-		"id": &"exp_6b", "branch": BRANCH_EXPEDITION, "tier": 6, "column": 1,
-		"requires": [&"exp_5b"],
-		"title": "Lightfoot", "description": "+8% movement speed.",
-		"effect": {"move_speed_mult": 1.08},
-	},
-	{
-		"id": &"exp_7", "branch": BRANCH_EXPEDITION, "tier": 7, "column": 0,
-		"requires": [&"exp_6", &"exp_6b"],
-		"title": "Pathfinder", "description": "+12% movement speed.",
-		"effect": {"move_speed_mult": 1.12},
-	},
-]
+const TIER_COUNT := 5
+const REQUIRED_LEVEL_BY_TIER := {1: 2, 2: 5, 3: 9, 4: 14, 5: 20}
 
 const DEFAULT_BONUSES: Dictionary = {
 	"damage_mult": 1.0,
@@ -296,44 +52,266 @@ const ADDITIVE_STATS: Array[StringName] = [
 	&"max_health_add", &"regen_add", &"damage_reduction",
 ]
 
-const TIER_COUNT := 7
+## Each class: a title, a tagline, and five tiers of exactly two options.
+## Node ids are prefixed by class so they stay unique across the whole game.
+const TREES: Dictionary[StringName, Dictionary] = {
+	CLASS_RECRUIT: {
+		"title": "RECRUIT",
+		"tagline": "Never stops shooting.",
+		"tiers": [
+			[
+				{
+					"id": &"rec_1a", "title": "Sharpshooter",
+					"description": "+8% weapon damage.",
+					"effect": {"damage_mult": 1.08},
+				},
+				{
+					"id": &"rec_1b", "title": "Rapid Fire",
+					"description": "+10% fire rate.",
+					"effect": {"fire_rate_mult": 1.10},
+				},
+			],
+			[
+				{
+					"id": &"rec_2a", "title": "Extended Mags",
+					"description": "+20% magazine size.",
+					"effect": {"magazine_mult": 1.20},
+				},
+				{
+					"id": &"rec_2b", "title": "Fast Hands",
+					"description": "-20% reload time.",
+					"effect": {"reload_mult": 0.80},
+				},
+			],
+			[
+				{
+					"id": &"rec_3a", "title": "Bandolier",
+					"description": "+35% ammo reserve.",
+					"effect": {"ammo_reserve_mult": 1.35},
+				},
+				{
+					"id": &"rec_3b", "title": "Combat Vitals",
+					"description": "+25 maximum health.",
+					"effect": {"max_health_add": 25.0},
+				},
+			],
+			[
+				{
+					"id": &"rec_4a", "title": "Field Scavenger",
+					"description": "+25% Scrap collected.",
+					"effect": {"scrap_mult": 1.25},
+				},
+				{
+					"id": &"rec_4b", "title": "Quick Study",
+					"description": "+20% experience gained.",
+					"effect": {"xp_mult": 1.20},
+				},
+			],
+			[
+				# The Recruit's defining pick: heavier rounds, or a wall of them.
+				{
+					"id": &"rec_5a", "title": "Gunsmith",
+					"description": "+20% damage and +10% magazine size.",
+					"effect": {"damage_mult": 1.20, "magazine_mult": 1.10},
+				},
+				{
+					"id": &"rec_5b", "title": "Trigger Discipline",
+					"description": "+30% fire rate, but -12% damage per shot.",
+					"effect": {"fire_rate_mult": 1.30, "damage_mult": 0.88},
+				},
+			],
+		],
+	},
+	CLASS_RENEGADE: {
+		"title": "RENEGADE",
+		"tagline": "Walks into it.",
+		"tiers": [
+			[
+				{
+					"id": &"ren_1a", "title": "Heavy Frame",
+					"description": "+30 maximum health.",
+					"effect": {"max_health_add": 30.0},
+				},
+				{
+					"id": &"ren_1b", "title": "Brawler",
+					"description": "+10% weapon damage.",
+					"effect": {"damage_mult": 1.10},
+				},
+			],
+			[
+				{
+					"id": &"ren_2a", "title": "Plated",
+					"description": "12% less damage taken.",
+					"effect": {"damage_reduction": 0.12},
+				},
+				{
+					"id": &"ren_2b", "title": "Adrenaline",
+					"description": "+10% movement speed.",
+					"effect": {"move_speed_mult": 1.10},
+				},
+			],
+			[
+				{
+					"id": &"ren_3a", "title": "Drum Mags",
+					"description": "+25% magazine size.",
+					"effect": {"magazine_mult": 1.25},
+				},
+				{
+					"id": &"ren_3b", "title": "Quick Load",
+					"description": "-22% reload time.",
+					"effect": {"reload_mult": 0.78},
+				},
+			],
+			[
+				{
+					"id": &"ren_4a", "title": "Second Wind",
+					"description": "+2 health regenerated per second.",
+					"effect": {"regen_add": 2.0},
+				},
+				{
+					"id": &"ren_4b", "title": "Bloodlust",
+					"description": "+15% fire rate.",
+					"effect": {"fire_rate_mult": 1.15},
+				},
+			],
+			[
+				# Two ways to be the one who closes the distance: outlast the
+				# horde, or make the trade so fast it never gets to answer.
+				{
+					"id": &"ren_5a", "title": "Juggernaut",
+					"description": "+60 maximum health and 18% less damage taken.",
+					"effect": {"max_health_add": 60.0, "damage_reduction": 0.18},
+				},
+				{
+					"id": &"ren_5b", "title": "Berserker",
+					"description": "+28% damage and +12% speed, but -25 maximum health.",
+					"effect": {
+						"damage_mult": 1.28, "move_speed_mult": 1.12,
+						"max_health_add": -25.0,
+					},
+				},
+			],
+		],
+	},
+	CLASS_MEDIC: {
+		"title": "MEDIC",
+		"tagline": "Outlasts everything.",
+		"tiers": [
+			[
+				{
+					"id": &"med_1a", "title": "Triage",
+					"description": "+2 health regenerated per second.",
+					"effect": {"regen_add": 2.0},
+				},
+				{
+					"id": &"med_1b", "title": "Steady Hands",
+					"description": "+8% weapon damage.",
+					"effect": {"damage_mult": 1.08},
+				},
+			],
+			[
+				{
+					"id": &"med_2a", "title": "Field Kit",
+					"description": "+25 maximum health.",
+					"effect": {"max_health_add": 25.0},
+				},
+				{
+					"id": &"med_2b", "title": "Light Footed",
+					"description": "+12% movement speed.",
+					"effect": {"move_speed_mult": 1.12},
+				},
+			],
+			[
+				{
+					"id": &"med_3a", "title": "Magnetic Kit",
+					"description": "+50% pickup range.",
+					"effect": {"pickup_radius_mult": 1.50},
+				},
+				{
+					"id": &"med_3b", "title": "Fast Learner",
+					"description": "+25% experience gained.",
+					"effect": {"xp_mult": 1.25},
+				},
+			],
+			[
+				{
+					"id": &"med_4a", "title": "Reinforced Vest",
+					"description": "12% less damage taken.",
+					"effect": {"damage_reduction": 0.12},
+				},
+				{
+					"id": &"med_4b", "title": "Stimulants",
+					"description": "+18% fire rate.",
+					"effect": {"fire_rate_mult": 1.18},
+				},
+			],
+			[
+				# Stay standing forever, or stop being only a survivor.
+				{
+					"id": &"med_5a", "title": "Regenerator",
+					"description": "+5 health per second and +25 maximum health.",
+					"effect": {"regen_add": 5.0, "max_health_add": 25.0},
+				},
+				{
+					"id": &"med_5b", "title": "Combat Medic",
+					"description": "+22% damage and +2 health per second.",
+					"effect": {"damage_mult": 1.22, "regen_add": 2.0},
+				},
+			],
+		],
+	},
+}
+
+
+static func get_class_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for class_id: StringName in TREES:
+		ids.append(class_id)
+	return ids
+
+
+static func has_tree(class_id: StringName) -> bool:
+	return TREES.has(class_id)
+
+
+static func get_class_tree(class_id: StringName) -> Dictionary:
+	return TREES.get(class_id, {})
+
+
+## The two options for one tier, 1-based, as an array of node definitions.
+static func get_tier_options(class_id: StringName, tier: int) -> Array:
+	var tree := get_class_tree(class_id)
+	if tree.is_empty() or tier < 1 or tier > TIER_COUNT:
+		return []
+	return tree["tiers"][tier - 1]
+
+
+## Every node of a class, in tier order. Used by the screen to lay the tree out.
+static func get_class_nodes(class_id: StringName) -> Array[Dictionary]:
+	var nodes: Array[Dictionary] = []
+	for tier in range(1, TIER_COUNT + 1):
+		for option: Dictionary in get_tier_options(class_id, tier):
+			nodes.append(_describe(option, class_id, tier))
+	return nodes
 
 
 static func get_node_definition(node_id: StringName) -> Dictionary:
-	for node in NODES:
-		if node["id"] == node_id:
-			return node
+	for class_id: StringName in TREES:
+		for tier in range(1, TIER_COUNT + 1):
+			for option: Dictionary in get_tier_options(class_id, tier):
+				if option["id"] == node_id:
+					return _describe(option, class_id, tier)
 	return {}
 
 
-static func get_branch_nodes(branch_id: StringName) -> Array[Dictionary]:
-	var branch_nodes: Array[Dictionary] = []
-	for node in NODES:
-		if node["branch"] == branch_id:
-			branch_nodes.append(node)
-	branch_nodes.sort_custom(
-		func(a: Dictionary, b: Dictionary) -> bool:
-			if int(a["tier"]) != int(b["tier"]):
-				return int(a["tier"]) < int(b["tier"])
-			return int(a["column"]) < int(b["column"])
-	)
-	return branch_nodes
-
-
-static func get_prerequisites(node_id: StringName) -> Array:
+static func get_tier_of(node_id: StringName) -> int:
 	var node := get_node_definition(node_id)
-	return [] if node.is_empty() else node["requires"]
+	return int(node.get("tier", 0))
 
 
-static func is_prerequisite_met(node_id: StringName, unlocked_ids: Array) -> bool:
-	# Any one prerequisite is enough: the capstone opens from either path.
-	var prerequisites := get_prerequisites(node_id)
-	if prerequisites.is_empty():
-		return true
-	for prerequisite in prerequisites:
-		if String(prerequisite) in unlocked_ids:
-			return true
-	return false
+static func get_class_of(node_id: StringName) -> StringName:
+	var node := get_node_definition(node_id)
+	return node.get("class_id", &"")
 
 
 static func get_required_level(node_id: StringName) -> int:
@@ -343,9 +321,23 @@ static func get_required_level(node_id: StringName) -> int:
 	return int(REQUIRED_LEVEL_BY_TIER.get(int(node["tier"]), 0))
 
 
-static func get_bonuses(unlocked_ids: Array) -> Dictionary:
+static func get_required_level_for_tier(tier: int) -> int:
+	return int(REQUIRED_LEVEL_BY_TIER.get(tier, 0))
+
+
+## Which node the player has taken in a tier, or an empty name for none.
+static func get_choice_for_tier(
+	chosen_ids: Array, class_id: StringName, tier: int
+) -> StringName:
+	for option: Dictionary in get_tier_options(class_id, tier):
+		if String(option["id"]) in chosen_ids or option["id"] in chosen_ids:
+			return option["id"]
+	return &""
+
+
+static func get_bonuses(chosen_ids: Array) -> Dictionary:
 	var bonuses := DEFAULT_BONUSES.duplicate()
-	for node_id in unlocked_ids:
+	for node_id in chosen_ids:
 		var node := get_node_definition(StringName(node_id))
 		if node.is_empty():
 			continue
@@ -357,3 +349,13 @@ static func get_bonuses(unlocked_ids: Array) -> Dictionary:
 				bonuses[stat] = float(bonuses[stat]) * float(effect[stat])
 	bonuses["damage_reduction"] = clampf(float(bonuses["damage_reduction"]), 0.0, 0.75)
 	return bonuses
+
+
+static func _describe(
+	option: Dictionary, class_id: StringName, tier: int
+) -> Dictionary:
+	var described := option.duplicate()
+	described["class_id"] = class_id
+	described["tier"] = tier
+	described["required_level"] = get_required_level_for_tier(tier)
+	return described

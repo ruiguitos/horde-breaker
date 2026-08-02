@@ -37,8 +37,18 @@ func _test_roster() -> void:
 	var medic: CharacterData = load(MEDIC_PATH)
 	_check("roster: recruit selectable", recruit.is_selectable)
 	_check("roster: renegade selectable", renegade.is_selectable)
-	_check("roster: medic parked", not medic.is_selectable)
+	# The Medic was parked while it had no identity of its own. It has one now —
+	# a survival tree ending in Regenerator or Combat Medic — so it is on the
+	# roster, still behind its 750-credit unlock.
+	_check("roster: medic selectable", medic.is_selectable)
+	_check("roster: medic still costs credits", medic.unlock_cost > 0)
 	_check("roster: medic data intact", medic.character_scene != null)
+	_check(
+		"roster: every playable operative has a skill tree",
+		SkillTree.has_tree(recruit.character_id)
+			and SkillTree.has_tree(renegade.character_id)
+			and SkillTree.has_tree(medic.character_id)
+	)
 	_check("roster: Renegade is firearms-only", renegade.secondary_weapon_id == &"smg")
 	_check("roster: Medic is firearms-only", medic.secondary_weapon_id == &"smg")
 	for retired_id in [&"worn_sword", &"cleaver", &"spear", &"fire_axe"]:

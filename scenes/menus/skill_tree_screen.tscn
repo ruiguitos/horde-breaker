@@ -104,5 +104,5 @@ theme_override_constants/separation = 16
 [node name="Hint" type="Label" parent="PageMargin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Earn 1 point every 2 levels. Each tier also requires its displayed character level; unspent points are saved."
+text = "Each tier opens at its character level. Take one side of a tier; click it again to clear it. Choices can be changed between runs at no cost."
 horizontal_alignment = 1

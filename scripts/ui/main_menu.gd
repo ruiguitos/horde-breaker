@@ -73,9 +73,14 @@ func _refresh() -> void:
 		_get_weapon_name(primary_weapon_id),
 		_get_weapon_name(secondary_weapon_id),
 	]
-	var available_points := SaveManager.get_available_skill_points(character_id)
-	if available_points > 0:
-		progress_label.text = "LEVEL %d  •  %d SKILL POINTS" % [level, available_points]
+	# Skill choices cost nothing now; what is worth flagging is a tier the player
+	# has earned and not yet picked from.
+	var pending_choices := SaveManager.get_pending_skill_choices(character_id)
+	if pending_choices > 0:
+		progress_label.text = "LEVEL %d  •  %d SKILL %s" % [
+			level, pending_choices,
+			"CHOICE" if pending_choices == 1 else "CHOICES",
+		]
 	else:
 		progress_label.text = "LEVEL %d  •  XP %d / %d" % [
 			level, xp, SaveManager.get_xp_required_for_next_level(level)

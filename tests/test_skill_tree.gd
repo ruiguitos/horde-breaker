@@ -1,14 +1,20 @@
 extends SceneTree
 
-## The skill tree grew from three straight lines of five into three forking
-## trees of eight. This checks the shape, that old save data still works, and
-## that every bonus a node grants is actually consumed by something.
+## The permanent skill trees: one per class, five tiers, two options each.
+##
+## The shape carries most of the design, so most of this checks the shape holds —
+## every tier really is a choice, taking one side drops the other, and a tier the
+## character has not levelled into cannot be touched. The rest covers the two
+## things that would silently do nothing if they broke: effect keys the bonus
+## aggregator does not know about, and the migration off the old 36-node tree.
+##
+## Run:  <godot> --headless --path . --script res://tests/test_skill_tree.gd
 
-const SKILL_TREE_PATH := "res://scripts/systems/skill_tree.gd"
+const SAVE_PATH := "user://horde_breaker_skill_tree_test.cfg"
+const SCREEN_SCENE := "res://scenes/menus/skill_tree_screen.tscn"
 
 var _passed := 0
 var _failed := 0
-var _tree: GDScript
 
 
 func _initialize() -> void:
@@ -17,217 +23,312 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await process_frame
-	_tree = load(SKILL_TREE_PATH)
 	_test_shape()
-	_test_prerequisites()
-	_test_bonuses()
-	_test_legacy_saves()
-	await _test_unlock_flow()
+	_test_effects_are_understood()
+	_test_bonus_aggregation()
+	await _test_save_choices()
+	await _test_migration_from_the_old_tree()
+	await _test_screen()
 	print("TEST: %d passed, %d failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
 
 func _test_shape() -> void:
-	_check("shape: three branches", SkillTree.BRANCHES.size() == 3)
-	_check("shape: 36 nodes", SkillTree.NODES.size() == 36)
-	for branch in SkillTree.BRANCHES:
-		var branch_id: StringName = branch["id"]
-		var nodes := SkillTree.get_branch_nodes(branch_id)
-		var name := String(branch["title"])
-		_check("shape: %s has 12 nodes" % name, nodes.size() == 12)
-		var by_tier: Dictionary[int, int] = {}
-		for node in nodes:
-			var tier := int(node["tier"])
-			by_tier[tier] = int(by_tier.get(tier, 0)) + 1
+	var class_ids := SkillTree.get_class_ids()
+	_check("there is a tree per class (%d)" % class_ids.size(), class_ids.size() >= 3)
+	var seen_ids: Dictionary[StringName, bool] = {}
+	for class_id in class_ids:
+		var tree := SkillTree.get_class_tree(class_id)
+		_check("%s has a title" % class_id, not String(tree.get("title", "")).is_empty())
 		_check(
-			"shape: %s is 1-2-2-2-2-2-1" % name,
-			by_tier.get(1, 0) == 1 and by_tier.get(2, 0) == 2
-			and by_tier.get(3, 0) == 2 and by_tier.get(4, 0) == 2
-			and by_tier.get(5, 0) == 2 and by_tier.get(6, 0) == 2
-			and by_tier.get(7, 0) == 1
-		)
-		_check(
-			"shape: %s tiers are sorted" % name,
-			int(nodes[0]["tier"]) == 1
-			and int(nodes[nodes.size() - 1]["tier"]) == SkillTree.TIER_COUNT
-		)
-		_check("shape: %s capstone forks back in" % name,
-			SkillTree.get_prerequisites(nodes[nodes.size() - 1]["id"]).size() == 2
+			"%s has a tagline saying what it is for" % class_id,
+			not String(tree.get("tagline", "")).is_empty()
 		)
 		for tier in range(1, SkillTree.TIER_COUNT + 1):
+			var options := SkillTree.get_tier_options(class_id, tier)
+			# Two is the whole point: one option is not a decision, three is a
+			# menu nobody reads.
 			_check(
-				"shape: %s tier %d has a required level" % [name, tier],
-				int(SkillTree.REQUIRED_LEVEL_BY_TIER.get(tier, 0)) > 0
-			)
-
-
-func _test_prerequisites() -> void:
-	_check(
-		"prereq: the root needs nothing",
-		SkillTree.is_prerequisite_met(&"off_1", [])
-	)
-	_check(
-		"prereq: tier 2 needs the root",
-		not SkillTree.is_prerequisite_met(&"off_2", [])
-		and SkillTree.is_prerequisite_met(&"off_2", ["off_1"])
-	)
-	_check(
-		"prereq: the paths do not cross",
-		not SkillTree.is_prerequisite_met(&"off_3b", ["off_1", "off_2"])
-	)
-	# The whole point of the fork: either side reaches the capstone.
-	_check(
-		"prereq: capstone opens from the left path",
-		SkillTree.is_prerequisite_met(&"off_7", ["off_6"])
-	)
-	_check(
-		"prereq: capstone opens from the right path",
-		SkillTree.is_prerequisite_met(&"off_7", ["off_6b"])
-	)
-	_check(
-		"prereq: capstone stays shut a tier early",
-		not SkillTree.is_prerequisite_met(&"off_7", ["off_5", "off_5b"])
-	)
-	for node in SkillTree.NODES:
-		var node_id: StringName = node["id"]
-		for prerequisite in SkillTree.get_prerequisites(node_id):
-			var definition := SkillTree.get_node_definition(
-				StringName(prerequisite)
-			)
-			_check(
-				"prereq: %s -> %s exists and is one tier lower" % [
-					prerequisite, node_id
+				"%s tier %d offers exactly two options (%d)" % [
+					class_id, tier, options.size()
 				],
-				not definition.is_empty()
-				and int(definition["tier"]) == int(node["tier"]) - 1
-				and definition["branch"] == node["branch"]
+				options.size() == 2
 			)
-
-
-func _test_bonuses() -> void:
-	var every_id: Array = []
-	for node in SkillTree.NODES:
-		every_id.append(String(node["id"]))
-		for stat: StringName in node["effect"]:
-			_check(
-				"bonus: %s declares %s" % [node["id"], stat],
-				SkillTree.DEFAULT_BONUSES.has(stat)
-			)
-	var bonuses := SkillTree.get_bonuses(every_id)
-	_check("bonus: damage stacks", float(bonuses["damage_mult"]) > 1.25)
-	_check("bonus: health stacks", float(bonuses["max_health_add"]) >= 140.0)
-	_check(
-		"bonus: damage reduction is capped",
-		float(bonuses["damage_reduction"]) <= 0.75
-	)
-	_check(
-		"bonus: the new magazine node lands",
-		float(bonuses["magazine_mult"]) > 1.0
-	)
-	_check(
-		"bonus: the new pickup node lands",
-		float(bonuses["pickup_radius_mult"]) > 1.0
-	)
-
-
-func _test_legacy_saves() -> void:
-	# Profiles from the five-node layout must keep every point they spent.
-	var legacy := [
-		"off_1", "off_2", "off_3", "off_4", "off_5",
-		"sur_1", "sur_2", "sur_3", "sur_4", "sur_5",
-		"exp_1", "exp_2", "exp_3", "exp_4", "exp_5",
-	]
-	for node_id in legacy:
+			for option: Dictionary in options:
+				var node_id: StringName = option["id"]
+				_check("%s is unique" % node_id, not seen_ids.has(node_id))
+				seen_ids[node_id] = true
+				_check(
+					"%s describes itself" % node_id,
+					not String(option.get("title", "")).is_empty()
+						and not String(option.get("description", "")).is_empty()
+				)
+				_check(
+					"%s actually does something" % node_id,
+					not (option.get("effect", {}) as Dictionary).is_empty()
+				)
+	# Tiers have to open at rising levels or the ordering means nothing.
+	var previous := 0
+	for tier in range(1, SkillTree.TIER_COUNT + 1):
+		var required := SkillTree.get_required_level_for_tier(tier)
 		_check(
-			"legacy: %s still exists" % node_id,
-			not SkillTree.get_node_definition(StringName(node_id)).is_empty()
+			"tier %d opens later than the one before (level %d)" % [tier, required],
+			required > previous
 		)
-	var bonuses := SkillTree.get_bonuses(legacy)
+		previous = required
+
+
+## Any effect key the aggregator does not know about is silently ignored, which
+## would make a skill look real on screen and do nothing in the run.
+func _test_effects_are_understood() -> void:
+	var unknown: Array[String] = []
+	for class_id in SkillTree.get_class_ids():
+		for node in SkillTree.get_class_nodes(class_id):
+			for stat: StringName in node["effect"]:
+				if not SkillTree.DEFAULT_BONUSES.has(stat):
+					unknown.append("%s.%s" % [node["id"], stat])
 	_check(
-		"legacy: the old path still grants its bonuses",
-		float(bonuses["damage_mult"]) > 1.0
-		and float(bonuses["max_health_add"]) == 100.0
+		"every effect key is one the game applies: %s" % (
+			"yes" if unknown.is_empty() else ", ".join(unknown)
+		),
+		unknown.is_empty()
 	)
 
 
-func _test_unlock_flow() -> void:
-	# Drives the real screen: an earlier build unlocked correctly when called
-	# directly but was unusable with a mouse, because hovering a node changed
-	# the selection while the cursor travelled to a separate UNLOCK button.
-	var save := root.get_node("/root/SaveManager")
-	# Start from nothing: a leftover file from the previous run would arrive
-	# with the node already unlocked and quietly skip the whole flow.
-	DirAccess.remove_absolute("user://horde_breaker_unlock_flow_test.cfg")
-	save.call(&"load_progress", "user://horde_breaker_unlock_flow_test.cfg")
+func _test_bonus_aggregation() -> void:
+	var none := SkillTree.get_bonuses([])
+	_check(
+		"no choices means no change",
+		is_equal_approx(float(none["damage_mult"]), 1.0)
+			and is_equal_approx(float(none["max_health_add"]), 0.0)
+	)
+	# rec_1a is +8% damage, rec_5a another +20%: multipliers compound.
+	var stacked := SkillTree.get_bonuses([&"rec_1a", &"rec_5a"])
+	_check(
+		"multipliers compound (%.3f)" % float(stacked["damage_mult"]),
+		is_equal_approx(float(stacked["damage_mult"]), 1.08 * 1.20)
+	)
+	# ren_1a is +30 health, ren_5a another +60: flat bonuses add.
+	var health := SkillTree.get_bonuses([&"ren_1a", &"ren_5a"])
+	_check(
+		"flat bonuses add (%.0f)" % float(health["max_health_add"]),
+		is_equal_approx(float(health["max_health_add"]), 90.0)
+	)
+	# A tier-5 pick that costs something has to actually cost it.
+	var berserker := SkillTree.get_bonuses([&"ren_5b"])
+	_check(
+		"a downside is applied, not dropped (%.0f health)"
+			% float(berserker["max_health_add"]),
+		float(berserker["max_health_add"]) < 0.0
+	)
+	var unknown := SkillTree.get_bonuses([&"off_1", &"not_a_node"])
+	_check(
+		"nodes from the old tree contribute nothing",
+		is_equal_approx(float(unknown["damage_mult"]), 1.0)
+	)
+	# Damage reduction is the one stat that could reach immortality by stacking.
+	var capped := SkillTree.get_bonuses([&"ren_2a", &"ren_5a", &"med_4a"])
+	_check(
+		"damage reduction stays capped (%.2f)" % float(capped["damage_reduction"]),
+		float(capped["damage_reduction"]) <= 0.75
+	)
+
+
+func _test_save_choices() -> void:
+	var save := root.get_node_or_null("/root/SaveManager")
+	_check("the save manager is available", save != null)
+	if save == null:
+		return
+	DirAccess.remove_absolute(SAVE_PATH)
+	save.call(&"load_progress", SAVE_PATH)
+
+	# Level 1: nothing is open yet.
+	_check(
+		"tier 1 is shut before its level",
+		not bool(save.call(&"can_choose_skill_node", &"recruit", &"rec_1a"))
+	)
+	_check(
+		"a shut tier cannot be taken anyway",
+		not bool(save.call(&"set_skill_choice", &"recruit", &"rec_1a"))
+	)
+
+	save.call(&"add_character_xp", &"recruit", 100000)
+	var level := int(save.call(&"get_character_level", &"recruit"))
+	_check("the operative levelled up for the test (%d)" % level, level >= 20)
+	_check(
+		"tier 1 opens once levelled",
+		bool(save.call(&"can_choose_skill_node", &"recruit", &"rec_1a"))
+	)
+	_check(
+		"five tiers are waiting to be picked (%d)"
+			% int(save.call(&"get_pending_skill_choices", &"recruit")),
+		int(save.call(&"get_pending_skill_choices", &"recruit")) == SkillTree.TIER_COUNT
+	)
+
+	_check("taking a skill works", bool(save.call(&"set_skill_choice", &"recruit", &"rec_1a")))
+	_check(
+		"it is recorded",
+		bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1a"))
+	)
+	_check(
+		"one fewer choice is waiting (%d)"
+			% int(save.call(&"get_pending_skill_choices", &"recruit")),
+		int(save.call(&"get_pending_skill_choices", &"recruit")) == SkillTree.TIER_COUNT - 1
+	)
+
+	# The rule that makes a tier a decision: taking one side drops the other.
+	save.call(&"set_skill_choice", &"recruit", &"rec_1b")
+	_check(
+		"taking the other side drops the first",
+		bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1b"))
+			and not bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1a"))
+	)
+	_check(
+		"the tier still counts as chosen",
+		int(save.call(&"get_pending_skill_choices", &"recruit")) == SkillTree.TIER_COUNT - 1
+	)
+
+	# Choosing what is already active clears it, so a pick is never a trap.
+	save.call(&"set_skill_choice", &"recruit", &"rec_1b")
+	_check(
+		"taking the active skill again clears the tier",
+		not bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1b"))
+	)
+
+	# A class cannot wear another class's skills.
+	_check(
+		"skills belong to their class",
+		not bool(save.call(&"can_choose_skill_node", &"recruit", &"ren_1a"))
+	)
+	_check(
+		"and cannot be taken across classes",
+		not bool(save.call(&"set_skill_choice", &"recruit", &"med_5a"))
+	)
+
+	save.call(&"set_skill_choice", &"recruit", &"rec_1a")
+	save.call(&"set_skill_choice", &"recruit", &"rec_5a")
+	var bonuses: Dictionary = save.call(&"get_skill_bonuses", &"recruit")
+	_check(
+		"the save feeds the bonuses the run reads (%.3f)" % float(bonuses["damage_mult"]),
+		is_equal_approx(float(bonuses["damage_mult"]), 1.08 * 1.20)
+	)
+	await process_frame
+
+
+## Profiles from the 36-node shared tree carry ids that no longer exist. They are
+## dropped rather than migrated: choices cost nothing and are gated only by
+## level, so the profile can re-pick every tier it has earned straight away.
+func _test_migration_from_the_old_tree() -> void:
+	var save := root.get_node_or_null("/root/SaveManager")
+	if save == null:
+		return
+	DirAccess.remove_absolute(SAVE_PATH)
+	save.call(&"load_progress", SAVE_PATH)
+	save.call(&"add_character_xp", &"recruit", 100000)
+	# Straight from an old profile: branch nodes, plus one real node to prove the
+	# valid entries survive the cleaning, and one belonging to another class.
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH)
+	config.set_value("recruit", "skill_nodes", PackedStringArray([
+		"off_1", "off_2b", "sur_3", "exp_5", "rec_2a", "ren_1a",
+	]))
+	config.save(SAVE_PATH)
+	save.call(&"load_progress", SAVE_PATH)
+
+	var choices: PackedStringArray = save.call(&"get_skill_choices", &"recruit")
+	_check(
+		"stale nodes are dropped, the valid one kept (%s)" % str(choices),
+		choices.size() == 1 and choices[0] == "rec_2a"
+	)
+	_check(
+		"the four tiers left are pickable again (%d)"
+			% int(save.call(&"get_pending_skill_choices", &"recruit")),
+		int(save.call(&"get_pending_skill_choices", &"recruit")) == SkillTree.TIER_COUNT - 1
+	)
+	var bonuses: Dictionary = save.call(&"get_skill_bonuses", &"recruit")
+	_check(
+		"an old profile grants only what it still holds",
+		is_equal_approx(float(bonuses["magazine_mult"]), 1.20)
+			and is_equal_approx(float(bonuses["damage_mult"]), 1.0)
+	)
+	await process_frame
+
+
+func _test_screen() -> void:
+	var save := root.get_node_or_null("/root/SaveManager")
+	if save == null:
+		return
+	DirAccess.remove_absolute(SAVE_PATH)
+	save.call(&"load_progress", SAVE_PATH)
 	save.call(&"select_character", &"recruit")
-	save.call(&"add_character_xp", &"recruit", 20000)
-	if change_scene_to_file("res://scenes/menus/skill_tree_screen.tscn") != OK:
-		_check("unlock: skill screen loads", false)
+	save.call(&"add_character_xp", &"recruit", 100000)
+	if change_scene_to_file(SCREEN_SCENE) != OK:
+		_check("the skill screen loads", false)
 		return
 	await scene_changed
 	for _frame in 6:
 		await process_frame
-	var screen := current_scene
-	var buttons: Dictionary = screen.get(&"_node_buttons")
-	_check("unlock: a button per node", buttons.size() == SkillTree.NODES.size())
 
-	var root_button := buttons.get(&"off_1") as Button
-	_check("unlock: the root node has a button", root_button != null)
-	if root_button == null:
+	var cards := _find_cards(current_scene)
+	_check(
+		"a card per skill of the class (%d)" % cards.size(),
+		cards.size() == SkillTree.TIER_COUNT * 2
+	)
+	var card := cards.get(&"rec_1a") as Button
+	_check("the first skill has a card", card != null)
+	if card == null:
 		return
-	# Clicking an available node asks first and spends nothing until confirmed.
-	root_button.emit_signal(&"pressed")
-	await process_frame
-	var dialog: ConfirmationDialog = screen.get(&"_confirm_dialog")
-	_check("unlock: clicking asks for confirmation", dialog.visible)
-	_check(
-		"unlock: the prompt names the skill",
-		dialog.dialog_text.contains("SHARPSHOOTER")
-	)
-	_check(
-		"unlock: nothing is spent before confirming",
-		not bool(save.call(&"is_skill_node_unlocked", &"recruit", &"off_1"))
-	)
-	# Answering NO leaves the point unspent.
-	dialog.hide()
+	# No confirmation any more: the click is the decision, because it can be
+	# undone with another click.
+	card.emit_signal(&"pressed")
 	await process_frame
 	_check(
-		"unlock: answering no spends nothing",
-		not bool(save.call(&"is_skill_node_unlocked", &"recruit", &"off_1"))
+		"clicking a card takes the skill",
+		bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1a"))
 	)
-	# Answering YES spends it.
-	root_button.emit_signal(&"pressed")
-	await process_frame
-	dialog.emit_signal(&"confirmed")
-	# A real OK click closes the window; emitting the signal by hand does not.
-	dialog.hide()
-	await process_frame
-	_check(
-		"unlock: confirming unlocks the node",
-		bool(save.call(&"is_skill_node_unlocked", &"recruit", &"off_1"))
-	)
+	# The state is drawn, not written: the canvas records which side of each tier
+	# is taken and lights the node and its connector from that.
+	var canvas: SkillTreeCanvas = current_scene.get(&"_canvas")
+	_check("the tree is drawn on a canvas", canvas != null)
+	if canvas != null:
+		_check(
+			"the canvas has a row per tier (%d)" % canvas.tiers.size(),
+			canvas.tiers.size() == SkillTree.TIER_COUNT
+		)
+		_check(
+			"the taken side of tier 1 is lit (%d)" % int(canvas.tiers[0]["taken"]),
+			int(canvas.tiers[0]["taken"]) == -1
+		)
+		_check(
+			"a tier nobody has picked stays unlit",
+			int(canvas.tiers[SkillTree.TIER_COUNT - 1]["taken"]) == 0
+		)
+	var refreshed := _find_cards(current_scene)
+	var active_card := refreshed.get(&"rec_1a") as Button
+	if active_card != null:
+		active_card.emit_signal(&"pressed")
+		await process_frame
+		_check(
+			"clicking it again clears the tier",
+			not bool(save.call(&"is_skill_node_chosen", &"recruit", &"rec_1a"))
+		)
 
-	# Hovering must not arm anything: only the click decides.
-	var locked_button := buttons.get(&"off_3") as Button
-	if locked_button != null:
-		locked_button.emit_signal(&"mouse_entered")
-		await process_frame
-		_check(
-			"unlock: hovering never opens the dialog",
-			not dialog.visible
-		)
-		locked_button.emit_signal(&"pressed")
-		await process_frame
-		_check(
-			"unlock: a locked node cannot be bought",
-			not dialog.visible
-			and not bool(save.call(&"is_skill_node_unlocked", &"recruit", &"off_3"))
-		)
+
+func _find_cards(node: Node) -> Dictionary:
+	var cards: Dictionary = {}
+	for child in node.find_children("*", "Button", true, false):
+		var button := child as Button
+		if button != null and not SkillTree.get_node_definition(
+			StringName(button.name)
+		).is_empty():
+			cards[StringName(button.name)] = button
+	return cards
 
 
 func _check(label: String, condition: bool) -> void:
 	if condition:
 		_passed += 1
+		print("TEST: %s" % label)
 	else:
 		_failed += 1
 		print("TEST FAIL: %s" % label)
