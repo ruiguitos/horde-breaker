@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/destiny_archipelago_prototype.gd" id="1_prototype"]
 [ext_resource type="Resource" path="res://data/archipelagos/destiny_archipelago.tres" id="2_data"]
@@ -8,6 +8,12 @@
 [ext_resource type="Terrain3DAssets" path="res://data/destiny_archipelago/assets/terrain_assets.tres" id="6_assets"]
 [ext_resource type="Shader" path="res://assets/materials/terrain3d_water.gdshader" id="7_water_shader"]
 [ext_resource type="Script" path="res://scripts/ui/archipelago_graph_map.gd" id="8_graph"]
+[ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="20_director"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/normal_zombie.tscn" id="21_normal"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/runner_zombie.tscn" id="22_runner"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/brute_zombie.tscn" id="23_brute"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spitter_zombie.tscn" id="24_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/boss_breaker.tscn" id="25_boss"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 render_priority = -1
@@ -68,6 +74,20 @@ unique_name_in_owner = true
 [node name="Landmarks" type="Node3D" parent="."]
 unique_name_in_owner = true
 
+[node name="Enemies" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="EnemySpawns" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="HordeDirector" type="Node" parent="." groups=["wave_manager"]]
+script = ExtResource("20_director")
+normal_zombie_scene = ExtResource("21_normal")
+runner_zombie_scene = ExtResource("22_runner")
+brute_zombie_scene = ExtResource("23_brute")
+spitter_zombie_scene = ExtResource("24_spitter")
+boss_scene = ExtResource("25_boss")
+
 [node name="Player" parent="." instance=ExtResource("4_player")]
 unique_name_in_owner = true
 position = Vector3(120, 20, 405)
@@ -122,5 +142,5 @@ theme_override_colors/font_color = Color(0.82, 0.84, 0.82, 1)
 theme_override_colors/font_outline_color = Color(0.01, 0.015, 0.02, 0.9)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
-text = "WASD MOVE  //  F ENTER SEA CAVE  //  SHOOT ROPE BRIDGE  //  REACH VOLCANO PEAK"
+text = "WASD MOVE  //  F INTERACT  //  FIND 3 POWER CELLS  //  MOUSE 4 NOCLIP"
 horizontal_alignment = 1

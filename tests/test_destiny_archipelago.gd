@@ -162,6 +162,7 @@ func _run() -> void:
 	_test_route_a_choice(prototype, player)
 	_test_shadow_forest_objective(prototype, player)
 	await _test_high_cliffs_objective(prototype, player)
+	_test_horde_director(prototype)
 	await physics_frame
 
 	player.global_position = Vector3(120.0, 5.0, 265.0)
@@ -528,6 +529,78 @@ func _test_high_cliffs_objective(prototype: Node, player: CharacterBody3D) -> vo
 	relays[0].take_damage(999.0)
 	_check("an online relay cannot be knocked out", relays[0].is_online())
 	_check("the ruins stay open", hub.is_ruins_open())
+
+
+## The horde director, and the budget the plan fixes for it.
+##
+## The islands had objectives with nothing pushing back before this: a relay
+## could charge undisturbed and Volcano Peak would have had no zombies to clear.
+## The numbers are checked rather than trusted because they are the one part of
+## the plan stated as hard limits rather than playtest targets.
+func _test_horde_director(prototype: Node) -> void:
+	var director := prototype.get_node_or_null("HordeDirector")
+	_check("the archipelago has a horde director", director != null)
+	if director == null:
+		return
+	_check(
+		"the director is findable by the group the rest of the game uses",
+		director.is_in_group(&"wave_manager")
+	)
+	_check(
+		"the director has its enemy scenes",
+		director.get(&"normal_zombie_scene") != null
+			and director.get(&"runner_zombie_scene") != null
+			and director.get(&"boss_scene") != null
+	)
+
+	# The plan: 90 active, an absolute guard of 120, a queue of 12 and two
+	# instantiations per physics frame.
+	_check(
+		"the active budget is 90 (%d)" % int(director.get(&"max_simultaneous_enemies")),
+		int(director.get(&"max_simultaneous_enemies")) == 90
+	)
+	var script: GDScript = director.get_script()
+	_check(
+		"the absolute guard is 120 (%d)" % int(script.get(&"ABSOLUTE_ENEMY_CAP")),
+		int(script.get(&"ABSOLUTE_ENEMY_CAP")) == 120
+	)
+	_check(
+		"the spawn queue holds at most 12 (%d)" % int(script.get(&"MAX_QUEUED_SPAWNS")),
+		int(script.get(&"MAX_QUEUED_SPAWNS")) == 12
+	)
+	_check(
+		"at most two are instanced per physics frame (%d)"
+			% int(script.get(&"SPAWNS_PER_FRAME")),
+		int(script.get(&"SPAWNS_PER_FRAME")) == 2
+	)
+
+	var spawns := prototype.get_node_or_null("EnemySpawns")
+	_check("the archipelago provides spawn points", spawns != null)
+	if spawns == null:
+		return
+	var markers := spawns.get_children()
+	var expected := DESIGN.ISLAND_LAYOUT.size() * int(
+		prototype.get_script().get(&"SPAWN_POINTS_PER_ISLAND")
+	)
+	_check(
+		"every island gets a ring of spawn points (%d of %d)" % [markers.size(), expected],
+		markers.size() == expected
+	)
+	var grouped := 0
+	var above_water := 0
+	for marker_value in markers:
+		var marker := marker_value as Marker3D
+		if marker == null:
+			continue
+		if marker.is_in_group(&"enemy_spawn_point"):
+			grouped += 1
+		# A spawn under the sea drowns the horde before it reaches anyone.
+		if marker.global_position.y > DESIGN.WATER_HEIGHT:
+			above_water += 1
+	_check("every spawn point is in the director's group (%d)" % grouped,
+		grouped == markers.size())
+	_check("no spawn point sits in the water (%d of %d)" % [above_water, markers.size()],
+		above_water == markers.size())
 
 
 func _report() -> void:

@@ -272,9 +272,16 @@ Ferramenta apenas para builds de desenvolvimento:
   "caminhar até três sítios"; só passa a ser "aguentar três sítios" porque a
   carga demora e pode ser interrompida por dano. Um relé já online não se perde
   — um tiro tardio não pode voltar a selar uma ilha que já foi paga.
-- **Por ligar:** a pressão de inimigos nestes objetivos ainda não existe no
-  protótipo do arquipélago, que não tem diretor de horda montado. A mecânica de
-  interrupção está pronta e testada; falta a horda que a exerce.
+- **O diretor de horda está ligado ao arquipélago** (2026-08-02). Oito pontos
+  de spawn em anel por ilha, 32 no total, todos fora de água. A regra "só a ilha
+  ativa mantém IA" sai de graça: o diretor ordena os pontos por distância ao
+  jogador e fica com os mais próximos, portanto marcadores de uma ilha distante
+  nunca são escolhidos. O orçamento do plano — 90 ativos, guarda 120, fila 12,
+  duas instanciações por frame — está verificado por teste, não assumido.
+- **O diretor vive na cena, não é construído em código.** As suas procuras `%`
+  resolvem contra o próprio `owner`, que um nó criado em runtime só tem depois
+  de o `add_child` já ter corrido o `_ready` — construí-lo em código deixava-o a
+  segurar dois nulos.
 - **A regra do soft-lock apanhou um bug real.** O `_collapse()` da ponte
   desativava a colisão com `set_deferred` e o `reset_bridge()` reativava-a de
   imediato: destruir e reparar dentro do mesmo frame deixava a ponte de pé, com

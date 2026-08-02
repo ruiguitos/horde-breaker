@@ -6,6 +6,13 @@ signal island_discovered(island_id: StringName)
 
 const DESIGN := preload("res://scripts/systems/destiny_archipelago_design.gd")
 const REGION_DIRECTORY := "res://data/destiny_archipelago/regions"
+## Loaded at runtime, not preloaded: wave_manager.gd reaches for autoloads
+## that do not exist while a --script tool compiles this file.
+const WAVE_MANAGER_SCRIPT := "res://scripts/systems/wave_manager.gd"
+## Eight around each island is enough for the director to always find some
+## behind the player without crowding the shoreline.
+const SPAWN_POINTS_PER_ISLAND := 8
+const SPAWN_RING_RATIO := 0.72
 
 const TREE_SCENE := preload("res://assets/models/kenney_mini_forest/tree.glb")
 const TREE_HIGH_SCENE := preload("res://assets/models/kenney_mini_forest/tree-high.glb")
@@ -47,6 +54,8 @@ var cave_gate: ArchipelagoRouteGate
 var dawn_hub: DawnBeachHub
 var shadow_forest_hub: ShadowForestHub
 var high_cliffs_hub: HighCliffsHub
+var wave_manager: Node
+var spawn_point_count := 0
 var route_a_label: Label3D
 var is_ready := false
 var loaded_persistent_data := false
@@ -120,6 +129,7 @@ func _build_prototype() -> void:
 	# After the ruins: the relays open the stairway, so the stairway has to be
 	# there for the barrier to be placed across its foot.
 	_build_high_cliffs_hub()
+	_build_horde_director()
 	_build_island_dressing()
 	_configure_player()
 	graph_map.configure(archipelago_data)
@@ -230,6 +240,54 @@ func _build_shadow_forest_hub() -> void:
 	add_child(shadow_forest_hub)
 	shadow_forest_hub.configure(rope_bridge)
 	shadow_forest_hub.status_changed.connect(_on_dawn_status_changed)
+
+
+## Puts the horde director into the archipelago.
+##
+## Until now the islands had objectives with nothing pushing back: a relay could
+## charge undisturbed and the Volcano Peak sequence had no zombies to clear. The
+## director's own budget already matches the plan — 90 active, 120 absolute, a
+## queue of 12 and two instantiations a physics frame — so nothing here changes
+## it, only supplies the nodes and the spawn points it needs.
+##
+## "Only the active island keeps AI" falls out of how the director picks: it
+## sorts spawn points by distance to the player and keeps the nearest handful, so
+## markers on an island the player is nowhere near are never chosen.
+func _build_horde_director() -> void:
+	# The director, its Enemies parent and its EnemySpawns parent all live in the
+	# scene, not here. Its %-lookups resolve against its own owner, which a node
+	# built at runtime does not have until after add_child has already run its
+	# _ready — so building it in code left it holding two nulls.
+	wave_manager = get_node_or_null("HordeDirector")
+	if wave_manager == null:
+		push_error("Destiny Archipelago is missing its HordeDirector node.")
+		return
+	_build_island_spawn_points(get_node("EnemySpawns"))
+
+
+## A ring of markers around each island. The director keeps the nearest few and
+## refuses anything closer than its own minimum distance, so a ring is enough to
+## have the horde arrive from whichever side the player is not watching.
+func _build_island_spawn_points(parent: Node3D) -> void:
+	for island_id: StringName in DESIGN.ISLAND_LAYOUT:
+		var bounds: Dictionary = DESIGN.ISLAND_LAYOUT[island_id]
+		var centre: Vector2 = bounds["center"]
+		var radii: Vector2 = bounds["radii"]
+		for index in SPAWN_POINTS_PER_ISLAND:
+			var angle := TAU * float(index) / float(SPAWN_POINTS_PER_ISLAND)
+			# Inside the shoreline, so a spawn never lands in the water.
+			var point := centre + Vector2(
+				cos(angle) * radii.x * SPAWN_RING_RATIO,
+				sin(angle) * radii.y * SPAWN_RING_RATIO
+			)
+			var marker := Marker3D.new()
+			marker.name = "%s_Spawn%02d" % [island_id, index + 1]
+			marker.add_to_group(&"enemy_spawn_point")
+			parent.add_child(marker)
+			marker.global_position = DESIGN.player_position_on_land(
+				Vector3(point.x, 0.0, point.y)
+			)
+			spawn_point_count += 1
 
 
 func _build_high_cliffs_hub() -> void:
