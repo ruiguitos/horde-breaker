@@ -22,6 +22,9 @@
 *.bak
 *.old
 *~
+# O Godot renomeia com prefixo ~ as bibliotecas GDExtension que nao consegue
+# substituir enquanto o editor as tem abertas (Windows). Sao copias temporarias.
+~*
 Thumbs.db
 .DS_Store
 desktop.ini
