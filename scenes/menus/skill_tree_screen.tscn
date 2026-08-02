@@ -104,5 +104,5 @@ theme_override_constants/separation = 16
 [node name="Hint" type="Label" parent="PageMargin/Content"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Each tier opens at its character level. Take one side of a tier; click it again to clear it. Choices can be changed between runs at no cost."
+text = "One skill point every two character levels. A skill needs the one above it and the level shown; the fork rejoins, so either side carries on. Points are spent permanently."
 horizontal_alignment = 1

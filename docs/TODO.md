@@ -204,6 +204,34 @@ perguntar o que incomoda em cada um — melhorar sem saber o alvo é adivinhar.
   no HUD. Confirmar se o pedido é melhorar o mapa tático ou criar um minimapa
   de canto.
 
+## Resolução e responsividade (2026-08-02) — parqueado a pedido
+
+Investigado e medido; a correção fica pendente.
+
+- [x] **Redimensionar a janela partia a interface.** `SettingsManager` fixava o
+  `content_scale_size` e nada o atualizava quando a janela mudava de tamanho por
+  outra via (arrastar um canto, a janela embebida do editor). Corrigido ligando
+  o `size_changed` da janela.
+- [ ] **A página de seleção de classes não cabe na resolução por omissão.**
+  Medido: com um viewport de 1152×648, a página precisa de **1205×757**. Não é
+  escalar mal, é não caber — e é daí que vem a barra `CLASS LOADOUT` desenhada
+  por cima das cartas. Duas tentativas de correção (reordenar contentores;
+  reconstruir antes de ordenar) **não resolveram**; a barra fica presa em
+  y≈615 seja qual for a resolução. A correção é estrutural: as cartas encolherem
+  (conteúdo com scroll) ou a página adaptar-se (largar o painel de
+  pré-visualização em ecrãs pequenos, ou pôr as cartas em duas linhas).
+- [ ] **Fullscreen só oferece uma resolução.** O dropdown está *desativado* em
+  fullscreen (`resolution_option.disabled = fullscreen`). Proposta: mantê-lo
+  ativo como **resolução de render** — baixar o `content_scale_size` abaixo do
+  monitor, que é o que os jogos modernos fazem e dá desempenho sem mudar o modo
+  de vídeo.
+- [ ] **Windowed parece aceitar só uma resolução.** A lista é fixa
+  (`1152×648 … 2560×1440`) e ignora o monitor. Num ecrã de 1920×1080 as duas
+  maiores não cabem como janela e o Windows corta-as para o mesmo sítio.
+  Proposta: construir a lista a partir de `DisplayServer.screen_get_size()` do
+  ecrã atual, filtrando as que cabem.
+- Contexto medido: dois monitores — 1920×1080 a 144 Hz e 1280×1024 a 60 Hz.
+
 ## Regra
 
 Estes itens não alteram o âmbito do milestone atual. Quando forem concluídos, atualizar também `docs/PROGRESS.md`.

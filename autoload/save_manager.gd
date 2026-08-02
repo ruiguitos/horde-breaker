@@ -217,87 +217,71 @@ func add_character_xp(character_id: StringName, amount: int) -> int:
 	return levels_gained
 
 
-## The next character level that opens a new tier, or 0 once all five are open.
-func get_next_skill_tier_level(character_id: StringName) -> int:
-	var level := get_character_level(character_id)
-	for tier in range(1, SkillTree.TIER_COUNT + 1):
-		var required := SkillTree.get_required_level_for_tier(tier)
-		if level < required:
-			return required
-	return 0
+func get_earned_skill_points(character_id: StringName) -> int:
+	# Levels 2, 4, 6... each grant one permanent point.
+	return floori(float(get_character_level(character_id)) / 2.0)
 
 
-## How many tiers the character has opened but not yet chosen from. Drives the
-## "you have picks waiting" badge, replacing the old skill-point count.
-func get_pending_skill_choices(character_id: StringName) -> int:
-	var level := get_character_level(character_id)
-	var chosen := Array(get_skill_choices(character_id))
-	var pending := 0
-	for tier in range(1, SkillTree.TIER_COUNT + 1):
-		if level < SkillTree.get_required_level_for_tier(tier):
-			continue
-		if SkillTree.get_choice_for_tier(chosen, character_id, tier) == &"":
-			pending += 1
-	return pending
+func get_next_skill_point_level(character_id: StringName) -> int:
+	return (get_earned_skill_points(character_id) + 1) * 2
 
 
-## The character's chosen nodes, one per tier at most.
+## The character's unlocked nodes.
 ##
-## Anything the tree no longer recognises is dropped on the way out. That is the
-## whole migration from the old 36-node shared tree: because choices cost nothing
-## and are gated only by level, a profile that loses its stale ids can re-pick
-## every tier it has earned immediately, so there is nothing to compensate.
-func get_skill_choices(character_id: StringName) -> PackedStringArray:
+## Ids the tree no longer recognises, and ids belonging to another class, are
+## dropped on the way out. That covers profiles from both earlier shapes of the
+## tree — the shared 36-node one and the five-tier choice one — and the points
+## they cost come back with them, so nothing is stranded.
+func get_unlocked_skill_nodes(character_id: StringName) -> PackedStringArray:
 	var stored: Variant = _config.get_value(
 		String(character_id), "skill_nodes", PackedStringArray()
 	)
 	var valid := PackedStringArray()
-	var seen_tiers: Dictionary[int, bool] = {}
 	for node_id in PackedStringArray(stored):
 		var node := SkillTree.get_node_definition(StringName(node_id))
-		# Nodes belonging to another class can appear in a profile that was
-		# edited by hand; they would otherwise apply their bonuses anyway.
 		if node.is_empty() or node["class_id"] != character_id:
 			continue
-		var tier := int(node["tier"])
-		if seen_tiers.has(tier):
-			continue
-		seen_tiers[tier] = true
 		valid.append(String(node_id))
 	return valid
 
 
-func is_skill_node_chosen(character_id: StringName, node_id: StringName) -> bool:
-	return String(node_id) in get_skill_choices(character_id)
+func get_available_skill_points(character_id: StringName) -> int:
+	# Never negative: a profile that spent more than the current cadence grants
+	# simply earns nothing new until its level catches up.
+	return maxi(
+		get_earned_skill_points(character_id)
+		- get_unlocked_skill_nodes(character_id).size(),
+		0
+	)
 
 
-## A tier is open on level alone. There is no cost, so the only question is
-## whether the character is high enough to make the choice at all.
-func can_choose_skill_node(character_id: StringName, node_id: StringName) -> bool:
+func is_skill_node_unlocked(character_id: StringName, node_id: StringName) -> bool:
+	return String(node_id) in get_unlocked_skill_nodes(character_id)
+
+
+func can_unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
 	var node := SkillTree.get_node_definition(node_id)
-	if node.is_empty() or node["class_id"] != character_id:
+	if (
+		node.is_empty()
+		or node["class_id"] != character_id
+		or is_skill_node_unlocked(character_id, node_id)
+		or get_available_skill_points(character_id) <= 0
+		or get_character_level(character_id) < int(node["required_level"])
+	):
 		return false
-	return get_character_level(character_id) >= int(node["required_level"])
+	return SkillTree.is_prerequisite_met(
+		node_id, Array(get_unlocked_skill_nodes(character_id))
+	)
 
 
-## Takes a node, replacing whatever was chosen in the same tier. Choosing the
-## node already active clears the tier instead, so a pick is never a trap.
-func set_skill_choice(character_id: StringName, node_id: StringName) -> bool:
-	if not can_choose_skill_node(character_id, node_id):
+## Spends a point on a node. Nodes accumulate: unlocking one never removes
+## another, and there is no refund — the cost is what makes a tree a build.
+func unlock_skill_node(character_id: StringName, node_id: StringName) -> bool:
+	if not can_unlock_skill_node(character_id, node_id):
 		return false
-	var node := SkillTree.get_node_definition(node_id)
-	var tier := int(node["tier"])
-	var kept := PackedStringArray()
-	var was_active := false
-	for existing in get_skill_choices(character_id):
-		var existing_node := SkillTree.get_node_definition(StringName(existing))
-		if int(existing_node["tier"]) != tier:
-			kept.append(existing)
-		elif StringName(existing) == node_id:
-			was_active = true
-	if not was_active:
-		kept.append(String(node_id))
-	_config.set_value(String(character_id), "skill_nodes", kept)
+	var unlocked := get_unlocked_skill_nodes(character_id)
+	unlocked.append(String(node_id))
+	_config.set_value(String(character_id), "skill_nodes", unlocked)
 	if not save_progress():
 		return false
 	skill_points_changed.emit(character_id)
@@ -305,7 +289,7 @@ func set_skill_choice(character_id: StringName, node_id: StringName) -> bool:
 
 
 func get_skill_bonuses(character_id: StringName) -> Dictionary:
-	return SkillTree.get_bonuses(Array(get_skill_choices(character_id)))
+	return SkillTree.get_bonuses(Array(get_unlocked_skill_nodes(character_id)))
 
 
 func get_mastery_progress(character_id: StringName, objective_id: StringName) -> int:

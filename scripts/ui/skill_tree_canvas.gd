@@ -1,102 +1,105 @@
 class_name SkillTreeCanvas
 extends Control
 
-## Draws the skill tree itself: a spine running down the tiers, a connector out
-## to each of the two options, and a diamond node at the end of each connector.
+## Draws the skill tree: three category columns side by side, each a spine that
+## forks at tier 3 and rejoins at tier 4.
 ##
 ## It draws only. The clickable areas are transparent Buttons the screen places
-## on top of the diamonds, so hover, focus and keyboard navigation stay ordinary
-## Control behaviour instead of something reimplemented on top of _draw().
+## over the nodes, so hover, focus and keyboard navigation stay ordinary Control
+## behaviour rather than something reimplemented inside _draw(). A parent's
+## _draw() runs beneath its children, which is the stacking this needs: lines and
+## node bodies behind, buttons and labels in front.
 ##
-## A parent's _draw() runs beneath its children, which is exactly the stacking
-## this needs: spine and connectors behind, buttons and labels in front.
+## A connector lights when the node it leads *to* is unlocked, so the lit part of
+## a column is exactly the part that has been paid for.
 
-## Geometry, in pixels inside the canvas.
-const TIER_SPACING := 104.0
-const TOP_MARGIN := 58.0
-const BRANCH_REACH := 152.0
-const NODE_RADIUS := 26.0
-const SPINE_WIDTH := 4.0
-const CONNECTOR_WIDTH := 3.0
+const TIER_SPACING := 86.0
+const TOP_MARGIN := 54.0
+const FORK_REACH := 58.0
+const NODE_RADIUS := 21.0
+const SPINE_WIDTH := 3.0
+const CONNECTOR_WIDTH := 2.5
 
-const SPINE_DIM := Color(0.20, 0.23, 0.27, 1.0)
 const NODE_FILL := Color(0.09, 0.11, 0.13, 1.0)
-const LOCKED_LINE := Color(0.22, 0.25, 0.29, 1.0)
-const OPEN_LINE := Color(0.38, 0.43, 0.49, 1.0)
+const LOCKED_LINE := Color(0.20, 0.23, 0.27, 1.0)
+## Reachable now: the prerequisites are met and a point is in hand.
+const AVAILABLE_LINE := Color(0.50, 0.56, 0.63, 1.0)
 
-## One entry per tier: {"open": bool, "taken": -1 left, 1 right, 0 none}.
-var tiers: Array[Dictionary] = []
-## The class colour. Everything lit is drawn in it.
+## One entry per category column, in display order:
+##   {"nodes": [{"tier": int, "column": int, "unlocked": bool, "available": bool}]}
+var columns: Array[Dictionary] = []
+## The class colour. Everything unlocked is drawn in it.
 var accent: Color = Color(0.957, 0.694, 0.31, 1.0)
 
 
-func get_tier_centre(tier_index: int) -> Vector2:
-	return Vector2(size.x * 0.5, TOP_MARGIN + TIER_SPACING * float(tier_index))
+func get_column_centre_x(column_index: int) -> float:
+	var count := maxi(columns.size(), 1)
+	return size.x * (float(column_index) + 0.5) / float(count)
 
 
-func get_node_centre(tier_index: int, side: int) -> Vector2:
-	var centre := get_tier_centre(tier_index)
-	return centre + Vector2(BRANCH_REACH * float(side), 0.0)
+func get_node_centre(column_index: int, tier: int, column: int) -> Vector2:
+	return Vector2(
+		get_column_centre_x(column_index) + FORK_REACH * float(column),
+		TOP_MARGIN + TIER_SPACING * float(tier - 1)
+	)
 
 
-## Height the canvas needs for the tiers it has been given.
 func get_required_height() -> float:
-	if tiers.is_empty():
-		return 0.0
-	return TOP_MARGIN * 2.0 + TIER_SPACING * float(tiers.size() - 1)
+	return TOP_MARGIN * 2.0 + TIER_SPACING * float(maxi(SkillTree.TIER_COUNT - 1, 1))
 
 
 func _draw() -> void:
-	if tiers.is_empty():
-		return
-	_draw_spine()
-	for tier_index in tiers.size():
-		var tier: Dictionary = tiers[tier_index]
-		var is_open := bool(tier["open"])
-		var taken := int(tier["taken"])
-		for side: int in [-1, 1]:
-			var lit: bool = is_open and taken == side
-			_draw_connector(tier_index, side, lit, is_open)
-			_draw_node(tier_index, side, lit, is_open)
-		# The spine knot marks the tier itself, filled once a side is taken.
-		var centre := get_tier_centre(tier_index)
-		var knot_colour := accent if (is_open and taken != 0) else (
-			OPEN_LINE if is_open else LOCKED_LINE
-		)
-		draw_circle(centre, 7.0, NODE_FILL)
-		draw_arc(centre, 7.0, 0.0, TAU, 24, knot_colour, 2.5, true)
+	for column_index in columns.size():
+		_draw_column(column_index)
 
 
-func _draw_spine() -> void:
-	var top := get_tier_centre(0)
-	var bottom := get_tier_centre(tiers.size() - 1)
-	draw_line(top, bottom, SPINE_DIM, SPINE_WIDTH, true)
-	# The lit part of the spine reaches as far as the deepest tier already
-	# chosen, so progress down the tree reads at a glance.
-	var deepest := -1
-	for tier_index in tiers.size():
-		if int(tiers[tier_index]["taken"]) != 0:
-			deepest = tier_index
-	if deepest >= 0:
-		draw_line(
-			top, get_tier_centre(deepest), accent.lerp(Color.WHITE, 0.1),
-			SPINE_WIDTH, true
-		)
+func _draw_column(column_index: int) -> void:
+	var nodes: Array = columns[column_index]["nodes"]
+	# Connectors first so the node bodies sit on top of their ends.
+	for node: Dictionary in nodes:
+		for parent: Dictionary in _get_parents(nodes, node):
+			_draw_connector(column_index, parent, node)
+	for node: Dictionary in nodes:
+		_draw_node(column_index, node)
 
 
-func _draw_connector(tier_index: int, side: int, lit: bool, is_open: bool) -> void:
-	var start := get_tier_centre(tier_index)
-	var finish := get_node_centre(tier_index, side)
+## The nodes one tier above that lead into this one. Tier 4 rejoins both sides of
+## the fork, so it has two.
+func _get_parents(nodes: Array, node: Dictionary) -> Array[Dictionary]:
+	var parents: Array[Dictionary] = []
+	var tier := int(node["tier"])
+	if tier <= 1:
+		return parents
+	for candidate: Dictionary in nodes:
+		if int(candidate["tier"]) == tier - 1:
+			parents.append(candidate)
+	return parents
+
+
+func _draw_connector(
+	column_index: int, from_node: Dictionary, to_node: Dictionary
+) -> void:
+	var start := get_node_centre(
+		column_index, int(from_node["tier"]), int(from_node["column"])
+	)
+	var finish := get_node_centre(
+		column_index, int(to_node["tier"]), int(to_node["column"])
+	)
+	var lit := bool(to_node["unlocked"])
 	var colour := LOCKED_LINE
 	if lit:
 		colour = accent
-	elif is_open:
-		colour = OPEN_LINE
-	draw_line(start, finish, colour, CONNECTOR_WIDTH, true)
+	elif bool(to_node["available"]):
+		colour = AVAILABLE_LINE
+	draw_line(start, finish, colour, SPINE_WIDTH if lit else CONNECTOR_WIDTH, true)
 
 
-func _draw_node(tier_index: int, side: int, lit: bool, is_open: bool) -> void:
-	var centre := get_node_centre(tier_index, side)
+func _draw_node(column_index: int, node: Dictionary) -> void:
+	var centre := get_node_centre(
+		column_index, int(node["tier"]), int(node["column"])
+	)
+	var unlocked := bool(node["unlocked"])
+	var available := bool(node["available"])
 	var diamond := PackedVector2Array([
 		centre + Vector2(0.0, -NODE_RADIUS),
 		centre + Vector2(NODE_RADIUS, 0.0),
@@ -105,22 +108,20 @@ func _draw_node(tier_index: int, side: int, lit: bool, is_open: bool) -> void:
 	])
 	draw_colored_polygon(diamond, NODE_FILL)
 	var outline := LOCKED_LINE
-	if lit:
+	if unlocked:
 		outline = accent
-	elif is_open:
-		outline = OPEN_LINE
-	# Closed loop: the last segment back to the top point.
+	elif available:
+		outline = AVAILABLE_LINE
 	var loop := diamond.duplicate()
 	loop.append(diamond[0])
-	draw_polyline(loop, outline, 3.0 if lit else 2.0, true)
-	if lit:
-		# A second, smaller diamond reads as the node being filled rather than
-		# merely outlined — the difference between "available" and "taken" has
-		# to survive being glanced at from across the screen.
+	draw_polyline(loop, outline, 3.0 if unlocked else 2.0, true)
+	if unlocked:
+		# Filled, not merely outlined: the difference between "you could buy
+		# this" and "you own this" has to survive being glanced at.
 		var inner := PackedVector2Array([
-			centre + Vector2(0.0, -NODE_RADIUS * 0.52),
-			centre + Vector2(NODE_RADIUS * 0.52, 0.0),
-			centre + Vector2(0.0, NODE_RADIUS * 0.52),
-			centre + Vector2(-NODE_RADIUS * 0.52, 0.0),
+			centre + Vector2(0.0, -NODE_RADIUS * 0.5),
+			centre + Vector2(NODE_RADIUS * 0.5, 0.0),
+			centre + Vector2(0.0, NODE_RADIUS * 0.5),
+			centre + Vector2(-NODE_RADIUS * 0.5, 0.0),
 		])
 		draw_colored_polygon(inner, accent)
