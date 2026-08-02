@@ -161,6 +161,7 @@ func _run() -> void:
 	_check("Route A stays closed when Route B is selected", not dawn_hub.is_route_a_open())
 	_test_route_a_choice(prototype, player)
 	_test_shadow_forest_objective(prototype, player)
+	await _test_high_cliffs_objective(prototype, player)
 	await physics_frame
 
 	player.global_position = Vector3(120.0, 5.0, 265.0)
@@ -467,6 +468,66 @@ func _test_shadow_forest_objective(prototype: Node, player: CharacterBody3D) -> 
 	)
 	_check("the route out of the forest is open (%d repairs)" % hub.bridge_repairs,
 		hub.is_bridge_repaired() and hub.bridge_repairs == 2)
+
+
+## High Cliffs: bring three relays online and the Ancient Ruins stairway opens.
+##
+## The half worth guarding is the charge. A relay that finished the moment it was
+## touched would make the island "walk to three places"; it only becomes "hold
+## three places" because the charge takes time and can be interrupted.
+func _test_high_cliffs_objective(prototype: Node, player: CharacterBody3D) -> void:
+	var hub := prototype.get_node_or_null("HighCliffsHub") as HighCliffsHub
+	_check("High Cliffs builds its objective", hub != null)
+	if hub == null:
+		return
+	var relays := hub.get_relays()
+	_check("High Cliffs has three relays (%d)" % relays.size(), relays.size() == 3)
+
+	# Verticality is the island's identity, so the three must not sit on one shelf.
+	var heights: Array[float] = []
+	for relay in relays:
+		heights.append(relay.global_position.y)
+	heights.sort()
+	var spread: float = heights[heights.size() - 1] - heights[0]
+	_check(
+		"the relays sit at different elevations (%.1f m apart)" % spread,
+		spread > 1.5
+	)
+
+	_check("the ruins start sealed", not hub.is_ruins_open())
+	_check("no relay starts online", hub.get_online_relay_count() == 0)
+
+	var first := relays[0]
+	_check("activating a relay starts a charge", first.interact(player))
+	_check("a charging relay is not online yet", not first.is_online())
+	_check("activating twice does nothing", not first.interact(player))
+
+	# Interrupted halfway: the relay drops back and has to be started again.
+	first.charge_progress = 0.5
+	first.take_damage(10.0)
+	_check("damage knocks a charging relay offline", not first.is_online())
+	_check("an interrupted relay loses its progress", is_zero_approx(first.charge_progress))
+	_check("it can be started again", first.interact(player))
+
+	for relay in relays:
+		relay.interact(player)
+		# Finish the charge without waiting out the real timer.
+		relay.charge_seconds = 0.01
+		relay.set_process(true)
+	for _frame in 12:
+		await process_frame
+	_check(
+		"holding all three brings them online (%d of %d)" % [
+			hub.get_online_relay_count(), relays.size()
+		],
+		hub.get_online_relay_count() == relays.size()
+	)
+	_check("the Ancient Ruins open", hub.is_ruins_open())
+	# An online relay is paid for and cannot be lost, or a late hit would reseal
+	# an island the player had already cleared.
+	relays[0].take_damage(999.0)
+	_check("an online relay cannot be knocked out", relays[0].is_online())
+	_check("the ruins stay open", hub.is_ruins_open())
 
 
 func _report() -> void:

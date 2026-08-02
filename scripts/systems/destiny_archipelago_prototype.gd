@@ -46,6 +46,7 @@ var rope_bridge: DestructibleRouteBridge
 var cave_gate: ArchipelagoRouteGate
 var dawn_hub: DawnBeachHub
 var shadow_forest_hub: ShadowForestHub
+var high_cliffs_hub: HighCliffsHub
 var route_a_label: Label3D
 var is_ready := false
 var loaded_persistent_data := false
@@ -116,6 +117,9 @@ func _build_prototype() -> void:
 	# already exist to hold on to.
 	_build_shadow_forest_hub()
 	_build_ancient_ruins()
+	# After the ruins: the relays open the stairway, so the stairway has to be
+	# there for the barrier to be placed across its foot.
+	_build_high_cliffs_hub()
 	_build_island_dressing()
 	_configure_player()
 	graph_map.configure(archipelago_data)
@@ -226,6 +230,13 @@ func _build_shadow_forest_hub() -> void:
 	add_child(shadow_forest_hub)
 	shadow_forest_hub.configure(rope_bridge)
 	shadow_forest_hub.status_changed.connect(_on_dawn_status_changed)
+
+
+func _build_high_cliffs_hub() -> void:
+	high_cliffs_hub = HighCliffsHub.new()
+	high_cliffs_hub.name = "HighCliffsHub"
+	add_child(high_cliffs_hub)
+	high_cliffs_hub.status_changed.connect(_on_dawn_status_changed)
 
 
 func _build_ancient_ruins() -> void:

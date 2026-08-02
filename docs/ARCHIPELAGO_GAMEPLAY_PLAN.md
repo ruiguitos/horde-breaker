@@ -71,6 +71,93 @@ acampamento. Com energia suficiente pode ativar uma das duas rotas:
 A primeira versão permite apenas uma escolha por sessão. A outra rota fica
 visivelmente bloqueada, mas tudo reinicia quando o protótipo volta a arrancar.
 
+### Progressão física da base
+
+A base de Dawn Beach não deve começar com o tamanho da fortaleza final. No
+início da run existe apenas o essencial em redor do núcleo; investir Scrap e
+cumprir requisitos de nível da run aumenta tanto as funções como a área física
+do acampamento. Cada upgrade deve ser reconhecível no mundo, não apenas num
+número ou numa barra da interface.
+
+| Tier | Estado visual | Funções disponíveis | Defesa |
+|---|---|---|---|
+| **Tier 0 — Emergency Core** | núcleo, luz de sinalização e abrigo muito pequeno | depósito básico e resupply limitado | sem muralha completa; nenhum ponto automático ativo |
+| **Tier 1 — Secured Camp** | primeiro perímetro curto e um acesso controlado | armazenamento e primeira melhoria de resupply | primeiro socket exterior para torre |
+| **Tier 2 — Operational Base** | perímetro ampliado, dois ou três acessos e zonas funcionais legíveis | workshop, medbay/resupply melhorado e controlo das rotas | dois sockets, reparação e upgrades intermédios |
+| **Tier 3 — Fortified Base** | fortaleza ampla inspirada na referência visual aprovada | todas as estações aprovadas para a run e pátio central organizado | perímetro completo, acessos defendidos e rede final de torres |
+
+O **Tier 3** usa como referência a imagem aérea fornecida em 2026-08-02. O alvo
+visual é um perímetro largo, aproximadamente octogonal, com muralha contínua,
+vários portões, núcleo ao centro, grande pátio de circulação e estações junto à
+face interior da muralha. Contentores, área médica/ambulância, água, energia,
+comunicações, iluminação e plataformas defensivas tornam a base final habitada
+e funcional. A referência define a densidade e a leitura pretendidas; não exige
+copiar literalmente cada modelo ou posição.
+
+Regras para a expansão:
+
+- melhorar a base aumenta o perímetro utilizável e revela novas zonas, em vez
+  de colocar todos os edifícios desde o início;
+- cada tier mantém corredores largos entre os portões e o núcleo para o jogador,
+  zombies e navegação;
+- a expansão nunca pode criar estradas elevadas, degraus invisíveis ou pés
+  enterrados; o terreno é nivelado antes de colocar chão, muralhas e estações;
+- colliders e blockers do tier anterior são removidos antes de ativar os novos;
+- alterações ao perímetro obrigam a atualizar navegação, sockets defensivos,
+  mapa tático e zonas válidas de spawn;
+- o salto visual entre tiers deve ser claro à distância, mas acontecer em lotes
+  com orçamento de props, luzes, sombras e draw calls medido;
+- custos exatos, requisitos de nível e persistência entre ilhas/runs ficam por
+  decidir depois de um playtest do Tier 0 e do Tier 1.
+
+### Torres defensivas
+
+O jogador pode construir torres em sockets preparados junto dos acessos e no
+exterior imediato da muralha. A posição deve intercetar a horda antes de ela
+entrar no acampamento sem bloquear os próprios portões.
+
+- construção, reparação e reconstrução usam Scrap armazenado;
+- cada torre recebe dano, pode ser destruída e nunca termina a run por si só;
+- upgrades aumentam vida, dano, alcance e cadência, com mudança visual clara;
+- os níveis da torre podem exigir simultaneamente Scrap e um nível mínimo da
+  run, mantendo a progressão alinhada com a ameaça;
+- as torres entram temporariamente no grupo de alvos dos zombies, mas não criam
+  inimigos adicionais nem ultrapassam o orçamento global da horda;
+- um socket vazio, uma torre destruída e cada nível construído precisam de
+  estados visuais e prompts distintos;
+- o layout final deve permitir várias combinações defensivas sem transformar o
+  pátio central numa zona cheia de obstáculos.
+
+### Discussão pendente — interior do acampamento
+
+Antes de implementar os tiers completos é necessário decidir o que o jogador
+faz dentro da base e o que cada expansão realmente acrescenta. Questões abertas:
+
+1. quais são as estações obrigatórias: depósito, resupply, medbay, workshop,
+   controlo de rotas, construção e armazenamento de armas;
+2. que funções continuam apenas nos menus permanentes para não duplicar ARMORY
+   e skill tree dentro da run;
+3. se as estruturas aparecem em posições predefinidas por tier ou se existe uma
+   combinação de expansão autorada com construção livre em sockets;
+4. se sobreviventes/NPCs ocupam as novas zonas e se oferecem missões ou são
+   apenas vida ambiental;
+5. se o acampamento é uma zona totalmente segura ou pode sofrer ataques e
+   eventos de defesa;
+6. o que acontece quando muralhas, serviços ou torres são destruídos e quais
+   podem ser reconstruídos durante a mesma run;
+7. como funcionam resupply, depósito e upgrades quando o jogador está noutra
+   ilha ou num Field Outpost;
+8. quais os indicadores no HUD e no mapa para tier, integridade, sockets,
+   serviços e direção dos ataques;
+9. como evitar spawns dentro do perímetro e garantir corredores para hordas
+   largas nos quatro acessos;
+10. orçamento máximo de modelos, luzes, sombras, colisores e navegação para o
+    Tier 3 em Forward+.
+
+Estas questões são backlog de design. A referência visual aprova a direção da
+base final, mas não aprova ainda custos, crafting, NPCs, novos recursos ou a
+implementação integral do interior.
+
 ## Shadow Forest — controlo e sobrevivência
 
 ### Identidade
@@ -165,7 +252,9 @@ Ferramenta apenas para builds de desenvolvimento:
 3. [ ] playtest de distâncias, leitura e tempo de exploração;
 4. [x] Shadow Forest — três ninhos abatíveis, peças de guincho e reparação da
    Rope Bridge (`shadow_forest_hub.gd`, `shadow_forest_nest.gd`);
-5. [ ] High Cliffs — três relés, defesa e abertura das Ancient Ruins;
+5. [x] High Cliffs — três relés em elevações diferentes, com carga
+   interrompível, a abrir a barreira das Ancient Ruins
+   (`high_cliffs_hub.gd`, `high_cliffs_relay.gd`);
 6. [ ] Volcano Peak, fase finita e extração. A fase finita e a extração já
    existem em `run_objective.gd`, mas são disparadas pelo relógio; o plano
    quer que sejam os selos e o boss a dispará-las, e que o relógio nunca
@@ -178,6 +267,14 @@ Ferramenta apenas para builds de desenvolvimento:
   baixa visibilidade, e um objetivo que se *limpa* assenta nisso melhor do que um
   a que se chega e se carrega em F. A ponte ao lado já usa o mesmo caminho de
   dano, portanto os objetos de mundo aqui partilham o contrato.
+- **Relés carregam, não ligam.** O plano pede "ativa os relés, defende-os".
+  Um relé que ficasse pronto no instante em que se lhe toca fazia da ilha
+  "caminhar até três sítios"; só passa a ser "aguentar três sítios" porque a
+  carga demora e pode ser interrompida por dano. Um relé já online não se perde
+  — um tiro tardio não pode voltar a selar uma ilha que já foi paga.
+- **Por ligar:** a pressão de inimigos nestes objetivos ainda não existe no
+  protótipo do arquipélago, que não tem diretor de horda montado. A mecânica de
+  interrupção está pronta e testada; falta a horda que a exerce.
 - **A regra do soft-lock apanhou um bug real.** O `_collapse()` da ponte
   desativava a colisão com `set_deferred` e o `reset_bridge()` reativava-a de
   imediato: destruir e reparar dentro do mesmo frame deixava a ponte de pé, com
