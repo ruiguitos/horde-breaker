@@ -171,8 +171,15 @@ func _build_winch() -> void:
 	_winch_label.name = "WinchLabel"
 	_winch_label.position.y = 3.2
 	_winch_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_winch_label.no_depth_test = true
-	_winch_label.fixed_size = true
+	# Scales with distance and lets the terrain hide it. fixed_size keeps a
+	# label the same size on screen however far away it is, which with
+	# no_depth_test meant every label on every island was drawn at full size
+	# on top of the player, piled on each other and unreadable.
+	_winch_label.no_depth_test = false
+	_winch_label.fixed_size = false
+	_winch_label.pixel_size = 0.011
+	_winch_label.visibility_range_end = 90.0
+	_winch_label.visibility_range_end_margin = 12.0
 	_winch_label.font_size = 19
 	_winch_label.outline_size = 7
 	_winch_label.modulate = Color(1.0, 0.72, 0.2)
@@ -252,8 +259,15 @@ func _build_part_nodes(part: DawnBeachPowerCell) -> void:
 	label.name = "InfoLabel"
 	label.position.y = 1.9
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.fixed_size = true
+	# Scales with distance and lets the terrain hide it. fixed_size keeps a
+	# label the same size on screen however far away it is, which with
+	# no_depth_test meant every label on every island was drawn at full size
+	# on top of the player, piled on each other and unreadable.
+	label.no_depth_test = false
+	label.fixed_size = false
+	label.pixel_size = 0.01
+	label.visibility_range_end = 55.0
+	label.visibility_range_end_margin = 12.0
 	label.font_size = 18
 	label.outline_size = 7
 	label.modulate = Color(1.0, 0.75, 0.25)

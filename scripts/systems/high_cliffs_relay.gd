@@ -137,8 +137,15 @@ func build_visuals() -> void:
 	_label.name = "InfoLabel"
 	_label.position.y = 6.2
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.no_depth_test = true
-	_label.fixed_size = true
+	# Scales with distance and lets the terrain hide it. fixed_size keeps a
+	# label the same size on screen however far away it is, which with
+	# no_depth_test meant every label on every island was drawn at full size
+	# on top of the player, piled on each other and unreadable.
+	_label.no_depth_test = false
+	_label.fixed_size = false
+	_label.pixel_size = 0.011
+	_label.visibility_range_end = 80.0
+	_label.visibility_range_end_margin = 12.0
 	_label.font_size = 18
 	_label.outline_size = 7
 	add_child(_label)

@@ -163,6 +163,7 @@ func _run() -> void:
 	_test_shadow_forest_objective(prototype, player)
 	await _test_high_cliffs_objective(prototype, player)
 	_test_horde_director(prototype)
+	_test_world_label_legibility(prototype)
 	await physics_frame
 
 	player.global_position = Vector3(120.0, 5.0, 265.0)
@@ -601,6 +602,43 @@ func _test_horde_director(prototype: Node) -> void:
 		grouped == markers.size())
 	_check("no spawn point sits in the water (%d of %d)" % [above_water, markers.size()],
 		above_water == markers.size())
+
+
+## World labels have to shrink with distance and disappear beyond a range.
+##
+## A Label3D with fixed_size keeps the same size on screen however far away it
+## is; with no_depth_test on top of that it also draws through the terrain. Every
+## label on every island then renders at full size over the player, piled on each
+## other. That is exactly what a playtest looked like, so the settings are pinned
+## here rather than left to whoever writes the next island.
+func _test_world_label_legibility(prototype: Node) -> void:
+	var offenders: Array[String] = []
+	var checked := 0
+	for hub_name in ["DawnBeachHub", "ShadowForestHub", "HighCliffsHub"]:
+		var hub := prototype.get_node_or_null(hub_name)
+		if hub == null:
+			continue
+		for child in hub.find_children("*", "Label3D", true, false):
+			var label := child as Label3D
+			if label == null:
+				continue
+			checked += 1
+			# Two mitigations are acceptable and the islands use both: scale with
+			# distance and fade out beyond a range, or stay hidden until the
+			# player is close enough for the prompt to be for them.
+			if not label.visible:
+				continue
+			if label.fixed_size:
+				offenders.append("%s/%s keeps its size at any distance" % [hub_name, label.name])
+			elif label.visibility_range_end <= 0.0:
+				offenders.append("%s/%s never fades out" % [hub_name, label.name])
+	_check("island labels were found to check (%d)" % checked, checked > 0)
+	_check(
+		"no island label is drawn at full size from across the sea: %s" % (
+			"none" if offenders.is_empty() else ", ".join(offenders)
+		),
+		offenders.is_empty()
+	)
 
 
 func _report() -> void:

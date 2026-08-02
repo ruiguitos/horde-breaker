@@ -118,6 +118,10 @@ func _build_ruins_barrier() -> void:
 	_barrier_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_barrier_label.no_depth_test = true
 	_barrier_label.fixed_size = false
+	# A gate marker, meant to be read from across its own island but not from
+	# another one. Without a range it draws through the terrain from anywhere.
+	_barrier_label.visibility_range_end = 160.0
+	_barrier_label.visibility_range_end_margin = 24.0
 	_barrier_label.pixel_size = 0.008
 	_barrier_label.font_size = 34
 	_barrier_label.outline_size = 7

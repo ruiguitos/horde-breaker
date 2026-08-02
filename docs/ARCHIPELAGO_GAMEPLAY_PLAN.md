@@ -282,6 +282,14 @@ Ferramenta apenas para builds de desenvolvimento:
   resolvem contra o próprio `owner`, que um nó criado em runtime só tem depois
   de o `add_child` já ter corrido o `_ready` — construí-lo em código deixava-o a
   segurar dois nulos.
+- **Etiquetas de mundo: nunca `fixed_size` sem esconder por proximidade.** Um
+  `Label3D` com `fixed_size` mantém o mesmo tamanho no ecrã a qualquer distância;
+  com `no_depth_test` por cima, desenha-se ainda através do terreno. As duas
+  juntas puseram todas as etiquetas de todas as ilhas em tamanho real por cima do
+  jogador, empilhadas e ilegíveis. Duas mitigações são aceitáveis e o arquipélago
+  usa ambas: escalar com a distância mais `visibility_range_end`, ou ficar
+  escondida até o jogador chegar. `tests/test_destiny_archipelago.gd` verifica-o
+  em todas as ilhas, para a próxima não repetir o erro.
 - **A regra do soft-lock apanhou um bug real.** O `_collapse()` da ponte
   desativava a colisão com `set_deferred` e o `reset_bridge()` reativava-a de
   imediato: destruir e reparar dentro do mesmo frame deixava a ponte de pé, com
