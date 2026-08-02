@@ -1,4 +1,15 @@
-extends Node
+extends SceneTree
+
+## Melee was retired: the four melee weapons left the catalogue, the sword
+## evolution path went with them, and profiles that had bought or equipped one
+## have to come out the other side holding a firearm.
+##
+## Written first as `extends Node`, to hang off a scene. Run the way every other
+## test here is run — `--script` — Godot refused it outright with "doesn't
+## inherit from SceneTree or MainLoop", so it never executed once. Nothing failed
+## either, which is why it went unnoticed: a test that does not run is silent.
+##
+## Run:  <godot> --headless --path . --script res://tests/test_melee_retirement.gd
 
 const TEST_SAVE_PATH := "user://horde_breaker_melee_retirement_test.cfg"
 const RETIRED_IDS := [&"worn_sword", &"cleaver", &"spear", &"fire_axe"]
@@ -8,14 +19,14 @@ var _failed := 0
 var _save_manager: Node
 
 
-func _ready() -> void:
+func _initialize() -> void:
 	_run.call_deferred()
 
 
 func _run() -> void:
-	await get_tree().process_frame
+	await process_frame
 	_write_legacy_save()
-	_save_manager = get_node_or_null("/root/SaveManager")
+	_save_manager = root.get_node_or_null("/root/SaveManager")
 	if _save_manager == null:
 		_failed += 1
 		print("TEST FAIL: SaveManager autoload is unavailable")
@@ -76,7 +87,7 @@ func _run() -> void:
 func _finish() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE_PATH))
 	print("TEST: %d passed, %d failed" % [_passed, _failed])
-	get_tree().quit(1 if _failed > 0 else 0)
+	quit(1 if _failed > 0 else 0)
 
 
 func _write_legacy_save() -> void:

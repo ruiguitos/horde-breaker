@@ -6,6 +6,7 @@ const ASSETS_PATH := "res://data/terrain3d_prototype/assets/terrain_assets.tres"
 const READY_TIMEOUT_FRAMES := 900
 
 var _failures: Array[String] = []
+var _passed := 0
 
 
 func _init() -> void:
@@ -124,15 +125,20 @@ func _run() -> void:
 
 
 func _finish() -> void:
-	if _failures.is_empty():
-		print("PASS: Terrain3D prototype loaded persistent terrain, collision, props and navigation.")
-		quit(0)
-	else:
-		for failure in _failures:
-			push_error("FAIL: %s" % failure)
-		quit(1)
+	for failure in _failures:
+		push_error("FAIL: %s" % failure)
+	print("TEST: %d passed, %d failed" % [_passed, _failures.size()])
+	quit(1 if not _failures.is_empty() else 0)
 
 
 func _expect(condition: bool, description: String) -> void:
-	if not condition:
+	# Reported line by line in the same "TEST:" / "TEST FAIL:" form every other
+	# test here uses. This one only printed a single PASS at the end, so the
+	# runner that adds up the suite counted none of its checks and a failure
+	# inside it would have been a silent zero rather than a visible loss.
+	if condition:
+		_passed += 1
+		print("TEST: %s" % description)
+	else:
 		_failures.append(description)
+		print("TEST FAIL: %s" % description)
