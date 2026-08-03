@@ -99,3 +99,21 @@ fov = 70.0
 layer = 8
 
 [node name="TacticalMap" parent="TacticalMapLayer" instance=ExtResource("6_tactical_map")]
+
+[node name="DebugToolsLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="NoclipLabel" type="Label" parent="DebugToolsLayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 112.0
+offset_bottom = 158.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.58, 0.12, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.025, 0.03, 0.95)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "NOCLIP // DEBUG\nWASD MOVE  //  SPACE / CTRL HEIGHT  //  SHIFT BOOST"
+horizontal_alignment = 1

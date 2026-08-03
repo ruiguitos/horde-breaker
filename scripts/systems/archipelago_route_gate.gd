@@ -7,6 +7,7 @@ var route_data: IslandRouteData
 var destination_position := Vector3.ZERO
 var _info_label: Label3D
 var _busy := false
+var _is_unlocked := true
 
 
 func _ready() -> void:
@@ -25,7 +26,12 @@ func configure(data: IslandRouteData, destination: Vector3) -> void:
 
 
 func interact(player: Node) -> bool:
-	if _busy or route_data == null or not player is CharacterBody3D:
+	if (
+		_busy
+		or not _is_unlocked
+		or route_data == null
+		or not player is CharacterBody3D
+	):
 		return false
 	_busy = true
 	var passenger := player as CharacterBody3D
@@ -36,6 +42,15 @@ func interact(player: Node) -> bool:
 	# against two interaction events arriving in the same input dispatch.
 	_unlock_after_frame.call_deferred()
 	return true
+
+
+func set_unlocked(unlocked: bool) -> void:
+	_is_unlocked = unlocked
+	_refresh_label()
+
+
+func is_unlocked() -> bool:
+	return _is_unlocked
 
 
 func _unlock_after_frame() -> void:
@@ -70,7 +85,15 @@ func _build_label() -> void:
 func _refresh_label() -> void:
 	if _info_label == null or route_data == null:
 		return
-	_info_label.text = "%s\n[F] ENTER FLOODED TUNNEL" % route_data.display_name.to_upper()
+	var action := (
+		"[F] ENTER FLOODED TUNNEL"
+		if _is_unlocked
+		else "LOCKED // ACTIVATE ROUTE B AT CAMP"
+	)
+	_info_label.text = "%s\n%s" % [route_data.display_name.to_upper(), action]
+	_info_label.modulate = (
+		Color(0.34, 0.82, 1.0) if _is_unlocked else Color(1.0, 0.32, 0.08)
+	)
 
 
 func _on_body_entered(body: Node3D) -> void:

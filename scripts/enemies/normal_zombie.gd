@@ -35,6 +35,11 @@ const FAR_STEER_INTERVAL := 0.3
 const SIM_NAVMESH_DISTANCE := 28.0
 const SIM_FAR_DISTANCE := 60.0
 const FAR_PHYSICS_FRAME_SKIP := 2
+# Two readings that tell a failed navigation query from a real arrival: how much
+# further than its desired distance an agent has to be, and the squared length
+# below which the next path step is the agent's own position.
+const NAVIGATION_ARRIVAL_MARGIN := 0.5
+const PATH_STEP_EPSILON := 0.0001
 const SCRAP_DROP_LIFETIME_SECONDS := 25.0
 const MAX_ACTIVE_SCRAP_DROPS := 40
 const SCRAP_DROP_HEIGHT := 0.25
@@ -534,22 +539,44 @@ func _pursue_target(delta: float) -> void:
 func _refresh_steering() -> bool:
 	var navigation_map := navigation_agent.get_navigation_map()
 	if NavigationServer3D.map_get_iteration_id(navigation_map) == 0:
-		# No navmesh has ever been baked in this world. That is not a reason to
-		# stand still — it is a reason to walk straight at the target, which is
-		# what the horde already does beyond the navmesh band. Freezing here left
-		# every zombie in the archipelago rooted to the spot, because that world
-		# has no NavigationRegion3D at all.
-		var direct := _target.global_position - global_position
-		direct.y = 0.0
-		_cached_direction = direct.normalized()
-		return _cached_direction != Vector3.ZERO
+		return _steer_straight_at_target()
 	if navigation_agent.is_navigation_finished():
+		# "Finished" covers two opposite situations: the agent arrived, or it
+		# never had a navmesh under it and gave up on its first query. A world
+		# with no NavigationRegion3D still has a default navigation map that
+		# iterates, so checking the map alone does not tell them apart — the
+		# distance left to the target does.
+		if (
+			_horizontal_distance_to_target()
+			> navigation_agent.target_desired_distance + NAVIGATION_ARRIVAL_MARGIN
+		):
+			return _steer_straight_at_target()
 		_stop_horizontal_movement()
 		_cached_direction = Vector3.ZERO
 		return false
-	var next_path_position := navigation_agent.get_next_path_position()
-	next_path_position.y = global_position.y
-	_cached_direction = global_position.direction_to(next_path_position)
+	var to_next_path_position := navigation_agent.get_next_path_position() - global_position
+	to_next_path_position.y = 0.0
+	if to_next_path_position.length_squared() < PATH_STEP_EPSILON:
+		# An agent standing where no navmesh was ever baked hands back its own
+		# position as the next step. That is a query that found nothing, not a
+		# step of zero length, and it is what rooted the horde to the spot the
+		# moment it crossed into the navmesh band.
+		return _steer_straight_at_target()
+	_cached_direction = to_next_path_position.normalized()
+	return true
+
+
+## The fallback when pathing has nothing to offer: walk straight at the target,
+## which is already what the horde does beyond the navmesh band. It is not a
+## substitute for a baked navmesh — the enemy walks through what it should walk
+## around — but standing still is never the right answer.
+func _steer_straight_at_target() -> bool:
+	var to_target := _target.global_position - global_position
+	to_target.y = 0.0
+	_cached_direction = to_target.normalized()
+	if _cached_direction == Vector3.ZERO:
+		_stop_horizontal_movement()
+		return false
 	return true
 
 

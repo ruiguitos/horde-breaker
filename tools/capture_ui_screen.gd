@@ -43,7 +43,11 @@ func _capture() -> void:
 	var scene_path := String(MENU_SCENES.get(target, ARENA_SCENE))
 	if target == "shipwreck_rocks":
 		scene_path = SHIPWRECK_SCENE
-	elif target == "destiny_archipelago" or target == "destiny_archipelago_scenic":
+	elif target in [
+		"destiny_archipelago",
+		"destiny_archipelago_scenic",
+		"destiny_archipelago_dawn",
+	]:
 		scene_path = DESTINY_ARCHIPELAGO_SCENE
 	var scene_error := change_scene_to_file(scene_path)
 	if scene_error != OK:
@@ -59,8 +63,15 @@ func _capture() -> void:
 		if not _prepare_shipwreck_rocks():
 			quit(1)
 			return
-	elif target == "destiny_archipelago" or target == "destiny_archipelago_scenic":
-		if not _prepare_destiny_archipelago(target == "destiny_archipelago_scenic"):
+	elif target in [
+		"destiny_archipelago",
+		"destiny_archipelago_scenic",
+		"destiny_archipelago_dawn",
+	]:
+		if not _prepare_destiny_archipelago(
+			target == "destiny_archipelago_scenic",
+			target == "destiny_archipelago_dawn"
+		):
 			quit(1)
 			return
 	elif not MENU_SCENES.has(target):
@@ -229,7 +240,9 @@ func _prepare_shipwreck_rocks() -> bool:
 	return true
 
 
-func _prepare_destiny_archipelago(scenic_view: bool = false) -> bool:
+func _prepare_destiny_archipelago(
+	scenic_view: bool = false, dawn_view: bool = false
+) -> bool:
 	if current_scene == null or not bool(current_scene.get(&"is_ready")):
 		push_error("Destiny Archipelago capture requires its persistent terrain data.")
 		return false
@@ -239,7 +252,10 @@ func _prepare_destiny_archipelago(scenic_view: bool = false) -> bool:
 	var overview_camera := Camera3D.new()
 	overview_camera.name = "DestinyArchipelagoOverviewCamera"
 	overview_camera.far = 900.0
-	if scenic_view:
+	if dawn_view:
+		overview_camera.fov = 62.0
+		overview_camera.position = Vector3(120.0, 15.0, 432.0)
+	elif scenic_view:
 		overview_camera.fov = 62.0
 		overview_camera.position = Vector3(256.0, 112.0, 548.0)
 	else:
@@ -248,7 +264,9 @@ func _prepare_destiny_archipelago(scenic_view: bool = false) -> bool:
 		overview_camera.position = Vector3(256.0, 520.0, 256.0)
 		overview_camera.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	current_scene.add_child(overview_camera)
-	if scenic_view:
+	if dawn_view:
+		overview_camera.look_at(Vector3(120.0, 1.0, 390.0), Vector3.UP)
+	elif scenic_view:
 		overview_camera.look_at(Vector3(256.0, 0.0, 235.0), Vector3.UP)
 	overview_camera.current = true
 	return true

@@ -1349,3 +1349,89 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   streaming por ilha, zombies, boss ou save. A captura confirma a leitura macro,
   mas ainda falta playtest humano ao nível do solo e benchmark formal de FPS,
   draw calls e VRAM. Mantém-se o aviso de depreciação conhecido do Terrain3D.
+
+## Dawn Beach vertical slice e noclip de desenvolvimento (2026-08-02)
+
+- [x] `docs/ARCHIPELAGO_GAMEPLAY_PLAN.md` guarda a direção aprovada para runs de
+  três ilhas, função e desbloqueio de cada bioma, field outposts, progressão,
+  fase final finita e alvos de duração antes de aumentar o mapa inteiro.
+- [x] A action `toggle_noclip` usa `Mouse 4` e só é aceite numa build de
+  desenvolvimento. O jogador atravessa geometria com `WASD`, sobe/desce com
+  `Space`/`Ctrl` e acelera com `Shift`; colisão do corpo e da câmara, armas,
+  interação, dano e seleção como alvo ficam suspensos. Um indicador permanente
+  identifica o modo e a saída procura chão físico ou a última posição segura.
+- [x] Dawn Beach recebeu um acampamento de expedição próprio, composto com onze
+  modelos CC0 já existentes e um núcleo/terminais leves. Três células de energia
+  interativas estão distribuídas acima da água e alimentam a escolha de rota.
+- [x] Shallow Reef e Sea Cave começam bloqueadas. Depois das três células, o
+  jogador ativa um dos terminais do acampamento: Route A remove uma barreira
+  física no recife; Route B desbloqueia o gate da gruta. A outra rota fica
+  explicitamente offline e a escolha reinicia ao reabrir o protótipo.
+- [x] O passe mantém o orçamento visual medido em 177 props e não altera os
+  quatro recursos Terrain3D. A captura `destiny_archipelago_dawn` confirmou o
+  acampamento, células, barreira e HUD em Vulkan Forward+ na RX 590.
+- [x] Validação: `test_destiny_archipelago` passou **118 verificações**,
+  incluindo movimento/altura do noclip, restauro de colisões, proteção contra
+  dano, células, proximidade, as duas escolhas e travessia da gruta;
+  `test_shipwreck_rocks` manteve **31/31**, `test_arena_wiring` **23/23** e
+  `test_balance_and_weapons` **53/53** — **225 verificações, zero falhas**. A
+  importação completa no editor e o arranque headless da cena principal também
+  terminaram sem erros de script.
+- Limitações: este acampamento ainda é apenas o hub de energia/rotas do
+  protótipo; não está ligado ao depósito de Scrap, resupply, torres, zombies,
+  diretor de horda ou save da run principal. O noclip ainda requer playtest
+  manual com `Mouse 4`. Mantém-se o aviso conhecido de depreciação do Terrain3D.
+
+## Direção de expansão da base de Dawn Beach (2026-08-02)
+
+- [x] O plano do arquipélago regista uma progressão física da base em quatro
+  tiers: Emergency Core, Secured Camp, Operational Base e Fortified Base. A run
+  começa apenas com o núcleo e serviços mínimos; cada upgrade aumenta a área,
+  o perímetro, as funções e os sockets defensivos visíveis no mundo.
+- [x] A imagem aérea fornecida nesta decisão é a referência do Tier 3: muralha
+  ampla aproximadamente octogonal, vários acessos, núcleo e pátio central,
+  estações junto ao interior do perímetro, contentores, área médica, água,
+  energia, comunicações, iluminação e defesa exterior. É uma direção visual,
+  não uma obrigação de copiar cada prop.
+- [x] As torres ficam previstas como construções exteriores que usam Scrap,
+  recebem dano, podem ser reparadas/reconstruídas e ganham vida, dano, alcance,
+  cadência e visuais por nível, sempre dentro do orçamento global da horda.
+- [x] Ficou criado um backlog explícito para discutir o interior: estações,
+  relação com ARMORY/skill tree, NPCs, segurança, ataques, destruição,
+  persistência entre ilhas, UI, spawns, navegação e orçamento Forward+.
+- Esta passagem altera apenas documentação. Custos, crafting, NPCs e os tiers
+  físicos ainda não estão aprovados para implementação; nenhum nó ou sistema de
+  gameplay foi alterado.
+
+## A horda voltou a andar dentro da banda de navmesh (2026-08-02)
+
+- [x] Causa medida: dentro dos 28 m (`SIM_NAVMESH_DISTANCE`) o inimigo pede a
+  direção ao `NavigationAgent3D`. Num mundo sem qualquer `NavigationRegion3D`, o
+  agente devolve a **própria posição** como próximo ponto do caminho, o que dava
+  uma direção de comprimento zero — e o zombie parava exatamente ao cruzar os
+  28 m. O rastreio mostrou-os a caminhar bem a 33–38 m e a congelar a ~28 m,
+  sem parede e com chão (`floor=true`, `wall=false`).
+- [x] O guarda anterior (`map_get_iteration_id() == 0`) nunca disparava: o mapa
+  de navegação por omissão existe e itera mesmo sem uma única região baked
+  (`map_iter=1` medido). Ficou substituído por duas leituras que distinguem uma
+  consulta falhada de uma chegada real — a distância que falta ao alvo, e um
+  passo de caminho de comprimento praticamente nulo.
+- [x] `_steer_straight_at_target()` concentra o recurso alternativo: andar a
+  direito para o alvo, que é o que a horda já faz fora da banda.
+- [x] Validação: `test_destiny_archipelago` passou a **184 verificações**, com
+  dois testes novos — um zombie dentro da banda fecha distância sobre o jogador
+  (18,0 m → 13,0 m em 2 s, contra 18,0 m → 17,9 m sem a correção) e o andaime do
+  protótipo segue `started_from_menu`. Sem regressões: `test_gridmap_navigation`
+  15/15, `test_horde_and_pickups` 27/27, `test_enemy_grounding` 6/6,
+  `test_horde_performance` 7/7, `test_horde_spawn_budget` 7/7, `test_five_phases`
+  37/37, `test_arena_wiring` 23/23, `test_melee_retirement` 13/13 e
+  `test_balance_and_weapons` 53/53.
+- [x] Confirmado por medição que o andaime do protótipo (leitura de estado à
+  esquerda e grafo de rotas à direita) já fica escondido no caminho do menu:
+  arrancar pelo menu e carregar em Play deixa `PrototypeUI.visible = false`. O
+  teste novo fixa esse comportamento nos dois sentidos.
+- Limitações: isto é um recurso alternativo, não um substituto. O arquipélago
+  continua sem navegação baked, por isso a horda atravessa o que devia contornar
+  e ainda encalha em barreiras — um zombie colocado atrás do bloqueador da
+  Route A fica parado contra ele. Uma `NavigationRegion3D` baked sobre as ilhas
+  Terrain3D continua em dívida.

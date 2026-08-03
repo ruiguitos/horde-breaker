@@ -138,6 +138,15 @@ os modelos CC0 que já existem no projeto.
   grafo e quatro ilhas ligadas num protótipo Terrain3D separado.
 - [x] Validar duas escolhas no hub e convergência na ilha final: recife raso,
   gruta inundada, ponte destrutível e ruínas físicas.
+- [x] Guardar o plano de gameplay por ilha e criar o vertical slice de Dawn
+  Beach: três células de energia, acampamento de expedição, terminais A/B,
+  bloqueio físico da rota não escolhida e noclip de desenvolvimento em Mouse 4.
+- [ ] Implementar a expansão física do acampamento de Dawn Beach por tiers:
+  começar apenas com o núcleo, ampliar perímetro e serviços com upgrades e
+  terminar na fortaleza da referência visual, incluindo sockets para torres.
+- [ ] Fechar as decisões do interior do acampamento — estações, segurança,
+  destruição/reconstrução, NPCs, construção livre, UI e orçamento de render —
+  antes de produzir todos os tiers.
 - [ ] Adaptar mapa tático, persistência de descoberta e diretor de horda à ilha ativa.
 - [ ] Reintroduzir um único kit visual na ilha piloto e medir FPS/draw calls.
 

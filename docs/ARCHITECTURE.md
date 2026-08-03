@@ -59,6 +59,11 @@ Forward+), GDScript tipado, sem C#.
   regiões Terrain3D. Constrói Dawn Beach, Shadow Forest, High Cliffs e Volcano
   Peak, acompanha descoberta em memória e expõe as rotas A–D sem tocar no save,
   streaming ou diretor de horda da arena principal.
+- `dawn_beach_hub.gd`, `dawn_beach_power_cell.gd` e
+  `dawn_route_terminal.gd` — vertical slice da ilha inicial. O hub distribui
+  três células interativas por Dawn Beach e mantém Shallow Reef e Sea Cave
+  bloqueadas até o jogador alimentar e escolher um dos dois terminais. Route A
+  usa uma barreira física; Route B reutiliza o estado bloqueado do gate da gruta.
 - `archipelago_route_gate.gd` representa a travessia curta da gruta inundada;
   `destructible_route_bridge.gd` fornece uma ponte física com 400 HP;
   `archipelago_graph_map.gd` desenha o grafo dirigido e destaca ilhas visitadas.
@@ -111,6 +116,10 @@ Forward+), GDScript tipado, sem C#.
   visual, `VisualRoot` (modelo + `WeaponPivot`), câmara ao ombro
   (`SpringArm3D`), `InteractionArea` (mask 8), mapa tático em CanvasLayer.
   `renegade.tscn`/`medic.tscn` herdam e trocam o modelo (`ClassModel`).
+- `player.gd` inclui um noclip apenas para builds de desenvolvimento, acionado
+  pela action `toggle_noclip` (`Mouse 4`). Suspende colisão, gravidade, combate,
+  interação e targeting; `WASD`/`Space`/`Ctrl`/`Shift` controlam o voo e a saída
+  procura chão físico antes de usar a última posição segura.
 - `imported_model_animation.gd` — componente único de animação por nomes de
   clips: locomoção (idle/walk/run/crouch/airborne) com postura de arma de fogo e,
   por sinais do corpo:

@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 signal health_changed(current_health: float, maximum_health: float)
 signal died
+signal noclip_changed(enabled: bool)
 
 @export_range(1.0, 1000.0, 1.0) var maximum_health: float = 100.0
 @export_range(0.1, 20.0, 0.1) var move_speed: float = 4.0
@@ -15,12 +16,17 @@ signal died
 @export_range(0.0, 100.0, 0.5) var health_regeneration_rate: float = 1.0
 @export_range(0.0, 30.0, 0.5) var health_regeneration_delay: float = 6.0
 @export_range(0.0, 0.9, 0.01) var damage_reduction: float = 0.0
+@export_range(1.0, 100.0, 1.0) var noclip_speed: float = 18.0
+@export_range(1.0, 10.0, 0.5) var noclip_boost_multiplier: float = 3.0
 
 @onready var camera: Camera3D = %Camera3D
 @onready var visual_root: Node3D = %VisualRoot
 @onready var interaction_area: Area3D = %InteractionArea
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var camera_pivot: Node3D = $CameraPivot
+@onready var spring_arm: SpringArm3D = %SpringArm3D
+@onready var noclip_label: Label = %NoclipLabel
+@onready var weapon_controller: Node = $VisualRoot/WeaponPivot
 
 const KNOCKBACK_DECAY := 9.0
 
@@ -37,6 +43,11 @@ var _standing_collision_y: float
 var _standing_camera_y: float
 var _gameplay_input_enabled: bool = true
 var _build_mode_active: bool = false
+var _noclip_enabled: bool = false
+var _last_safe_position := Vector3.ZERO
+var _collision_layer_before_noclip: int
+var _collision_mask_before_noclip: int
+var _spring_arm_mask_before_noclip: int
 # Heavy weapons slow the operative down while equipped. Kept apart from
 # move_speed so the run upgrades can keep scaling the base value freely.
 var _weapon_speed_multiplier: float = 1.0
@@ -73,9 +84,20 @@ func _ready() -> void:
 		_standing_height = capsule.height
 	_standing_collision_y = collision_shape.position.y
 	_standing_camera_y = camera_pivot.position.y
+	_last_safe_position = global_position
+	noclip_label.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if (
+		OS.is_debug_build()
+		and event.is_action_pressed("toggle_noclip")
+	):
+		set_noclip_enabled(not _noclip_enabled)
+		get_viewport().set_input_as_handled()
+		return
+	if _noclip_enabled:
+		return
 	if not _gameplay_input_enabled:
 		return
 	if event.is_action_pressed("jump"):
@@ -94,6 +116,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _noclip_enabled:
+		_update_noclip_movement(delta)
+		return
 	_time_since_damage += delta
 	_regenerate_health(delta)
 	if not _gameplay_input_enabled:
@@ -158,6 +183,80 @@ func _physics_process(delta: float) -> void:
 		)
 
 	move_and_slide()
+	if is_on_floor():
+		_last_safe_position = global_position
+
+
+func set_noclip_enabled(enabled: bool) -> void:
+	if enabled == _noclip_enabled:
+		return
+	if enabled and not OS.is_debug_build():
+		return
+	_noclip_enabled = enabled
+	velocity = Vector3.ZERO
+	_jump_requested = false
+	_is_sprinting = false
+	noclip_label.visible = enabled
+	if enabled:
+		_last_safe_position = global_position
+		_collision_layer_before_noclip = collision_layer
+		_collision_mask_before_noclip = collision_mask
+		_spring_arm_mask_before_noclip = spring_arm.collision_mask
+		collision_layer = 0
+		collision_mask = 0
+		spring_arm.collision_mask = 0
+		weapon_controller.process_mode = Node.PROCESS_MODE_DISABLED
+		remove_from_group(&"enemy_target")
+	else:
+		collision_layer = _collision_layer_before_noclip
+		collision_mask = _collision_mask_before_noclip
+		spring_arm.collision_mask = _spring_arm_mask_before_noclip
+		weapon_controller.process_mode = Node.PROCESS_MODE_INHERIT
+		if not _is_dead and not is_in_group(&"enemy_target"):
+			add_to_group(&"enemy_target")
+		_place_after_noclip()
+	noclip_changed.emit(enabled)
+
+
+func is_noclip_enabled() -> bool:
+	return _noclip_enabled
+
+
+func _update_noclip_movement(delta: float) -> void:
+	var input_direction := Input.get_vector(
+		"move_left", "move_right", "move_forward", "move_backward"
+	)
+	var movement_direction := _get_camera_relative_direction(input_direction)
+	var vertical_direction := Input.get_axis("crouch", "jump")
+	var direction := movement_direction + Vector3.UP * vertical_direction
+	if direction.length_squared() > 1.0:
+		direction = direction.normalized()
+	var speed := noclip_speed
+	if Input.is_action_pressed("sprint"):
+		speed *= noclip_boost_multiplier
+	global_position += direction * speed * delta
+	velocity = Vector3.ZERO
+
+
+func _place_after_noclip() -> void:
+	var space_state := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(
+		global_position + Vector3.UP * 2.0,
+		global_position + Vector3.DOWN * 250.0,
+		_collision_mask_before_noclip,
+		[get_rid()]
+	)
+	query.collide_with_areas = false
+	var result := space_state.intersect_ray(query)
+	if result.is_empty():
+		global_position = _last_safe_position
+		return
+	var floor_offset := maxf(_standing_height * 0.5, 1.0) + 0.05
+	global_position = Vector3(
+		global_position.x,
+		(result["position"] as Vector3).y + floor_offset,
+		global_position.z
+	)
 
 
 func set_gameplay_input_enabled(enabled: bool) -> void:
@@ -205,7 +304,7 @@ func add_ammunition(amount: int) -> int:
 
 
 func take_damage(amount: float) -> void:
-	if amount <= 0.0 or _is_dead:
+	if amount <= 0.0 or _is_dead or _noclip_enabled:
 		return
 
 	var reduced_amount := amount * (1.0 - clampf(damage_reduction, 0.0, 0.9))

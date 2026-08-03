@@ -108,7 +108,10 @@ a animação de morte e o cadáver desaparece pouco depois.
   losango: Dawn Beach funciona como hub; Shallow Reef conduz a Shadow Forest e
   Sea Cave conduz a High Cliffs; Rope Bridge e Ancient Ruins convergem em
   Volcano Peak, a futura arena de boss. As quatro ilhas têm `IslandData` próprio
-  e um mapa esquemático em runtime, mas continuam fora da run principal.
+  e um mapa esquemático em runtime, mas continuam fora da run principal. Dawn
+  Beach contém agora um primeiro loop jogável: recuperar três células de
+  energia no terreno, regressar ao acampamento e ativar apenas Route A ou Route
+  B; a passagem não escolhida permanece fisicamente bloqueada durante a sessão.
 
 ## Acampamento
 
@@ -117,6 +120,12 @@ a animação de morte e o cadáver desaparece pouco depois.
   compra reparações e melhorias.
 - **Melhorias da base** (por partida, compradas nos pedestais junto ao núcleo):
   Resupply Rate, Resupply Range e Scavenging (+% Scrap), 3 níveis cada.
+- **Expansão física por tiers planeada para Dawn Beach**: a run começa apenas
+  com o núcleo e serviços mínimos; upgrades aumentam o perímetro, abrem zonas
+  funcionais e acrescentam sockets defensivos até chegar a uma fortaleza ampla.
+  O layout final segue a referência visual aprovada em 2026-08-02, mantendo um
+  pátio central livre e estações junto da muralha. Custos e conteúdo interior
+  ainda precisam de discussão e playtest antes da implementação.
 - **3 torres defensivas exteriores**, junto aos acessos norte, oeste e este.
   São opcionais, disparam automaticamente e podem receber dano, ser reparadas
   ou reconstruídas com Scrap armazenado.
@@ -174,7 +183,8 @@ Menu principal, seleção de classes (com mastery), `ARMORY`, skill tree, defini
 vida, munição + arma, faixa de ameaça, Scrap, feed de mensagens. Mapa tático
 (`Tab`): costa e mar, caminhos, landmarks, setores terrestres recortados,
 visitados, loot, POIs, inimigos e bússola. FPS overlay (`F3`) com métricas de
-streaming.
+streaming. Em builds de desenvolvimento, `Mouse 4` alterna um noclip para
+playtest do mapa; a ferramenta nunca fica disponível numa build final.
 
 ## Princípios de design
 

@@ -57,7 +57,26 @@ func _ready() -> void:
 	_target_fullscreen = bool(
 		_config.get_value("display", "fullscreen", DEFAULT_FULLSCREEN)
 	)
+	# The canvas has to follow the window however the window changes size, not
+	# only when this menu changes it. Dragging a corner, the editor's embedded
+	# game view, a tiling window manager and a monitor change all resize the
+	# window behind our back; without this the canvas stayed pinned to the last
+	# resolution chosen here and the interface was drawn for a viewport that no
+	# longer existed — overflowing off all four edges.
+	var window := get_window()
+	if window != null and not window.size_changed.is_connected(_on_window_size_changed):
+		window.size_changed.connect(_on_window_size_changed)
 	call_deferred(&"_refresh_display")
+
+
+func _on_window_size_changed() -> void:
+	var window := get_window()
+	if window == null or _target_fullscreen:
+		return
+	# Only the canvas is touched here. Writing the new size back to the config
+	# would let a stray drag overwrite the resolution the player picked.
+	if window.size.x > 0 and window.size.y > 0:
+		_apply_content_scale(window, window.size)
 
 
 func is_fullscreen() -> bool:

@@ -5,7 +5,13 @@ const DATA_PATH := "res://data/archipelagos/destiny_archipelago.tres"
 const REGION_DIRECTORY := "res://data/destiny_archipelago/regions"
 const ASSET_PATH := "res://data/destiny_archipelago/assets/terrain_assets.tres"
 const DESIGN := preload("res://scripts/systems/destiny_archipelago_design.gd")
+const ZOMBIE_SCRIPT := preload("res://scripts/enemies/normal_zombie.gd")
 const READY_TIMEOUT_FRAMES := 900
+# Far enough that the zombie is pursuing rather than attacking, close enough to
+# be inside the band where it asks its NavigationAgent3D for a direction.
+const NAVMESH_BAND_TEST_DISTANCE := 18.0
+# Two seconds of walking at the slowest zombie speed covers well over this.
+const NAVMESH_BAND_MINIMUM_APPROACH := 2.0
 
 var _passed := 0
 var _failed := 0
@@ -163,8 +169,10 @@ func _run() -> void:
 	_test_shadow_forest_objective(prototype, player)
 	await _test_high_cliffs_objective(prototype, player)
 	_test_horde_director(prototype)
+	await _test_horde_walks_without_a_navmesh(prototype, player)
 	_test_world_label_legibility(prototype)
 	_test_playable_run(prototype)
+	_test_prototype_overlays(prototype)
 	await physics_frame
 
 	player.global_position = Vector3(120.0, 5.0, 265.0)
@@ -603,6 +611,78 @@ func _test_horde_director(prototype: Node) -> void:
 		grouped == markers.size())
 	_check("no spawn point sits in the water (%d of %d)" % [above_water, markers.size()],
 		above_water == markers.size())
+
+
+## The horde has to keep walking once it enters the navmesh band.
+##
+## The archipelago has no NavigationRegion3D at all, and a NavigationAgent3D with
+## no navmesh under it hands its own position back as the next path step. Reading
+## that as a step of zero length froze every zombie the instant it crossed the
+## band, which a playtest saw as a horde standing still at arm's length. The
+## direct-steering fallback is not a substitute for a baked navmesh — the enemy
+## walks through what it should walk around — but standing still is never right.
+func _test_horde_walks_without_a_navmesh(prototype: Node, player: CharacterBody3D) -> void:
+	var director := prototype.get_node("HordeDirector")
+	var zombie_scene := director.get(&"normal_zombie_scene") as PackedScene
+	_check("the director carries a normal zombie scene", zombie_scene != null)
+	if zombie_scene == null:
+		return
+	player.global_position = DESIGN.player_position_on_land(DESIGN.PLAYER_START)
+	await physics_frame
+	var zombie := zombie_scene.instantiate() as CharacterBody3D
+	prototype.get_node("Enemies").add_child(zombie)
+	# From the beach side. Inland of the player is the Route A blocker, and a
+	# zombie stopped by a wall would prove nothing about its steering.
+	zombie.global_position = DESIGN.player_position_on_land(
+		DESIGN.PLAYER_START + Vector3(0.0, 0.0, NAVMESH_BAND_TEST_DISTANCE)
+	)
+	await physics_frame
+
+	var agent := zombie.get_node("%NavigationAgent3D") as NavigationAgent3D
+	_check(
+		"the archipelago still has no baked navmesh to path over",
+		NavigationServer3D.map_get_regions(agent.get_navigation_map()).is_empty()
+	)
+	var start_distance := zombie.global_position.distance_to(player.global_position)
+	_check(
+		"the test zombie starts inside the navmesh band (%.1f m)" % start_distance,
+		start_distance < ZOMBIE_SCRIPT.SIM_NAVMESH_DISTANCE
+	)
+	for _frame in 120:
+		await physics_frame
+	var end_distance := zombie.global_position.distance_to(player.global_position)
+	_check(
+		"a zombie inside the navmesh band closes on the player (%.1f m -> %.1f m)"
+			% [start_distance, end_distance],
+		end_distance < start_distance - NAVMESH_BAND_MINIMUM_APPROACH
+	)
+	zombie.queue_free()
+	await physics_frame
+
+
+## The status readout and the route graph belong to opening this scene straight
+## in the editor, where that scaffolding is the point. In a run they cover a
+## quarter of the screen with what the HUD already carries.
+func _test_prototype_overlays(prototype: Node) -> void:
+	var overlays := prototype.get_node_or_null("PrototypeUI") as CanvasLayer
+	_check("the prototype scaffolding sits on its own layer", overlays != null)
+	if overlays == null:
+		return
+	# Reached through the tree rather than by name: a --script run compiles this
+	# file before the autoloads are registered, so only their constants resolve.
+	var game_manager := root.get_node("/root/GameManager")
+	_check(
+		"opening the scene directly keeps the prototype scaffolding",
+		overlays.visible and not bool(game_manager.get(&"started_from_menu"))
+	)
+	game_manager.set(&"started_from_menu", true)
+	prototype.call(&"_configure_prototype_ui")
+	_check(
+		"starting a run from the menu hides the prototype scaffolding",
+		not overlays.visible
+	)
+	game_manager.set(&"started_from_menu", false)
+	prototype.call(&"_configure_prototype_ui")
 
 
 ## World labels have to shrink with distance and disappear beyond a range.
