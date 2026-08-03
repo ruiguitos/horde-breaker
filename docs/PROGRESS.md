@@ -1435,3 +1435,25 @@ do utilizador; Mixamo e armas externas continuam parqueados.
   e ainda encalha em barreiras — um zombie colocado atrás do bloqueador da
   Route A fica parado contra ele. Uma `NavigationRegion3D` baked sobre as ilhas
   Terrain3D continua em dívida.
+
+## Referência do projeto derivada do código (2026-08-03)
+
+- [x] `docs/PROJECT_REFERENCE.md` responde numa só página a o que é o jogo, o
+  que tem de jogabilidade e o que existe em código. Foi escrito a partir do
+  repositório, não dos documentos anteriores, e todos os números são medidos.
+- [x] Dimensão medida: **150 ficheiros GDScript, 28 373 linhas**, 71 cenas,
+  39 recursos `.tres`, 7 shaders próprios, 456 modelos CC0 e 121 commits.
+  Godot 4.7 mono em Forward+, **zero ficheiros C#**, um único addon (Terrain3D
+  1.0.2).
+- [x] Suite completa corrida para o efeito: **25 ficheiros de teste mais dois
+  benchmarks, 901 verificações, zero falhas**.
+- [x] O documento regista três divergências entre a documentação e o código:
+  o `GDD` ainda descreve o arquipélago como estando fora da run principal
+  quando `GameManager.RUN_SCENE` já aponta para lá; o `GDD` descreve a skill
+  tree como 36 nós em 7 tiers quando o código tem 54 nós em 5 tiers com níveis
+  mínimos 2/5/9/14/20; e o `OVERVIEW.md` continua parado a 2026-07-30.
+- [x] Também regista a dívida técnica conhecida: sem navegação baked, o mapa
+  tático a desenhar o mundo antigo, Volcano Peak ainda a não fechar a run e as
+  duas regras de grounding em paralelo.
+- Esta passagem altera apenas documentação; nenhum nó, cena ou sistema de
+  gameplay foi tocado.
