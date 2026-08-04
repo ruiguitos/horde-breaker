@@ -13,6 +13,10 @@ extends SceneTree
 
 const DESIGN := preload("res://scripts/systems/destiny_archipelago_design.gd")
 const DEFAULT_OUTPUT := "res://data/destiny_archipelago/height_reference.csv"
+## The surface pair the terrain paints at each point, exported alongside the
+## heights: a port that gets the shape right and the surfaces wrong produces an
+## archipelago where the beaches are stone and the volcano is grass.
+const SURFACE_OUTPUT := "res://data/destiny_archipelago/surface_reference.csv"
 ## Step over the 512 m terrain. 16 m gives 33x33 samples: enough to catch a
 ## wrong weight function anywhere, small enough to read.
 const GRID_STEP := 16.0
@@ -68,15 +72,40 @@ func _run() -> void:
 			var z := float(grid_z) * GRID_STEP
 			lines.append(_sample_line("grid", x, z))
 
-	var file := FileAccess.open(output_path, FileAccess.WRITE)
-	if file == null:
-		push_error("Could not write %s: %s" % [output_path, FileAccess.get_open_error()])
+	if not _write(output_path, lines):
 		quit(1)
 		return
+	print("Wrote %d height samples to %s" % [lines.size() - 1, output_path])
+
+	var surface_lines := PackedStringArray()
+	surface_lines.append("name,x,z,base,overlay,blend")
+	for entry in NAMED_POINTS:
+		surface_lines.append(_surface_line(String(entry["name"]), entry["x"], entry["z"]))
+	for grid_z in steps + 1:
+		for grid_x in steps + 1:
+			surface_lines.append(
+				_surface_line("grid", float(grid_x) * GRID_STEP, float(grid_z) * GRID_STEP)
+			)
+	if not _write(SURFACE_OUTPUT, surface_lines):
+		quit(1)
+		return
+	print("Wrote %d surface samples to %s" % [surface_lines.size() - 1, SURFACE_OUTPUT])
+	quit()
+
+
+func _write(path: String, lines: PackedStringArray) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("Could not write %s: %s" % [path, FileAccess.get_open_error()])
+		return false
 	file.store_string("\n".join(lines) + "\n")
 	file.close()
-	print("Wrote %d samples to %s" % [lines.size() - 1, output_path])
-	quit()
+	return true
+
+
+func _surface_line(sample_name: String, x: float, z: float) -> String:
+	var pair := DESIGN.get_surface_pair_at(x, z)
+	return "%s,%.4f,%.4f,%d,%d,%d" % [sample_name, x, z, pair.x, pair.y, pair.z]
 
 
 func _sample_line(sample_name: String, x: float, z: float) -> String:
